@@ -2,11 +2,13 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Searching Company for the default period
+# Searching for the default period
 GET        /v1/records/:id                                    controllers.v1.AdminDataController.lookup(period = null, id)
+GET        /v1/scala/records/:id                              controllers.v1.AdminDataControllerScala.lookup(period: Option[String], id)
 
-# Searching Company for a specific period
+# Searching for a specific period
 GET        /v1/periods/:period/records/:id                    controllers.v1.AdminDataController.lookup(period, id)
+GET        /v1/scala/periods/:period/records/:id              controllers.v1.AdminDataControllerScala.lookup(period: Option[String], id)
 
 # Route for health check information (in JSON).
 GET        /health                                             controllers.HealthController.health
