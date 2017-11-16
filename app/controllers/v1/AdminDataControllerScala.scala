@@ -60,7 +60,7 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   }
 
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.warn(s"Lookup with period [$period] for id [$id]")
+    logger.info(s"Lookup with period [$period] for id [$id]")
 
     // http://appliedscala.com/blog/2016/scalaz-disjunctions/
     // http://eed3si9n.com/learning-scalaz/Either.html
@@ -75,7 +75,7 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
     val cacheKey = createCacheKey(v)
     cache.get[AdminData](cacheKey) match {
       case Some(data) => {
-        logger.warn(s"Returning cached data for cache key: $cacheKey")
+        logger.info(s"Returning cached data for cache key: $cacheKey")
         Ok(Json.toJson(data)).future
       }
       case None => getAdminData(v, cacheKey)
@@ -105,7 +105,7 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   }).toCompletableFuture.get)
 
   def setCache(cacheKey: String, data: AdminData, duration: Duration): Unit = {
-    logger.warn(s"Setting cache for record with id [${data.getId}] for $duration")
+    logger.debug(s"Setting cache for record with id [${data.getId}] for $duration")
     cache.set(cacheKey, data, duration)
   }
 

@@ -23,7 +23,7 @@ class XResponseTimeHeader @Inject() (implicit val mat: Materializer) extends Fil
       val endTime = System.currentTimeMillis
       val responseTime = endTime - startTime
 
-      logger.warn(s"${requestHeader.method} ${requestHeader.uri} took ${responseTime}ms and returned ${result.header.status}")
+      logger.info(s"${requestHeader.method} ${requestHeader.uri} took ${responseTime}ms and returned ${result.header.status}")
 
       result.withHeaders(
         "X-Response-Time" -> responseTime.toString,
