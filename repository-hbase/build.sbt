@@ -36,6 +36,9 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
 
 
 lazy val devDeps: Seq[ModuleID] = Seq(
+  // scala-date
+  "com.github.nscala-time"  %%  "nscala-time"                   % "2.16.0",
+
   // Akka
   "com.typesafe.akka"       %% "akka-actor"                     % "2.5.6",
   "com.typesafe.akka"       %% "akka-testkit"                   % "2.5.6"                 % Test,

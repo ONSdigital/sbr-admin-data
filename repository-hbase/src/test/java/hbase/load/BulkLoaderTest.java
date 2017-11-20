@@ -59,7 +59,7 @@ public class BulkLoaderTest extends AbstractHBaseIT {
         CompletionStage<Optional<AdminData>> company = repository.lookup(TEST_PERIOD, "04375380");
         assertTrue("No company registration found", company.toCompletableFuture().get().isPresent());
 
-        assertEquals("No company registration found", "04375380", company.toCompletableFuture().get().get().getId());
+        assertEquals("No company registration found", "04375380", company.toCompletableFuture().get().get().id());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class BulkLoaderTest extends AbstractHBaseIT {
         CompletionStage<Optional<AdminData>> payeReturn = repository.lookup(TEST_PERIOD, "8878574");
         assertTrue("No PAYE record found", payeReturn.toCompletableFuture().get().isPresent());
 
-        assertEquals("No PAYE record found", "8878574", payeReturn.toCompletableFuture().get().get().getId());
+        assertEquals("No PAYE record found", "8878574", payeReturn.toCompletableFuture().get().get().id());
     }
 
     @Test
@@ -89,7 +89,7 @@ public class BulkLoaderTest extends AbstractHBaseIT {
         CompletionStage<Optional<AdminData>> vatReturn = repository.lookup(TEST_PERIOD, "808281648666");
         assertTrue("No VAT record found", vatReturn.toCompletableFuture().get().isPresent());
 
-        assertEquals("No VAT record found", "808281648666", vatReturn.toCompletableFuture().get().get().getId());
+        assertEquals("No VAT record found", "808281648666", vatReturn.toCompletableFuture().get().get().id());
     }
 
     private int loadData(String[] args) throws Exception {
