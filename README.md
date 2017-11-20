@@ -55,8 +55,7 @@ When running with an in memory database a csv file will be loaded on startup. To
 | Environment Variable | Default Value                  | Valid Values                                         |
 |----------------------|--------------------------------|------------------------------------------------------|
 | csv.file             | conf/sample/201706/ch-data.csv | path to csv file to load                             | 
-| csv.header.string    | companyname                    | string to be found in the header row of the csv file |
-| csv.header.string    |                                | comma separated column headings                      |
+| csv.header.string    |                                | string to be found in the header row of the csv file |
 
 ### Running the API (database.in.memory = false)
 
@@ -66,6 +65,39 @@ To run against a local HBase instance set the in-memory option to false
 |----------------------|--------------------------------|------------------------------------------------------|
 | database.in.memory   | true                           | false                                                |
 | hbase.table          | admin_data                     | any valid HBase table name                           |
+
+## Loading Data
+
+### Physical HBase Instance(database.in.memory = false)
+
+To load data into a physical HBase instance
+
+
+| Environment Variable | Default Value                  | Valid Values                                         |
+|----------------------|--------------------------------|------------------------------------------------------|
+| database.in.memory   | true                           | false                                                |
+| hbase.conf.dir       |                                | path to dir containing hbase-site.xml                |
+| csv.header.string    |                                | string to be found in the header row of the csv file |
+
+Syntax (direct load)
+```shell
+sbt repository-hbase/"run-main hbase.load.BulkLoader {tablename} {period} {file}.csv"
+```
+
+Syntax (load via HFile)
+```shell
+sbt repository-hbase/"run-main hbase.load.BulkLoader {tablename} {period} {file}.csv {hfiledir}"
+```
+
+
+Example
+```shell
+sbt -Ddatabase.in.memory=false
+    -Dcsv.header.string=companyname
+    -Dhbase.conf.dir=/Users/myuser/hbase/conf
+    repository-hbase/"run-main hbase.load.BulkLoader mytable 201706 /Users/myuser/data/ch-data.csv"
+```
+
 
 #### LocalHBase Setup
 
