@@ -1,48 +1,86 @@
-//import com.github.sbt.jacoco.JacocoPlugin.jacoco
+import com.typesafe.config.ConfigFactory
 
-name := "sbr-admin-data"
+/**
+  * APP CONFIG
+  */
+Common.applicationConfig := {
+  val conf = ConfigFactory.parseFile((resourceDirectory in Compile).value / "application.conf").resolve()
+  val artifactoryConf = conf.getConfig("artifactory")
+  Map (
+    "publishTrigger" -> artifactoryConf.getBoolean("publish-init").toString,
+    "artifactoryAddress" -> artifactoryConf.getString("publish-repository"),
+    "artifactoryHost" -> artifactoryConf.getString("host"),
+    "artifactoryUser" -> artifactoryConf.getString("user"),
+    "artifactoryPassword" -> artifactoryConf.getString("password")
+  )
+}
 
-lazy val commonSettings = Seq(
-  organization := "uk.gov.ons",
-  version := "1.0",
-  scalaVersion := "2.11.8",
-  resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+
+/**
+  * SETTINGS AND CONFIGURATION
+  */
+lazy val initExec: Seq[Def.Setting[_]] = Seq(
+  crossPaths := false,
+  parallelExecution := false,
+  // Java heap memory memory allocation - lots of deps
+  javaOptions += "-Xmx1G"
 )
 
+lazy val testSettings: Seq[Def.Setting[_]] = Seq(
+  testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a")),
+  fork in test := true,
+  logBuffered in Test := false
+)
+
+//@TODO - merge dup deps
+lazy val devDeps = Seq(
+  cache,
+  ws,
+  "org.scalactic"         %%  "scalactic"       %   "3.0.4",
+  "org.scalatest"         %%  "scalatest"       %   "3.0.4"     %   "test",
+  "org.webjars"           %%  "webjars-play"    %   "2.5.0-3",
+  "io.swagger"            %%  "swagger-play2"   %   "1.5.3",
+  "org.webjars"           %   "swagger-ui"      %   "2.2.10-1",
+  // Metrics
+  "io.dropwizard.metrics" %   "metrics-core"    %   "3.2.5",
+  // Mockito
+  "org.mockito"           %   "mockito-core"    %   "2.10.0"    %   "test",
+  "com.novocode"          %   "junit-interface" %   "0.11"      %   Test,
+  "junit"                 %   "junit"           %   "4.12"      %   Test
+)
+
+
+/**
+  * PROJECT DEF
+  */
 lazy val `sbr-admin-data` = (project in file("."))
-  .settings(commonSettings)
-  .enablePlugins(PlayScala)
+  .enablePlugins(BuildInfoPlugin, GitVersioning, GitBranchPrompt, PlayScala)
+  .configs(Common.ITest)
+  .settings(inConfig(Common.ITest)(Defaults.testSettings) : _*)
+  .settings(Common.commonSettings: _*)
+  .settings(Common.testSettings:_*)
+  .settings(testSettings:_*)
+  //.settings(Common.noPublishSettings:_*)
+  .settings(Common.publishingSettings:_*)
+  .settings(Common.buildInfoConfig:_*)
+  .settings(Common.assemblySettings:_*)
+  .settings(initExec:_*)
+  .settings(
+    moduleName := "sbr-admin-data",
+    description := "<description>",
+    libraryDependencies ++= devDeps,
+    // di router -> swagger
+    routesGenerator := InjectedRoutesGenerator,
+    dependencyOverrides += "com.google.guava" % "guava" % "14.0.1",
+    unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
+  )
   .dependsOn(model)
   .dependsOn(`repository-hbase`)
   .aggregate(model, `repository-hbase`)
 
 lazy val model = project
-  .settings(commonSettings)
+  .settings(Common.commonSettings: _*)
 
 lazy val `repository-hbase` = project
-  .settings(commonSettings)
+  .settings(Common.commonSettings: _*)
   .dependsOn(model)
-
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
-logBuffered in Test := false
-libraryDependencies += "junit" % "junit" % "4.12" % Test
-crossPaths := false
-libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test
-testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
-/*lazy val jacocoSettings = Seq(
-  parallelExecution := true,
-  jacocoExcludes := Seq("views*", "*Routes*", "controllers*routes*", "controllers*Reverse*", "controllers*javascript*", "controller*ref*")
-)*/
-
-libraryDependencies ++= Seq( cache , ws )
-
-// Metrics
-libraryDependencies += "io.dropwizard.metrics" % "metrics-core" % "3.2.5"
-dependencyOverrides += "com.google.guava" % "guava" % "14.0.1"
-
-// Mockito
-libraryDependencies += "org.mockito" % "mockito-core" % "2.10.0" % "test"
-
-unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
-
