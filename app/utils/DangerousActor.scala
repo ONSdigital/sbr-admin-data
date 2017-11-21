@@ -1,9 +1,9 @@
 package utils
 
 import akka.actor._
-
 import models.ServerError
 
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 /**
@@ -17,16 +17,13 @@ import scala.util.{ Failure, Success, Try }
  * @tparam Z return type of the db call method
  */
 class CircuitBreakerActor[T, Z](
-    f: T => Option[Z]
+    f: T => Future[Option[Z]]
 ) extends Actor with ActorLogging {
 
   override def receive = {
     case params: T => {
       Try(f(params)) match {
-        case Success(s) => s match {
-          case Some(s) => sender() ! Some(s)
-          case None => sender() ! None
-        }
+        case Success(s) => sender() ! s
         case Failure(ex) => Status.Failure(new ServerError(ex.getMessage))
       }
     }

@@ -3,7 +3,6 @@ package controllers.v1
 /**
  * Created by coolit on 16/11/2017.
  */
-import java.time.YearMonth
 import javax.inject.Inject
 
 import akka.actor.{ ActorSystem, Props }
@@ -20,11 +19,12 @@ import play.api.i18n.Messages.Implicits._
 import play.api.libs.json.{ Writes, _ }
 import play.api.mvc.{ Action, AnyContent, Controller, Result }
 import repository.AdminDataRepository
-import utils.{ CircuitBreakerActor, LookupValidator, ControllerUtils }
+import utils.{ CircuitBreakerActor, ControllerUtils, LookupValidator }
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scalaz.{ -\/, \/- }
+import com.github.nscala_time.time.Imports.YearMonth
 
 /**
  * Created by coolit on 07/11/2017.
@@ -99,13 +99,13 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
     }).flatMap(x => x)
   }
 
-  def repositoryLookup(v: ValidLookup): Option[AdminData] = toOption[AdminData]((v match {
+  def repositoryLookup(v: ValidLookup): Future[Option[AdminData]] = v match {
     case a: LookupSpecificPeriod => repository.lookup(a.period, a.id)
     case b: LookupDefaultPeriod => repository.lookup(getDefaultPeriod(), b.id)
-  }).toCompletableFuture.get)
+  }
 
   def setCache(cacheKey: String, data: AdminData, duration: Duration): Unit = {
-    logger.debug(s"Setting cache for record with id [${data.getId}] for $duration")
+    logger.debug(s"Setting cache for record with id [${data.id}] for $duration")
     cache.set(cacheKey, data, duration)
   }
 
@@ -117,7 +117,7 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   def getDefaultPeriod(): YearMonth = {
     val cacheKey = s"DEFAULT_PERIOD"
     cache.get[YearMonth](cacheKey).getOrElse({
-      val period = repository.getCurrentPeriod().toCompletableFuture.get
+      val period = Await.result(repository.getCurrentPeriod, 1 second)
       cache.set(cacheKey, period, CACHE_DEFAULT_PERIOD_DURATION)
       period
     })
