@@ -1,55 +1,88 @@
-name := "sbr-admin-data-repository-hbase"
-mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader")
+import sbt.ExclusionRule
 
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
-logBuffered in Test := false
-libraryDependencies += "junit" % "junit" % "4.12" % Test
-crossPaths := false
-libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test
-testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
 
-val hbaseVersion = "1.3.1"
-val hadoopVersion = "2.5.1"
+lazy val Versions = new {
+  val hbaseVersion = "1.3.1"
+  val hadoopVersion = "2.5.1"
+  val sparkVersion = "2.2.0"
+}
 
-// HBase
-libraryDependencies += "org.apache.hbase" % "hbase-common" % hbaseVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-common" % hbaseVersion classifier "tests" exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-client" % hbaseVersion exclude("log4j", "log4j")  exclude ("org.slf4j", "slf4j-log4j12") exclude ("org.slf4j", "slf4j-api")
-libraryDependencies += "org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion classifier "tests" exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-hadoop2-compat" % hbaseVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-hadoop2-compat" % hbaseVersion classifier "tests" exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-server" % hbaseVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hbase" % "hbase-server" % hbaseVersion classifier "tests" exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
+lazy val Constants = new {
+  //orgs
+  val apacheHBase = "org.apache.hbase"
+  val apacheHadoop = "org.apache.hadoop"
+}
 
-// Hadoop
-libraryDependencies += "org.apache.hadoop" % "hadoop-common" % hadoopVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hadoop" % "hadoop-common" % hadoopVersion classifier "tests" exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion classifier "tests" exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % hadoopVersion exclude ("org.slf4j", "slf4j-log4j12")
-libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion exclude("log4j", "log4j") exclude ("org.slf4j", "slf4j-log4j12")
+lazy val hadoopDeps: Seq[ModuleID] = Seq(
+  // HBase
+  Constants.apacheHBase   % "hbase-common"                      % Versions.hbaseVersion,
+  Constants.apacheHBase   % "hbase-common"                      % Versions.hbaseVersion   classifier "tests",
+  Constants.apacheHBase   % "hbase-client"                      % Versions.hbaseVersion   exclude ("org.slf4j", "slf4j-api"),
+  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.hbaseVersion,
+  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.hbaseVersion   classifier "tests",
+  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.hbaseVersion,
+  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.hbaseVersion   classifier "tests",
+  Constants.apacheHBase   % "hbase-server"                      % Versions.hbaseVersion,
+  Constants.apacheHBase   % "hbase-server"                      % Versions.hbaseVersion   classifier "tests",
 
-// Akka
-libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.5.6",
-  "com.typesafe.akka" %% "akka-testkit" % "2.5.6" % Test
+  // Hadoop
+  Constants.apacheHadoop  % "hadoop-common"                     % Versions.hadoopVersion,
+  Constants.apacheHadoop  % "hadoop-common"                     % Versions.hadoopVersion  classifier "tests",
+  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.hadoopVersion,
+  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.hadoopVersion  classifier "tests",
+  Constants.apacheHadoop  % "hadoop-mapreduce-client-core"      % Versions.hadoopVersion,
+  Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.hadoopVersion
+).map(_.excludeAll ( ExclusionRule("log4j", "log4j"), ExclusionRule ("org.slf4j", "slf4j-log4j12")))
+
+
+lazy val devDeps: Seq[ModuleID] = Seq(
+  // scala-date
+  "com.github.nscala-time"  %%  "nscala-time"                   % "2.16.0",
+
+  // Akka
+  "com.typesafe.akka"       %% "akka-actor"                     % "2.5.6",
+  "com.typesafe.akka"       %% "akka-testkit"                   % "2.5.6"                 % Test,
+
+  // CSV Parser
+  "net.sf.opencsv"          % "opencsv"                         % "2.3",
+
+  // Failsafe
+  "net.jodah"               % "failsafe"                        % "1.0.4",
+
+  // Metrics
+  "com.google.guava"        % "guava"                           % "14.0.1",
+
+  // Mockito
+  "org.mockito"             % "mockito-core"                    % "2.10.0"                % "test",
+
+  // logging
+  "org.slf4j"               % "slf4j-api"                       % "1.7.25",
+  "org.slf4j"               % "log4j-over-slf4j"                % "1.7.25",
+  "ch.qos.logback"          % "logback-classic"                 % "1.2.3"                 % "test",
+
+  // testing
+  "org.scalactic"           %%  "scalactic"                     % "3.0.4",
+  "org.scalatest"           %%  "scalatest"                     % "3.0.4"                 % "test",
+  "org.scalatestplus.play"  %%  "scalatestplus-play"            % "2.0.0"                 % Test,
+
+  //junit
+  "com.novocode"            % "junit-interface"                 % "0.11"                  % Test,
+  "junit"                   % "junit"                           % "4.12"                  % Test
+
 )
 
-// CSV Parser
-libraryDependencies += "net.sf.opencsv" % "opencsv" % "2.3"
+lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
+  ExclusionRule("commons-logging", "commons-logging"),
+  ExclusionRule("log4j", "log4j"),
+  ExclusionRule ("org.slf4j", "slf4j-log4j12")
+)
 
-// Failsafe
-libraryDependencies += "net.jodah" % "failsafe" % "1.0.4"
 
-// Metrics
-dependencyOverrides += "com.google.guava" % "guava" % "14.0.1"
+moduleName := "sbr-admin-data-repository-hbase"
+description := "<description>"
+libraryDependencies ++= devDeps ++ hadoopDeps
+//excludeDependencies ++= exTransiviveDeps
 
-// Mockito
-libraryDependencies += "org.mockito" % "mockito-core" % "2.10.0" % "test"
-
-libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25"
-libraryDependencies += "org.slf4j" % "log4j-over-slf4j" % "1.7.25"
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3" % "test"
-      
+logBuffered in Test := false
+crossPaths := false
+testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))

@@ -13,4 +13,7 @@ dist
 /.project
 /RUNNING_PID
 /.settings
-/test-data
+*.DS_Store
+
+.cache
+.lib/
