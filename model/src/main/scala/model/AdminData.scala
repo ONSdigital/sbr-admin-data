@@ -14,7 +14,6 @@ import play.api.libs.json.{ JsValue, Json, Writes }
 case class AdminData(
     referencePeriod: YearMonth,
     id: String,
-    //    `type`: AdminDataType,
     variables: Map[String, String] = Map()
 ) {
   def putVariable(variable: String, value: String): AdminData = this.copy(variables = this.variables ++
@@ -30,7 +29,6 @@ object AdminData {
       Json.obj(
         "period" -> a.referencePeriod.toString(REFERENCE_PERIOD_FORMAT),
         "id" -> a.id,
-        //        "type" -> a.`type`,
         "vars" -> a.variables
       )
     }

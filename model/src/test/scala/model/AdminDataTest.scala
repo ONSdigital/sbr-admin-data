@@ -1,7 +1,7 @@
 package model
 
+import org.scalatest.{ FlatSpec, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 
 /**
@@ -12,18 +12,18 @@ import play.api.libs.json.Json
  * Copyright (c) 2017  Office for National Statistics
  */
 
-class AdminDataTest extends PlaySpec {
+class AdminDataTest extends FlatSpec with Matchers {
 
   private val EXPECTED_JSON = """{"period":"20170601","id":"12345","vars":{"Employees":"10"}}"""
 
-  "Create AdminData instance" must {
-    "make AdminData and add employee val with 10 in json form" in {
-      // joda.time => YearMonth(2017,6)
-      val testAdminData: AdminData = new AdminData(YearMonth.parse("201706"), "12345")
-      val update = testAdminData.putVariable("Employees", "10")
-      val json = Json.toJson(update)
-      json.toString mustEqual EXPECTED_JSON
-      (json \ "vars" \ "Employees").as[String] mustEqual "10"
-    }
+  behavior of "AdminData Object"
+
+  it must "create AdminData instance and add employee val with 10 in json form" in {
+    val testAdminData: AdminData = new AdminData(YearMonth.parse("201706"), "12345")
+    val update = testAdminData.putVariable("Employees", "10")
+    val json = Json.toJson(update)
+
+    json.toString should equal(EXPECTED_JSON)
+    (json \ "vars" \ "Employees").as[String] should equal("10")
   }
 }
