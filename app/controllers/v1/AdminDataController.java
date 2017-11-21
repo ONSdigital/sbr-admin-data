@@ -28,7 +28,7 @@ public class AdminDataController extends Controller {
 
     private static final String CACHE_DELIMITER = "~";
     private static final int CACHE_EXPIRY_SECONDS = 60 * 10;
-    private static final DateTimeFormatter YEAR_MONTH_FORMAT = DateTimeFormatter.ofPattern(AdminData.REFERENCE_PERIOD_FORMAT);
+    private static final DateTimeFormatter YEAR_MONTH_FORMAT = DateTimeFormatter.ofPattern(AdminData.REFERENCE_PERIOD_FORMAT());
     private HttpExecutionContext ec;
     private AdminDataRepository repository;
     private CacheApi cache;
@@ -65,7 +65,7 @@ public class AdminDataController extends Controller {
             try {
                 referencePeriod = YearMonth.parse(referencePeriodStr, YEAR_MONTH_FORMAT);
             } catch (DateTimeException e) {
-                return CompletableFuture.completedFuture(badRequest(Json.toJson(messages.at("controller.invalid.period", AdminData.REFERENCE_PERIOD_FORMAT))));
+                return CompletableFuture.completedFuture(badRequest(Json.toJson(messages.at("controller.invalid.period", AdminData.REFERENCE_PERIOD_FORMAT()))));
             }
         }
 
