@@ -15,7 +15,6 @@ Common.applicationConfig := {
   )
 }
 
-
 /**
   * SETTINGS AND CONFIGURATION
   */
@@ -36,6 +35,7 @@ lazy val testSettings: Seq[Def.Setting[_]] = Seq(
 lazy val devDeps = Seq(
   cache,
   ws,
+  filters,
   "org.scalactic"         %%  "scalactic"       %   "3.0.4",
   "org.scalatest"         %%  "scalatest"       %   "3.0.4"     %   "test",
   "org.webjars"           %%  "webjars-play"    %   "2.5.0-3",
@@ -46,7 +46,10 @@ lazy val devDeps = Seq(
   // Mockito
   "org.mockito"           %   "mockito-core"    %   "2.10.0"    %   "test",
   "com.novocode"          %   "junit-interface" %   "0.11"      %   Test,
-  "junit"                 %   "junit"           %   "4.12"      %   Test
+  "junit"                 %   "junit"           %   "4.12"      %   Test,
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "org.scalaz" %% "scalaz-core" % "7.2.16"
 )
 
 
@@ -66,6 +69,7 @@ lazy val `sbr-admin-data` = (project in file("."))
   .settings(Common.assemblySettings:_*)
   .settings(initExec:_*)
   .settings(
+    routesImport += "extensions.Binders._"
     moduleName := "sbr-admin-data",
     description := "<description>",
     libraryDependencies ++= devDeps,
@@ -85,4 +89,3 @@ lazy val model = project
 lazy val `repository-hbase` = project
   .settings(Common.commonSettings: _*)
   .dependsOn(model)
-
