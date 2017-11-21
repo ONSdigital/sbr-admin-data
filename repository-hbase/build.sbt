@@ -63,10 +63,11 @@ lazy val devDeps: Seq[ModuleID] = Seq(
   // testing
   "org.scalactic"           %%  "scalactic"                     % "3.0.4",
   "org.scalatest"           %%  "scalatest"                     % "3.0.4"                 % "test",
+  "org.scalatestplus.play"  %%  "scalatestplus-play"            % "2.0.0"                 % Test,
 
   //junit
-  "com.novocode"            % "junit-interface" % "0.11" % Test,
-  "junit"                   % "junit" % "4.12" % Test
+  "com.novocode"            % "junit-interface"                 % "0.11"                  % Test,
+  "junit"                   % "junit"                           % "4.12"                  % Test
 
 )
 

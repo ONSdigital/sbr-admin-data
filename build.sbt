@@ -81,6 +81,8 @@ lazy val `sbr-admin-data` = (project in file("."))
 lazy val model = project
   .settings(Common.commonSettings: _*)
 
+
 lazy val `repository-hbase` = project
   .settings(Common.commonSettings: _*)
   .dependsOn(model)
+

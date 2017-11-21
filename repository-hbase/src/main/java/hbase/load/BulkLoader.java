@@ -65,10 +65,10 @@ public class BulkLoader extends Configured implements Tool {
             System.exit(ERROR);
         }
         try {
-            YearMonth.parse(strings[ARG_REFERENCE_PERIOD], DateTimeFormatter.ofPattern(RowKeyUtils.getReferencePeriodFormat()));
+            YearMonth.parse(strings[ARG_REFERENCE_PERIOD], DateTimeFormatter.ofPattern(RowKeyUtils.REFERENCE_PERIOD_FORMAT()));
             System.setProperty(REFERENCE_PERIOD, strings[ARG_REFERENCE_PERIOD]);
         } catch (Exception e) {
-            LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], RowKeyUtils.getReferencePeriodFormat());
+            LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], RowKeyUtils.REFERENCE_PERIOD_FORMAT());
             System.exit(ERROR);
         }
         // Parse table name

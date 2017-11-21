@@ -14,12 +14,12 @@ import play.api.libs.json.Json
 
 class AdminDataTest extends PlaySpec {
 
-  private val EXPECTED_JSON = """{"period":"2017-06","id":"12345","type":"PAYE","vars":{"Employees":"10"}}"""
+  private val EXPECTED_JSON = """{"period":"20170601","id":"12345","vars":{"Employees":"10"}}"""
 
   "Create AdminData instance" must {
     "make AdminData and add employee val with 10 in json form" in {
       // joda.time => YearMonth(2017,6)
-      val testAdminData: AdminData = new AdminData(YearMonth.parse("201706"), "12345", AdminDataType.PAYE)
+      val testAdminData: AdminData = new AdminData(YearMonth.parse("201706"), "12345")
       val update = testAdminData.putVariable("Employees", "10")
       val json = Json.toJson(update)
       json.toString mustEqual EXPECTED_JSON

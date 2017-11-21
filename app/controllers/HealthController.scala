@@ -1,7 +1,7 @@
 package controllers
 
 import org.joda.time.DateTime
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{ Action, Controller }
 
 class HealthController extends Controller {
   private[this] val startTime = System.currentTimeMillis()

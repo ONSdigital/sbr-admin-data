@@ -1,8 +1,7 @@
 package model
 
-import com.fasterxml.jackson.annotation.{JsonFormat, JsonProperty}
 import com.github.nscala_time.time.Imports.YearMonth
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{ JsValue, Json, Writes }
 
 /**
  * AdminData
@@ -13,10 +12,10 @@ import play.api.libs.json.{JsValue, Json, Writes}
  */
 
 case class AdminData(
-    @JsonProperty("period")@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyyMM") referencePeriod: YearMonth,
-    @JsonProperty("id") id: String,
-//    `type`: AdminDataType,
-    @JsonProperty("vars") variables: Map[String, String] = Map()
+    referencePeriod: YearMonth,
+    id: String,
+    //    `type`: AdminDataType,
+    variables: Map[String, String] = Map()
 ) {
   def putVariable(variable: String, value: String): AdminData = this.copy(variables = this.variables ++
     Map(variable -> value))
@@ -31,7 +30,7 @@ object AdminData {
       Json.obj(
         "period" -> a.referencePeriod.toString(REFERENCE_PERIOD_FORMAT),
         "id" -> a.id,
-//        "type" -> a.`type`,
+        //        "type" -> a.`type`,
         "vars" -> a.variables
       )
     }
