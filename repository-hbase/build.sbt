@@ -4,7 +4,6 @@ import sbt.ExclusionRule
 lazy val Versions = new {
   val hbaseVersion = "1.3.1"
   val hadoopVersion = "2.5.1"
-  val sparkVersion = "2.2.0"
 }
 
 lazy val Constants = new {
