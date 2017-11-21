@@ -7,14 +7,14 @@ import com.typesafe.scalalogging.LazyLogging
 import controllers.BuildInfo
 import play.api.http.DefaultHttpFilters
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.mvc.{Filter, RequestHeader, Result}
+import play.api.mvc.{ Filter, RequestHeader, Result }
 import play.filters.gzip.GzipFilter
 
 import scala.concurrent.Future
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 class XResponseTimeHeader @Inject() (implicit val mat: Materializer) extends Filter with LazyLogging {
   def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
     val startTime = System.currentTimeMillis

@@ -14,8 +14,8 @@ import scalaz.\/
 import scalaz.syntax.either._
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 object LookupValidator {
 
   // https://stackoverflow.com/questions/12307965/method-parameters-validation-in-scala-with-for-comprehension-and-monads

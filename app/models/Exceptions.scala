@@ -1,9 +1,9 @@
 package models
 
 /**
-  * Created by coolit on 16/11/2017.
-  * https://stackoverflow.com/questions/38243530/custom-exception-in-scala
-  */
+ * Created by coolit on 16/11/2017.
+ * https://stackoverflow.com/questions/38243530/custom-exception-in-scala
+ */
 sealed trait MyException {
   self: Throwable =>
   val message: String

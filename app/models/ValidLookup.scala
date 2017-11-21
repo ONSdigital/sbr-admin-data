@@ -3,8 +3,8 @@ package models
 import java.time.YearMonth
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 sealed trait ValidLookup {
   val id: String
 }

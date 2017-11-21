@@ -7,18 +7,18 @@ import models.ServerError
 import scala.util.{ Failure, Success, Try }
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 
 /**
-  *
-  * @param f the db call method
-  * @tparam T parameters for the db call method
-  * @tparam Z return type of the db call method
-  */
+ *
+ * @param f the db call method
+ * @tparam T parameters for the db call method
+ * @tparam Z return type of the db call method
+ */
 class CircuitBreakerActor[T, Z](
-   f: T => Option[Z]
- ) extends Actor with ActorLogging {
+    f: T => Option[Z]
+) extends Actor with ActorLogging {
 
   override def receive = {
     case params: T => {
