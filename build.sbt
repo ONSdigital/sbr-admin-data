@@ -71,8 +71,8 @@ lazy val `sbr-admin-data` = (project in file("."))
   .settings(Common.assemblySettings:_*)
   .settings(initExec:_*)
   .settings(
-    routesImport += "extensions.Binders._"
-    //moduleName := "sbr-admin-data",
+    routesImport += "extensions.Binders._",
+      //moduleName := "sbr-admin-data",
     description := "<description>",
     libraryDependencies ++= devDeps,
     // di router -> swagger
