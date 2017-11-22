@@ -1,6 +1,9 @@
 import sbt.ExclusionRule
 
 
+/**
+  * VALUES
+  */
 lazy val Versions = new {
 //  val hbaseVersion = "1.3.1"
 //  val hadoopVersion = "2.5.1"
@@ -18,29 +21,30 @@ lazy val Constants = new {
 }
 
 
-//val hbaseVersion = "1.3.1"
-//val hadoopVersion = "2.5.1"
-
+/**
+  * DEPENDENCIES LISTINGS
+  */
 lazy val hadoopDeps: Seq[ModuleID] = Seq(
   // HBase
-  Constants.apacheHBase   % "hbase-common"                      % Versions.hbaseVersion,
-  Constants.apacheHBase   % "hbase-common"                      % Versions.hbaseVersion   classifier "tests",
-  Constants.apacheHBase   % "hbase-client"                      % Versions.hbaseVersion   exclude ("org.slf4j", "slf4j-api"),
-  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.hbaseVersion,
-  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.hbaseVersion   classifier "tests",
-  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.hbaseVersion,
-  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.hbaseVersion   classifier "tests",
-  Constants.apacheHBase   % "hbase-server"                      % Versions.hbaseVersion,
-  Constants.apacheHBase   % "hbase-server"                      % Versions.hbaseVersion   classifier "tests",
+  Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase,
+  Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase   classifier "tests",
+  Constants.apacheHBase   % "hbase-client"                      % Versions.clouderaHBase   exclude ("org.slf4j", "slf4j-api"),
+  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.clouderaHBase,
+  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.clouderaHBase   classifier "tests",
+  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.clouderaHBase,
+  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.clouderaHBase   classifier "tests",
+  Constants.apacheHBase   % "hbase-server"                      % Versions.clouderaHBase,
+  Constants.apacheHBase   % "hbase-server"                      % Versions.clouderaHBase   classifier "tests",
 
   // Hadoop
-  Constants.apacheHadoop  % "hadoop-common"                     % Versions.hadoopVersion,
-  Constants.apacheHadoop  % "hadoop-common"                     % Versions.hadoopVersion  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.hadoopVersion,
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.hadoopVersion  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-mapreduce-client-core"      % Versions.hadoopVersion,
-  Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.hadoopVersion
+  Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop,
+  Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop  classifier "tests",
+  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop,
+  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  classifier "tests",
+  Constants.apacheHadoop  % "hadoop-mapreduce-client-core"      % Versions.clouderaHadoop,
+  Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.clouderaHadoop
 ).map(_.excludeAll ( ExclusionRule("log4j", "log4j"), ExclusionRule ("org.slf4j", "slf4j-log4j12")))
+
 
 lazy val DevDeps: Seq[ModuleID] = Seq(
   // scala-date
@@ -48,7 +52,7 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
 
   // Akka
   "com.typesafe.akka"       %% "akka-actor"                     % "2.5.6",
-  "com.typesafe.akka"       %% "akka-testkit"                   % "2.5.6"                 % Test,
+  "com.typesafe.akka"       %% "akka-testkit"                   % "2.5.6"                  % Test,
 
   // CSV Parser
   "net.sf.opencsv"          % "opencsv"                         % "2.3",
@@ -57,21 +61,20 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   "net.jodah"               % "failsafe"                        % "1.0.4",
 
   // Mockito
-  "org.mockito"             % "mockito-core"                    % "2.10.0"                % "test",
+  "org.mockito"             % "mockito-core"                    % "2.10.0"                 % "test",
 
   // logging
   "org.slf4j"               % "slf4j-api"                       % "1.7.25",
   "org.slf4j"               % "log4j-over-slf4j"                % "1.7.25",
-  "ch.qos.logback"          % "logback-classic"                 % "1.2.3"                 % "test",
+  "ch.qos.logback"          % "logback-classic"                 % "1.2.3"                  % "test",
 
   // testing
   "org.scalactic"           %%  "scalactic"                     % "3.0.4",
-  "org.scalatest"           %%  "scalatest"                     % "3.0.4"                 % "test",
+  "org.scalatest"           %%  "scalatest"                     % "3.0.4"                  % "test",
 
   //junit
-  "com.novocode"            % "junit-interface"                 % "0.11"                  % Test,
-  "junit"                   % "junit"                           % "4.12"                  % Test
-
+  "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
+  "junit"                   % "junit"                           % "4.12"                   % Test
 ) ++ hadoopDeps.map(_ % "provided")
 
 // Metrics

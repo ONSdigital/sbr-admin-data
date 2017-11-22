@@ -6,31 +6,31 @@ package controllers.v1
 import javax.inject.Inject
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
-import scalaz.{ -\/, \/- }
+import scala.concurrent.{Await, Future}
+import scalaz.{-\/, \/-}
 
-import akka.actor.{ ActorSystem, Props }
-import akka.pattern.{ CircuitBreaker, ask }
+import akka.actor.{ActorSystem, Props}
+import akka.pattern.{CircuitBreaker, ask}
 import akka.util.Timeout
-import com.github.nscala_time.time.Imports.YearMonth
-import com.typesafe.scalalogging.LazyLogging
 import play.api.Configuration
 import play.api.Play.current
 import play.api.cache.CacheApi
 import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
-import play.api.libs.json.{ Writes, _ }
-import play.api.mvc.{ Action, AnyContent, Controller, Result }
+import play.api.libs.json.{Writes, _}
+import play.api.mvc.{Action, AnyContent, Result}
+import com.github.nscala_time.time.Imports.YearMonth
+import com.typesafe.scalalogging.LazyLogging
 
 import model.AdminData
-import models.{ LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup }
-import utils.{ CircuitBreakerActor, ControllerUtils, LookupValidator }
+import models.{LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup}
+import utils.{CircuitBreakerActor, ControllerUtils, LookupValidator}
 import repository.AdminDataRepository
 
 /**
  * Created by coolit on 07/11/2017.
  */
-class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi, config: Configuration) extends Controller with ControllerUtils with LazyLogging {
+class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi, config: Configuration) extends AdminDataControllerUtils with ControllerUtils with LazyLogging {
 
   private val CACHE_DELIMITER: String = "~"
   private val CACHE_DURATION: Duration = config.getInt("cache.admin_data.duration").getOrElse(10) minutes
