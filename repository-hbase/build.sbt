@@ -5,11 +5,6 @@ import sbt.ExclusionRule
   * VALUES
   */
 lazy val Versions = new {
-//  val hbaseVersion = "1.3.1"
-//  val hadoopVersion = "2.5.1"
-  //  val sparkVersion = "2.2.0"
-  val hbaseVersion = "1.2.0-cdh5.10.1"
-  val hadoopVersion = "2.6.0-cdh5.10.1"
   val clouderaHBase = "1.2.0-cdh5.10.1"
   val clouderaHadoop = "2.6.0-cdh5.10.1"
 }
