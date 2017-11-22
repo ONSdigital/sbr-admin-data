@@ -2,9 +2,13 @@ import sbt.ExclusionRule
 
 
 lazy val Versions = new {
-  val hbaseVersion = "1.3.1"
-  val hadoopVersion = "2.5.1"
-  val sparkVersion = "2.2.0"
+//  val hbaseVersion = "1.3.1"
+//  val hadoopVersion = "2.5.1"
+  //  val sparkVersion = "2.2.0"
+  val hbaseVersion = "1.2.0-cdh5.10.1"
+  val hadoopVersion = "2.6.0-cdh5.10.1"
+  val clouderaHBase = "1.2.0-cdh5.10.1"
+  val clouderaHadoop = "2.6.0-cdh5.10.1"
 }
 
 lazy val Constants = new {
@@ -12,6 +16,10 @@ lazy val Constants = new {
   val apacheHBase = "org.apache.hbase"
   val apacheHadoop = "org.apache.hadoop"
 }
+
+
+//val hbaseVersion = "1.3.1"
+//val hadoopVersion = "2.5.1"
 
 lazy val hadoopDeps: Seq[ModuleID] = Seq(
   // HBase
@@ -34,8 +42,7 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
   Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.hadoopVersion
 ).map(_.excludeAll ( ExclusionRule("log4j", "log4j"), ExclusionRule ("org.slf4j", "slf4j-log4j12")))
 
-
-lazy val devDeps: Seq[ModuleID] = Seq(
+lazy val DevDeps: Seq[ModuleID] = Seq(
   // scala-date
   "com.github.nscala-time"  %%  "nscala-time"                   % "2.16.0",
 
@@ -49,9 +56,6 @@ lazy val devDeps: Seq[ModuleID] = Seq(
   // Failsafe
   "net.jodah"               % "failsafe"                        % "1.0.4",
 
-  // Metrics
-  "com.google.guava"        % "guava"                           % "14.0.1",
-
   // Mockito
   "org.mockito"             % "mockito-core"                    % "2.10.0"                % "test",
 
@@ -63,13 +67,15 @@ lazy val devDeps: Seq[ModuleID] = Seq(
   // testing
   "org.scalactic"           %%  "scalactic"                     % "3.0.4",
   "org.scalatest"           %%  "scalatest"                     % "3.0.4"                 % "test",
-  "org.scalatestplus.play"  %%  "scalatestplus-play"            % "2.0.0"                 % Test,
 
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                  % Test,
   "junit"                   % "junit"                           % "4.12"                  % Test
 
-)
+) ++ hadoopDeps.map(_ % "provided")
+
+// Metrics
+dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
 
 lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule("commons-logging", "commons-logging"),
@@ -77,12 +83,17 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule ("org.slf4j", "slf4j-log4j12")
 )
 
-
+/**
+  * PROJECT DEF
+  */
 moduleName := "sbr-admin-data-repository-hbase"
 description := "<description>"
-libraryDependencies ++= devDeps ++ hadoopDeps
+libraryDependencies ++=  DevDeps
 //excludeDependencies ++= exTransiviveDeps
+resolvers += "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader")
 
-logBuffered in Test := false
+
 crossPaths := false
 testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
+logBuffered in Test := false

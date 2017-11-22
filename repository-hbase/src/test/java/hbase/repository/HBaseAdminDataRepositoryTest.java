@@ -97,6 +97,7 @@ public class HBaseAdminDataRepositoryTest {
         assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
         assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());
         assertEquals("Invalid id", "12335", result.get().id());
+        //@TODO - uncomment and resolve!!
 //        assertEquals("Invalid name", "My Company", result.get().variables().get("name"));
     }
 

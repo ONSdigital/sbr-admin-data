@@ -5,12 +5,15 @@ package controllers.v1
  */
 import javax.inject.Inject
 
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
+import scalaz.{ -\/, \/- }
+
 import akka.actor.{ ActorSystem, Props }
 import akka.pattern.{ CircuitBreaker, ask }
 import akka.util.Timeout
+import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.scalalogging.LazyLogging
-import model.AdminData
-import models.{ LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup }
 import play.api.Configuration
 import play.api.Play.current
 import play.api.cache.CacheApi
@@ -18,13 +21,11 @@ import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.libs.json.{ Writes, _ }
 import play.api.mvc.{ Action, AnyContent, Controller, Result }
-import repository.AdminDataRepository
-import utils.{ CircuitBreakerActor, ControllerUtils, LookupValidator }
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration._
-import scalaz.{ -\/, \/- }
-import com.github.nscala_time.time.Imports.YearMonth
+import model.AdminData
+import models.{ LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup }
+import utils.{ CircuitBreakerActor, ControllerUtils, LookupValidator }
+import repository.AdminDataRepository
 
 /**
  * Created by coolit on 07/11/2017.
