@@ -23,16 +23,21 @@ import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.scalalogging.LazyLogging
 
 import model.AdminData
-import models.{LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup}
-import utils.{CircuitBreakerActor, ControllerUtils, LookupValidator}
+import models.ValidLookup
+import utils.{CircuitBreakerActor, Utilities, LookupValidator}
 import repository.AdminDataRepository
 
 import scala.util.{ Failure, Success, Try }
 
+import play.api.libs.json.{ JsObject, Json }
+import play.api.mvc.Result
+
+import scala.concurrent.Future
+
 /**
  * Created by coolit on 07/11/2017.
  */
-class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi, config: Configuration) extends AdminDataControllerUtils with ControllerUtils with LazyLogging {
+class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi, config: Configuration) extends ControllerUtils with LazyLogging {
 
   private val CACHE_DELIMITER: String = "~"
   private val CACHE_DURATION: Duration = config.getInt("cache.admin_data.duration").getOrElse(10) minutes
@@ -57,57 +62,30 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
 
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
-
-    // http://appliedscala.com/blog/2016/scalaz-disjunctions/
-    // http://eed3si9n.com/learning-scalaz/Either.html
-    LookupValidator.validateLookupParams(period, id) match {
+    LookupValidator.validateLookupParams(id, period) match {
       case \/-(validParams) => checkCache(validParams)
-      case -\/(error) => BadRequest(errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
+      case -\/(error) => BadRequest(Utilities.errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
     }
   }
 
   def checkCache(v: ValidLookup): Future[Result] = {
-    // Before we do a search, we need to check the cache
-    val cacheKey = createCacheKey(v)
+    val cacheKey = List(v.id, v.period.getOrElse(None)).mkString(CACHE_DELIMITER)
     cache.get[AdminData](cacheKey) match {
       case Some(data) => {
-        logger.info(s"Returning cached data for cache key: $cacheKey")
+        logger.debug(s"Returning cached data for cache key: $cacheKey")
         Ok(Json.toJson(data)).future
       }
-      case None => getAdminData(v, cacheKey)
+      case None => getAdminData(v)
     }
   }
 
-  def getAdminData(v: ValidLookup, cacheKey: String): Future[Result] = {
-    // Firstly, test the method without the cb:
+  def getAdminData(v: ValidLookup): Future[Result] = {
     repositoryLookup(v).map(x => x match {
       case Some(s) => Ok(Json.toJson(s)).future
-      case None => NotFound(errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id))).future
+      case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id))).future
     }).flatMap(x => x)
   }
 
-  def repositoryLookup(v: ValidLookup): Future[Option[AdminData]] = v match {
-    case a: LookupSpecificPeriod => repository.lookup(a.period, a.id)
-    case b: LookupDefaultPeriod => repository.lookup(getDefaultPeriod(), b.id)
-  }
-
-  def setCache(cacheKey: String, data: AdminData, duration: Duration): Unit = {
-    logger.debug(s"Setting cache for record with id [${data.id}] for $duration")
-    cache.set(cacheKey, data, duration)
-  }
-
-  def createCacheKey(v: ValidLookup): String = (v match {
-    case a: LookupSpecificPeriod => List(a.id, a.period.toString.filter(_ != '-'))
-    case b: LookupDefaultPeriod => List(b.id, getDefaultPeriod())
-  }).mkString(CACHE_DELIMITER)
-
-  def getDefaultPeriod(): YearMonth = {
-    val cacheKey = s"DEFAULT_PERIOD"
-    cache.get[YearMonth](cacheKey).getOrElse({
-      val period = Await.result(repository.getCurrentPeriod, 1 second)
-      cache.set(cacheKey, period, CACHE_DEFAULT_PERIOD_DURATION)
-      period
-    })
-  }
+  def repositoryLookup(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.getOrElse(None), v.id)
 }
 

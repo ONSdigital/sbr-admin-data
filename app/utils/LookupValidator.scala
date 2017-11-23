@@ -24,14 +24,11 @@ object LookupValidator {
 
   val REFERENCE_PERIOD_FORMAT: String = "yyyyMM"
 
-  def validateLookupParams(period: Option[String], id: String): \/[LookupError, ValidLookup] = {
+  def validateLookupParams(id: String, period: Option[String]): \/[LookupError, ValidLookup] = {
     (period, id) match {
       case (p, _) if !validPeriod(p) => InvalidPeriod(Messages("controller.invalid.period", REFERENCE_PERIOD_FORMAT)).left
       case (_, i) if !validId(i) => InvalidId(Messages("controller.invalid.id")).left
-      case _ => period match {
-        case Some(p) => LookupSpecificPeriod(stringToYearMonth(period.get), id).right
-        case None => LookupDefaultPeriod(id).right
-      }
+      case _ => ValidLookup(id, formPeriod(period)).right
     }
   }
 
@@ -43,7 +40,12 @@ object LookupValidator {
     case None => true
   }
 
-  def stringToYearMonth(s: String): YearMonth = YearMonth.parse(s, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
+  def stringToYearMonth(p: String): YearMonth = YearMonth.parse(p, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
+
+  def formPeriod(p: Option[String]): Option[YearMonth] = p match {
+    case Some(p) => Some(stringToYearMonth(p))
+    case None => None
+  }
 
   def validId(id: String): Boolean = id.length >= 5 && id.length <= 13
 }
