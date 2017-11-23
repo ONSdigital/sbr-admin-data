@@ -89,13 +89,14 @@ class HBaseAdminDataRepository @Inject() (
 
   private def convertToAdminData(result: Result): AdminData = {
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow))
-    result.listCells.toList.map { cell =>
+    val varMap = result.listCells.toList.map { cell =>
       val column = new String(CellUtil.cloneQualifier(cell))
       val value = new String(CellUtil.cloneValue(cell))
       logger.debug(s"Found data column $column with value $value")
-      adminData.putVariable(column, value)
-    }
-    adminData
+      column -> value
+    }.toMap
+    val newPutAdminData = adminData.putVariable(varMap)
+    newPutAdminData
   }
 
 }

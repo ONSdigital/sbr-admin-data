@@ -82,7 +82,6 @@ public class HBaseAdminDataRepositoryTest {
         // Test data
         String testId = "12335";
         YearMonth testPeriod = new YearMonth(2008, 12);
-
         // Create cells for each column
         String rowKey = RowKeyUtils.createRowKey(testPeriod, testId);
         Cell nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes("My Company"), HConstants.EMPTY_BYTE_ARRAY);
@@ -98,7 +97,7 @@ public class HBaseAdminDataRepositoryTest {
         assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());
         assertEquals("Invalid id", "12335", result.get().id());
         //@TODO - uncomment and resolve!!
-//        assertEquals("Invalid name", "My Company", result.get().variables().get("name"));
+        assertEquals("Invalid name", "My Company", result.get().variables().get("name").get());
     }
 
     @Test

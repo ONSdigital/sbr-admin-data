@@ -26,6 +26,7 @@ object Common {
     * APP CONFIG
     */
   lazy val applicationConfig = settingKey[Map[String, String]]("config values")
+//  lazy val testScalaStyle = Scoped.AnyInitTask]("config values")
 
 
   /**
