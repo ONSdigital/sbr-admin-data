@@ -82,7 +82,7 @@ pipeline {
                 }
                 success {
                     colourText("info","Successful Build!")
-                    sh "cp target/universal/$MODULE_NAME-*.zip ${env.DEPLOY_NAME}-$ORGANIZATION-$MODULE_NAME.zip"
+                    sh "cp target/universal/$ORGANIZATION-$MODULE_NAME-*.zip ${env.DEPLOY_NAME}-$ORGANIZATION-$MODULE_NAME.zip"
                 }
                 failure {
                     colourText("warn","Something went wrong!")
