@@ -85,7 +85,7 @@ lazy val `sbr-admin-data` = (project in file("."))
   .aggregate(model, `repository-hbase`)
 
 lazy val model = project
-  .enablePlugins(AssemblyPlugin)
+  .disablePlugins(AssemblyPlugin)
   .settings(Common.commonSettings: _*)
 
 
