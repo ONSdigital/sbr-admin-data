@@ -6,7 +6,6 @@ import sbtbuildinfo.BuildInfoPlugin.autoImport.{buildInfoKeys, buildInfoOptions,
 import sbtbuildinfo.{BuildInfoKey, BuildInfoOption}
 import sbtrelease.ReleasePlugin.autoImport.{releaseCommitMessage, releaseIgnoreUntrackedFiles, releaseTagComment}
 
-import play.sbt.PlayImport.PlayKeys
 import com.typesafe.sbt.SbtGit.git
 
 import scoverage.ScoverageKeys.coverageExcludedPackages
@@ -25,14 +24,14 @@ object Common {
   /**
     * APP CONFIG
     */
-  lazy val applicationConfig = settingKey[Map[String, String]]("config values")
+  lazy val applicationConfig: SettingKey[Map[String, String]] = settingKey[Map[String, String]]("config values")
 //  lazy val testScalaStyle = Scoped.AnyInitTask]("config values")
 
 
   /**
     * KEY-BINDING(S)
     */
-  lazy val ITest = config("it") extend Test
+  lazy val ITest: Configuration = config("it") extend Test
 
 
   /**
@@ -182,9 +181,9 @@ object Common {
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
-    },
-    mainClass in assembly := Some("play.core.server.ProdServerStart"),
-    fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
+    }
+//    mainClass in assembly := Some("play.core.server.ProdServerStart"),
+//    fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
   )
 
 }

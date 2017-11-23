@@ -60,6 +60,7 @@ lazy val devDeps = Seq(
   */
 lazy val `sbr-admin-data` = (project in file("."))
   .enablePlugins(BuildInfoPlugin, GitVersioning, GitBranchPrompt, PlayScala)
+  .disablePlugins(AssemblyPlugin)
   .configs(Common.ITest)
   .settings(inConfig(Common.ITest)(Defaults.testSettings) : _*)
   .settings(Common.commonSettings: _*)
@@ -68,7 +69,6 @@ lazy val `sbr-admin-data` = (project in file("."))
   //.settings(Common.noPublishSettings:_*)
   .settings(Common.publishingSettings:_*)
   .settings(Common.buildInfoConfig:_*)
-  .settings(Common.assemblySettings:_*)
   .settings(initExec:_*)
   .settings(
     routesImport += "extensions.Binders._",
@@ -85,9 +85,12 @@ lazy val `sbr-admin-data` = (project in file("."))
   .aggregate(model, `repository-hbase`)
 
 lazy val model = project
+  .enablePlugins(AssemblyPlugin)
   .settings(Common.commonSettings: _*)
 
 
 lazy val `repository-hbase` = project
+  .enablePlugins(AssemblyPlugin)
   .settings(Common.commonSettings: _*)
+  .settings(Common.assemblySettings:_*)
   .dependsOn(model)
