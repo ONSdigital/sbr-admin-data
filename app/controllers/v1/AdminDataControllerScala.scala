@@ -27,6 +27,8 @@ import models.{LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup}
 import utils.{CircuitBreakerActor, ControllerUtils, LookupValidator}
 import repository.AdminDataRepository
 
+import scala.util.{ Failure, Success, Try }
+
 /**
  * Created by coolit on 07/11/2017.
  */
@@ -53,13 +55,6 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   implicit val timeout = Timeout(2 seconds)
   val db = system.actorOf(Props(new CircuitBreakerActor(repositoryLookup)))
 
-  implicit val adminDataWrites = new Writes[AdminData] {
-    def writes(j: AdminData) = Json.obj(
-      "key" -> j.id,
-      "period" -> j.referencePeriod.toString
-    )
-  }
-
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
 
@@ -84,19 +79,10 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   }
 
   def getAdminData(v: ValidLookup, cacheKey: String): Future[Result] = {
-    // Do the db call through a circuit breaker
-    val askFuture = breaker.withCircuitBreaker(db ? v)
-    askFuture.map(x => x match {
-      case Some(s: AdminData) => {
-        setCache(cacheKey, s, CACHE_DURATION)
-        Ok(Json.toJson(s)).future
-      }
+    // Firstly, test the method without the cb:
+    repositoryLookup(v).map(x => x match {
+      case Some(s) => Ok(Json.toJson(s)).future
       case None => NotFound(errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id))).future
-    }).recover({
-      case _ => {
-        logger.warn(s"Recover Internal Server Error")
-        InternalServerError(errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error"))).future
-      }
     }).flatMap(x => x)
   }
 
