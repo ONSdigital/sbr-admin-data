@@ -9,7 +9,7 @@ import utils.CircuitBreakerActor
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import config.Properties.{ cbCallTimeout, cbMaxFailures, cbResetTimeout }
+import config.Properties._
 
 /**
  * AdminDataControllerUtils
