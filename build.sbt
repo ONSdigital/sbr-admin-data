@@ -50,8 +50,7 @@ lazy val devDeps = Seq(
 
   // controller
   "com.typesafe.scala-logging" %%  "scala-logging"   %  "3.7.2",
-  "ch.qos.logback"             %   "logback-classic" %  "1.2.3",
-  "org.scalaz"                 %%  "scalaz-core"     %  "7.2.16"
+  "ch.qos.logback"             %   "logback-classic" %  "1.2.3"
 )
 
 

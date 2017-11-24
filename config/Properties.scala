@@ -12,7 +12,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 object Properties {
 
   // SBRPropertiesConfiguration.envConfig(ConfigFactory.load())
-  private val config: Config = ConfigFactory.load()
+  private val config: Properties = ConfigFactory.load()
 
   lazy val dbConfig = config.getConfig("circuit-breaker")
 

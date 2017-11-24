@@ -3,32 +3,25 @@ package utils
 import com.github.nscala_time.time.Imports.YearMonth
 import org.joda.time.format.DateTimeFormat
 
-import com.typesafe.scalalogging.LazyLogging
 import models._
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.i18n.Messages
 
 import scala.util.{ Failure, Success, Try }
-import scalaz.\/
-import scalaz.syntax.either._
 
 /**
  * Created by coolit on 16/11/2017.
  */
 object LookupValidator {
 
-  // https://stackoverflow.com/questions/12307965/method-parameters-validation-in-scala-with-for-comprehension-and-monads
-  // https://gist.github.com/noelwelsh/9cacc8683bf3231b9219
-  // Below could use the standard lib Either rather than Scalaz
-
   val REFERENCE_PERIOD_FORMAT: String = "yyyyMM"
 
-  def validateLookupParams(id: String, period: Option[String]): \/[LookupError, ValidLookup] = {
+  def validateLookupParams(id: String, period: Option[String]): Either[LookupError, ValidLookup] = {
     (period, id) match {
-      case (p, _) if !validPeriod(p) => InvalidPeriod(Messages("controller.invalid.period", REFERENCE_PERIOD_FORMAT)).left
-      case (_, i) if !validId(i) => InvalidId(Messages("controller.invalid.id")).left
-      case _ => ValidLookup(id, formPeriod(period)).right
+      case (p, _) if !validPeriod(p) => Left(InvalidPeriod(Messages("controller.invalid.period", REFERENCE_PERIOD_FORMAT)))
+      case (_, i) if !validId(i) => Left(InvalidId(Messages("controller.invalid.id")))
+      case _ => Right(ValidLookup(id, formPeriod(period)))
     }
   }
 
