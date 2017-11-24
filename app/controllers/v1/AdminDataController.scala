@@ -6,13 +6,10 @@ package controllers.v1
 import javax.inject.Inject
 
 import scala.concurrent.Future
-import play.api.Play.current
 import play.api.cache.CacheApi
-import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
 import com.typesafe.scalalogging.LazyLogging
-import model.AdminData
 import models.ValidLookup
 import utils.{ LookupValidator, Utilities }
 import repository.AdminDataRepository
@@ -25,7 +22,7 @@ import scala.util.{ Failure, Success, Try }
 /**
  * Created by coolit on 07/11/2017.
  */
-class AdminDataController @Inject() (repository: AdminDataRepository, cache: CacheApi) extends ControllerUtils with LazyLogging {
+class AdminDataController @Inject() (repository: AdminDataRepository, cache: CacheApi, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
   // val cb = getCircuitBreaker(repositoryLookup)
 
@@ -50,7 +47,10 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
       case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id))).future
     }).flatMap(x => x)) match {
       case Success(s) => s
-      case Failure(ex) => InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error", v.id))).future
+      case Failure(ex) => {
+        logger.error(s"Unable to complete repository lookup: ${ex.printStackTrace}")
+        InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error", v.id))).future
+      }
     }
   }
 }
