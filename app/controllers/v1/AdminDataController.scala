@@ -24,7 +24,7 @@ import config.Properties._
 /**
  * Created by coolit on 07/11/2017.
  */
-class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi) extends ControllerUtils with LazyLogging {
+class AdminDataController @Inject()(repository: AdminDataRepository, cache: CacheApi) extends ControllerUtils with LazyLogging {
 
   val cb = getCircuitBreaker(repositoryLookup)
 
