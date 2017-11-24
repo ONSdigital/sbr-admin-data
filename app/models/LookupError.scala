@@ -1,8 +1,8 @@
 package models
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 sealed trait LookupError {
   val msg: String
 }

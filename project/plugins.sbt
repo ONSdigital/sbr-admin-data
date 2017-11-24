@@ -7,7 +7,7 @@
 
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.18")
 
-addPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3")
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.7.0")
 
@@ -16,8 +16,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0")
 // Build
 
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.7.0")
-=======
 
 // CI
 

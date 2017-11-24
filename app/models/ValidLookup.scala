@@ -1,10 +1,10 @@
 package models
 
-import java.time.YearMonth
+import com.github.nscala_time.time.Imports.YearMonth
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 sealed trait ValidLookup {
   val id: String
 }

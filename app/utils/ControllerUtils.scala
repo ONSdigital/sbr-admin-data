@@ -8,13 +8,13 @@ import play.api.mvc.Result
 import scala.concurrent.Future
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 trait ControllerUtils {
 
   /**
-    * Pass parameters to form a JSON response for a request
-    */
+   * Pass parameters to form a JSON response for a request
+   */
   def errAsJson(status: Int, code: String, msg: String): JsObject = {
     Json.obj(
       "status" -> status,
@@ -24,15 +24,15 @@ trait ControllerUtils {
   }
 
   /**
-    * On a result, use .future, e.g. Ok().future
-    * Method source: https://github.com/outworkers/util/blob/develop/util-play/src/main/scala/com/outworkers/util/play/package.scala#L98
-    */
+   * On a result, use .future, e.g. Ok().future
+   * Method source: https://github.com/outworkers/util/blob/develop/util-play/src/main/scala/com/outworkers/util/play/package.scala#L98
+   */
   implicit class ResultAugmenter(val res: Result) {
     def future: Future[Result] = Future.successful(res)
   }
 
   /**
-    * Convert a Java Optional to a Scala Option
-    */
+   * Convert a Java Optional to a Scala Option
+   */
   protected def toOption[X](o: Optional[X]) = if (o.isPresent) Some(o.get) else None
 }

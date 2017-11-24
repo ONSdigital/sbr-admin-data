@@ -1,35 +1,38 @@
 package controllers.v1
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
-import java.time.YearMonth
+ * Created by coolit on 16/11/2017.
+ */
 import javax.inject.Inject
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scalaz.{-\/, \/-}
 
 import akka.actor.{ActorSystem, Props}
 import akka.pattern.{CircuitBreaker, ask}
 import akka.util.Timeout
-import com.typesafe.scalalogging.LazyLogging
-import model.AdminData
-import models.{LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup}
 import play.api.Configuration
 import play.api.Play.current
 import play.api.cache.CacheApi
 import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.libs.json.{Writes, _}
-import play.api.mvc.{Action, AnyContent, Controller, Result}
-import repository.AdminDataRepository
-import utils.{CircuitBreakerActor, LookupValidator, ControllerUtils}
+import play.api.mvc.{Action, AnyContent, Result}
+import com.github.nscala_time.time.Imports.YearMonth
+import com.typesafe.scalalogging.LazyLogging
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scalaz.{-\/, \/-}
+import model.AdminData
+import models.{LookupDefaultPeriod, LookupSpecificPeriod, ValidLookup}
+import utils.{CircuitBreakerActor, ControllerUtils, LookupValidator}
+import repository.AdminDataRepository
+
+import scala.util.{ Failure, Success, Try }
 
 /**
-  * Created by coolit on 07/11/2017.
-  */
-class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi, config: Configuration) extends Controller with ControllerUtils with LazyLogging {
+ * Created by coolit on 07/11/2017.
+ */
+class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache: CacheApi, config: Configuration) extends AdminDataControllerUtils with ControllerUtils with LazyLogging {
 
   private val CACHE_DELIMITER: String = "~"
   private val CACHE_DURATION: Duration = config.getInt("cache.admin_data.duration").getOrElse(10) minutes
@@ -51,13 +54,6 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
 
   implicit val timeout = Timeout(2 seconds)
   val db = system.actorOf(Props(new CircuitBreakerActor(repositoryLookup)))
-
-  implicit val adminDataWrites = new Writes[AdminData] {
-    def writes(j: AdminData) = Json.obj(
-      "key" -> j.getId,
-      "period" -> j.getReferencePeriod.toString
-    )
-  }
 
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
@@ -83,29 +79,20 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   }
 
   def getAdminData(v: ValidLookup, cacheKey: String): Future[Result] = {
-    // Do the db call through a circuit breaker
-    val askFuture = breaker.withCircuitBreaker(db ? v)
-    askFuture.map(x => x match {
-      case Some(s: AdminData) => {
-        setCache(cacheKey, s, CACHE_DURATION)
-        Ok(Json.toJson(s)).future
-      }
+    // Firstly, test the method without the cb:
+    repositoryLookup(v).map(x => x match {
+      case Some(s) => Ok(Json.toJson(s)).future
       case None => NotFound(errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id))).future
-    }).recover({
-      case _ => {
-        logger.warn(s"Recover Internal Server Error")
-        InternalServerError(errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error"))).future
-      }
     }).flatMap(x => x)
   }
 
-  def repositoryLookup(v: ValidLookup): Option[AdminData] = toOption[AdminData]((v match {
+  def repositoryLookup(v: ValidLookup): Future[Option[AdminData]] = v match {
     case a: LookupSpecificPeriod => repository.lookup(a.period, a.id)
     case b: LookupDefaultPeriod => repository.lookup(getDefaultPeriod(), b.id)
-  }).toCompletableFuture.get)
+  }
 
   def setCache(cacheKey: String, data: AdminData, duration: Duration): Unit = {
-    logger.debug(s"Setting cache for record with id [${data.getId}] for $duration")
+    logger.debug(s"Setting cache for record with id [${data.id}] for $duration")
     cache.set(cacheKey, data, duration)
   }
 
@@ -117,7 +104,7 @@ class AdminDataControllerScala @Inject() (repository: AdminDataRepository, cache
   def getDefaultPeriod(): YearMonth = {
     val cacheKey = s"DEFAULT_PERIOD"
     cache.get[YearMonth](cacheKey).getOrElse({
-      val period = repository.getCurrentPeriod().toCompletableFuture.get
+      val period = Await.result(repository.getCurrentPeriod, 1 second)
       cache.set(cacheKey, period, CACHE_DEFAULT_PERIOD_DURATION)
       period
     })

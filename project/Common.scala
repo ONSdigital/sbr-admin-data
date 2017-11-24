@@ -1,12 +1,13 @@
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport.{MergeStrategy, assembly, assemblyJarName, assemblyMergeStrategy}
+import sbtassembly.PathList
 import sbtbuildinfo.BuildInfoPlugin.autoImport.{buildInfoKeys, buildInfoOptions, buildInfoPackage}
 import sbtbuildinfo.{BuildInfoKey, BuildInfoOption}
 import sbtrelease.ReleasePlugin.autoImport.{releaseCommitMessage, releaseIgnoreUntrackedFiles, releaseTagComment}
 
-import com.typesafe.sbt.SbtGit.git
 import play.sbt.PlayImport.PlayKeys
+import com.typesafe.sbt.SbtGit.git
 
 import scoverage.ScoverageKeys.coverageExcludedPackages
 
@@ -46,6 +47,7 @@ object Common {
     val projectStage = "alpha"
     val team = "sbr"
     val local = "mac"
+    val repoName = "admin-data"
   }
 
 
@@ -141,7 +143,7 @@ object Common {
     startYear := Some(2017),
     homepage := Some(url("https://SBR-UI-HOMEPAGE.gov.uk")),
     scalaVersion := Versions.scala,
-    name := s"${organizationName.value}-${moduleName.value}",
+    name := s"${organizationName.value}-${Constant.team}-${Constant.repoName}",
     scalacOptions in ThisBuild ++= Seq(
       "-language:experimental.macros",
       "-target:jvm-1.8",
@@ -171,9 +173,11 @@ object Common {
   )
 
   lazy val assemblySettings: Seq[Def.Setting[_]] = Seq(
-    assemblyJarName in assembly := s"${organizationName.value}-${moduleName.value}-assembly-${version.value}.jar",
+    assemblyJarName in assembly := s"${name.value}-assembly-${version.value}.jar",
     assemblyMergeStrategy in assembly := {
-      case "application.conf"                                            => MergeStrategy.first
+      case PathList("org", "apache", xs@_*)                             => MergeStrategy.last
+      case PathList("META-INF", "io.netty.versions.properties", xs@_ *) => MergeStrategy.last
+      case "application.conf"                                           => MergeStrategy.first
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)

@@ -13,6 +13,7 @@ import hbase.repository.HBaseAdminDataRepository;
 import scala.Option;
 import scala.concurrent.Future;
 
+
 import java.io.File;
 
 import static org.junit.Assert.assertEquals;
@@ -56,7 +57,7 @@ public class BulkLoaderTest extends AbstractHBaseIT {
         assertEquals("Bulk load failed", 0, result);
 
         Future<Option<AdminData>> company = repository.lookup(TEST_PERIOD, "04375380");
-        assertTrue("No company registration found", toJava(company).toCompletableFuture().get().isEmpty());
+        assertTrue("No company registration found", toJava(company).toCompletableFuture().get().isDefined());
 
         assertEquals("No company registration found", "04375380", toJava(company).toCompletableFuture().get().get().id());
     }
@@ -71,7 +72,7 @@ public class BulkLoaderTest extends AbstractHBaseIT {
         assertEquals("Bulk load failed", 0, result);
 
         Future<Option<AdminData>> payeReturn = repository.lookup(TEST_PERIOD, "8878574");
-        assertTrue("No PAYE record found", toJava(payeReturn).toCompletableFuture().get().isEmpty());
+        assertTrue("No PAYE record found", toJava(payeReturn).toCompletableFuture().get().isDefined());
 
         assertEquals("No PAYE record found", "8878574", toJava(payeReturn).toCompletableFuture().get().get().id());
     }
@@ -87,7 +88,7 @@ public class BulkLoaderTest extends AbstractHBaseIT {
 
         Future<Option<AdminData>> vatReturn = repository.lookup(TEST_PERIOD, "808281648666");
 
-        assertTrue("No VAT record found", toJava(vatReturn).toCompletableFuture().get().isEmpty());
+        assertTrue("No VAT record found", toJava(vatReturn).toCompletableFuture().get().isDefined());
         assertEquals("No VAT record found", "808281648666", toJava(vatReturn).toCompletableFuture().get().get().id());
     }
 

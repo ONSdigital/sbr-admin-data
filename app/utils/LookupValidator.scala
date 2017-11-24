@@ -1,7 +1,7 @@
 package utils
 
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
+import com.github.nscala_time.time.Imports.YearMonth
+import org.joda.time.format.DateTimeFormat
 
 import com.typesafe.scalalogging.LazyLogging
 import models._
@@ -14,8 +14,8 @@ import scalaz.\/
 import scalaz.syntax.either._
 
 /**
-  * Created by coolit on 16/11/2017.
-  */
+ * Created by coolit on 16/11/2017.
+ */
 object LookupValidator {
 
   // https://stackoverflow.com/questions/12307965/method-parameters-validation-in-scala-with-for-comprehension-and-monads
@@ -36,14 +36,14 @@ object LookupValidator {
   }
 
   def validPeriod(period: Option[String]): Boolean = period match {
-    case Some(p) => Try(YearMonth.parse(p, DateTimeFormatter.ofPattern(REFERENCE_PERIOD_FORMAT))) match {
+    case Some(p) => Try(YearMonth.parse(p, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
       case Success(_) => true
       case Failure(_) => false
     }
     case None => true
   }
 
-  def stringToYearMonth(s: String): YearMonth = YearMonth.parse(s, DateTimeFormatter.ofPattern(REFERENCE_PERIOD_FORMAT))
+  def stringToYearMonth(s: String): YearMonth = YearMonth.parse(s, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
 
   def validId(id: String): Boolean = id.length >= 5 && id.length <= 13
 }
