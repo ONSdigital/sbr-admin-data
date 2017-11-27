@@ -9,6 +9,7 @@ import scala.concurrent.Future
 import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
+import akka.pattern.ask
 import com.typesafe.scalalogging.LazyLogging
 import models.ValidLookup
 import utils.{ LookupValidator, Utilities }
@@ -16,15 +17,14 @@ import repository.AdminDataRepository
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import config.Properties._
-
-import scala.util.{ Failure, Success, Try }
+import model.AdminData
 
 /**
  * Created by coolit on 07/11/2017.
  */
 class AdminDataController @Inject() (repository: AdminDataRepository, cache: CacheApi, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
-  // val cb = getCircuitBreaker(repositoryLookup)
+  val cb = getCircuitBreaker(getRecordById)
 
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
@@ -38,19 +38,23 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
   }
 
   def repositoryLookup(v: ValidLookup, cacheKey: String): Future[Result] = {
-    Try(repository.lookup(v.period.get, v.id).map(x => x match {
-      case Some(s) => {
-        val resp = Ok(Json.toJson(s)).future
-        cache.set(cacheKey, resp, cacheDuration)
-        resp
+    // Do the db call through a circuit breaker
+    val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[AdminData]]]
+    askFuture.flatMap(x => x.map(
+      y => y match {
+        case Some(s) => {
+          cache.set(cacheKey, s, cacheDuration)
+          Ok(Json.toJson(s))
+        }
+        case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
       }
-      case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id))).future
-    }).flatMap(x => x)) match {
-      case Success(s) => s
-      case Failure(ex) => {
-        logger.error(s"Unable to complete repository lookup: ${ex.printStackTrace}")
-        InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error", v.id))).future
+    )).recover({
+      case _ => {
+        logger.error(s"Unable to get record from database")
+        InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error")))
       }
-    }
+    })
   }
+
+  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.get, v.id)
 }
