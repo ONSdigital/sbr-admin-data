@@ -25,10 +25,12 @@ import play.api.i18n._
  */
 class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
 
+  val dateFormat = "yyyyMM"
   val dateString = "201706"
-  val date = YearMonth.parse(dateString, DateTimeFormat.forPattern("yyyyMM"))
+  val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
   val id = "12345678"
   val companyName = "Tesco"
+  val notFoundId = "11223344"
 
   //  val mockMessagesApi = mock[MessagesApi]
   //  mockMessagesApi.messages
@@ -37,6 +39,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
 
   val mockAdminDataRepository = mock[AdminDataRepository]
   when(mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id, Map("companyName" -> companyName))))
+  when(mockAdminDataRepository.lookup(date, notFoundId)) thenReturn Future(None)
 
   // Misc caching code
   //  val singletonManager = CacheManager.create()
@@ -53,6 +56,8 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
 
   val controller = new AdminDataController(mockAdminDataRepository, messages)
 
+  lazy val messageException = throw new Exception("Unable to get message")
+
   val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
 
   "AdminDataController" must {
@@ -67,15 +72,22 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     "return 400 for an invalid period" in {
       val resp = controller.lookup(Some("201713"), id).apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
-      val errorMessage = defaultMessages.get("controller.invalid.period").get.replace("{0}", "yyyyMM")
-      (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
+      val errorMessage = defaultMessages.get("controller.invalid.period").getOrElse(messageException)
+      (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", dateFormat)
     }
 
     "return 400 for an invalid id (not correct length)" in {
       val resp = controller.lookup(Some("201706"), "0").apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
-      val errorMessage = defaultMessages.get("controller.invalid.id").get
+      val errorMessage = defaultMessages.get("controller.invalid.id").getOrElse(messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
+    }
+
+    "return 404 for an id that doesn't exist" in {
+      val resp = controller.lookup(Some(dateString), notFoundId).apply(FakeRequest())
+      status(resp) mustBe NOT_FOUND
+      val errorMessage = defaultMessages.get("controller.not.found").getOrElse(messageException)
+      (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", notFoundId)
     }
   }
 }
