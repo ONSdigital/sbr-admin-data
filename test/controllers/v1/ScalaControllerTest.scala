@@ -57,6 +57,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
   val controller = new AdminDataController(mockAdminDataRepository, messages)
 
   lazy val messageException = throw new Exception("Unable to get message")
+  lazy val noContentTypeException = throw new Exception("Unable to get content type")
 
   val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
 
@@ -64,6 +65,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     "return a valid result" in {
       val resp = controller.lookup(Some("201706"), id).apply(FakeRequest())
       status(resp) mustBe OK
+      contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       (contentAsJson(resp) \ "id").as[String] mustBe id
       (contentAsJson(resp) \ "period").as[String] mustBe dateString
       (contentAsJson(resp) \ "vars" \ "companyName").as[String] mustBe companyName
@@ -72,6 +74,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     "return 400 for an invalid period" in {
       val resp = controller.lookup(Some("201713"), id).apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
+      contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       val errorMessage = defaultMessages.get("controller.invalid.period").getOrElse(messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", dateFormat)
     }
@@ -79,6 +82,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     "return 400 for an invalid id (not correct length)" in {
       val resp = controller.lookup(Some("201706"), "0").apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
+      contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       val errorMessage = defaultMessages.get("controller.invalid.id").getOrElse(messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
     }
@@ -86,6 +90,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     "return 404 for an id that doesn't exist" in {
       val resp = controller.lookup(Some(dateString), notFoundId).apply(FakeRequest())
       status(resp) mustBe NOT_FOUND
+      contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       val errorMessage = defaultMessages.get("controller.not.found").getOrElse(messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", notFoundId)
     }
