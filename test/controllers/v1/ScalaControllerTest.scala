@@ -94,5 +94,15 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
       val errorMessage = defaultMessages.get("controller.not.found").getOrElse(messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", notFoundId)
     }
+
+    "return 500 when an internal server error occurs" in {
+      val exceptionId = "19283746"
+      when(mockAdminDataRepository.lookup(date, exceptionId)).thenThrow(new RuntimeException())
+      val resp = controller.lookup(Some("201706"), exceptionId).apply(FakeRequest())
+      status(resp) mustBe INTERNAL_SERVER_ERROR
+      contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
+      val errorMessage = defaultMessages.get("controller.server.error").getOrElse(messageException)
+      (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
+    }
   }
 }
