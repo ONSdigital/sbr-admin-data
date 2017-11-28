@@ -53,6 +53,8 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
 
   val controller = new AdminDataController(mockAdminDataRepository, messages)
 
+  val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
+
   "AdminDataController" must {
     "return a valid result" in {
       val resp = controller.lookup(Some("201706"), id).apply(FakeRequest())
@@ -63,9 +65,17 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     }
 
     "return 400 for an invalid period" in {
-      //val resp = controller.lookup(Some("201713"), id).apply(FakeRequest())
-      //status(resp) mustBe BAD_REQUEST
-      1 mustBe 1
+      val resp = controller.lookup(Some("201713"), id).apply(FakeRequest())
+      status(resp) mustBe BAD_REQUEST
+      val errorMessage = defaultMessages.get("controller.invalid.period").get.replace("{0}", "yyyyMM")
+      (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
+    }
+
+    "return 400 for an invalid id (not correct length)" in {
+      val resp = controller.lookup(Some("201706"), "0").apply(FakeRequest())
+      status(resp) mustBe BAD_REQUEST
+      val errorMessage = defaultMessages.get("controller.invalid.id").get
+      (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
     }
   }
 }

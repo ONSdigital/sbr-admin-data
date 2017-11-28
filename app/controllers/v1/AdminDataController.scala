@@ -25,11 +25,12 @@ import model.AdminData
 // Cache should be injected
 class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
+  val validator = new LookupValidator(messagesApi)
   val cb = getCircuitBreaker(getRecordById)
 
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
-    LookupValidator.validateLookupParams(id, period) match {
+    validator.validateLookupParams(id, period) match {
       case Right(v) => {
         val cacheKey = List(v.id, v.period.getOrElse(None)).mkString(cacheDelimiter)
         //cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
