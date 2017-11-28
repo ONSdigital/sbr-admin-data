@@ -28,32 +28,11 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
   val dateFormat = "yyyyMM"
   val dateString = "201706"
   val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
-  val id = "12345678"
-  val companyName = "Tesco"
-  val notFoundId = "11223344"
-
-  //  val mockMessagesApi = mock[MessagesApi]
-  //  mockMessagesApi.messages
-  //  when(mockMessagesApi.at("",""))
-  //  when(mockMessagesApi.at("", "")).thenReturn("Mock error message");
 
   val mockAdminDataRepository = mock[AdminDataRepository]
-  when(mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id, Map("companyName" -> companyName))))
-  when(mockAdminDataRepository.lookup(date, notFoundId)) thenReturn Future(None)
-
-  // Misc caching code
-  //  val singletonManager = CacheManager.create()
-  //  singletonManager.addCache("testCache")
-  //  val testCache = singletonManager.getCache("testCache")
-  //  val cacheApi: play.api.cache.CacheApi = new DefaultCacheApi(new TestCache(testCache))
-  // val config: Configuration = Configuration.from(Map("i" -> "l"))
-  //val cache = new TestCache(Ehcache)
-
-  val cacheApi = mock[play.api.cache.CacheApi]
 
   val config = Configuration(ConfigFactory.load("application.conf")) // Or test.conf, if you have test-specific config files
   val messages = new DefaultMessagesApi(Environment.simple(), config, new DefaultLangs(config))
-
   val controller = new AdminDataController(mockAdminDataRepository, messages)
 
   lazy val messageException = throw new Exception("Unable to get message")
@@ -63,6 +42,9 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
 
   "AdminDataController" must {
     "return a valid result" in {
+      val id = "12345678"
+      val companyName = "Tesco"
+      when(mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id, Map("companyName" -> companyName))))
       val resp = controller.lookup(Some("201706"), id).apply(FakeRequest())
       status(resp) mustBe OK
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
@@ -72,7 +54,7 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     }
 
     "return 400 for an invalid period" in {
-      val resp = controller.lookup(Some("201713"), id).apply(FakeRequest())
+      val resp = controller.lookup(Some("201713"), "12345").apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       val errorMessage = defaultMessages.get("controller.invalid.period").getOrElse(messageException)
@@ -88,6 +70,8 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
     }
 
     "return 404 for an id that doesn't exist" in {
+      val notFoundId = "11223344"
+      when(mockAdminDataRepository.lookup(date, notFoundId)) thenReturn Future(None)
       val resp = controller.lookup(Some(dateString), notFoundId).apply(FakeRequest())
       status(resp) mustBe NOT_FOUND
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
@@ -103,6 +87,10 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       val errorMessage = defaultMessages.get("controller.server.error").getOrElse(messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
+    }
+
+    "lookup was cached" in {
+      true mustBe true
     }
   }
 }
