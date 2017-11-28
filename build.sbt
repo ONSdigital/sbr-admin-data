@@ -50,8 +50,12 @@ lazy val devDeps = Seq(
 
   // controller
   "com.typesafe.scala-logging" %%  "scala-logging"   %  "3.7.2",
-  "ch.qos.logback"             %   "logback-classic" %  "1.2.3"
+  "ch.qos.logback"             %   "logback-classic" %  "1.2.3",
+  "org.scalatestplus.play"     %%  "scalatestplus-play" % "2.0.0" % "test"
 )
+
+// Run tests with full stack traces
+testOptions in Test += Tests.Argument("-oG")
 
 
 /**
