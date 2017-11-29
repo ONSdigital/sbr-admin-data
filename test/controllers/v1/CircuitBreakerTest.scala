@@ -96,6 +96,8 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       s.controller.breaker.isOpen mustBe true
       val validLookup = s.controller.lookup(Some(dateString), validId).apply(FakeRequest())
       status(validLookup) mustBe INTERNAL_SERVER_ERROR
+      // Make sure the circuit breaker caught the last lookup due to it being open
+      verify(s.mockAdminDataRepository, times(0)).lookup(date, validId)
     }
   }
 }
