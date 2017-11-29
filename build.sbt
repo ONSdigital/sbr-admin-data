@@ -57,6 +57,7 @@ lazy val devDeps = Seq(
 // Run tests with full stack traces
 testOptions in Test += Tests.Argument("-oG")
 
+javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf"
 
 /**
   * PROJECT DEF
