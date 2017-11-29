@@ -34,7 +34,7 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
   // Hadoop
   Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop,
   Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop,
+  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  exclude ("commons-daemon", "commons-daemon"),
   Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  classifier "tests",
   Constants.apacheHadoop  % "hadoop-mapreduce-client-core"      % Versions.clouderaHadoop,
   Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.clouderaHadoop
@@ -42,8 +42,11 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
 
 
 lazy val DevDeps: Seq[ModuleID] = Seq(
+  //@NOTE - patch for unresolved dependency
+  "commons-daemon"          %  "commons-daemon"                 % "1.0.13",
+
   // scala-date
-  "com.github.nscala-time"  %%  "nscala-time"                   % "2.16.0",
+  "com.github.nscala-time"  %% "nscala-time"                    % "2.16.0",
 
   // Akka
   "com.typesafe.akka"       %% "akka-actor"                     % "2.5.6",
