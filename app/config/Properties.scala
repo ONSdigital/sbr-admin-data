@@ -14,7 +14,7 @@ object Properties {
   // CircuitBreaker
   lazy val cbMaxFailures = config.getInt("circuit_breaker.maxFailures")
   lazy val cbCallTimeout = config.getInt("circuit_breaker.callTimeout") seconds
-  lazy val cbResetTimeout = config.getInt("circuit_breaker.resetTimeout") seconds
+  lazy val cbResetTimeout = config.getInt("circuit_breaker.resetTimeout") minute
 
   // Caching
   lazy val cacheDelimiter = config.getString("cache.admin_data.delimiter")
