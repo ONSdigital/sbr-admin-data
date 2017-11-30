@@ -33,9 +33,10 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
 
   // TODO:
   // - Make sure can load in test application.conf
+  // - Test that state goes back to isHalfOpen after reset timeout
+  // - Test that callTimeout works
 
   // Use a fixture as we need the circuit breaker to reset after each test
-  // http://www.scalatest.org/user_guide/sharing_fixtures
   def setup =
     new {
       val mockAdminDataRepository = mock[AdminDataRepository]
@@ -99,5 +100,14 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       // Make sure the circuit breaker caught the last lookup due to it being open
       verify(s.mockAdminDataRepository, times(0)).lookup(date, validId)
     }
+
+//    "must fail a db lookup call that takes too long" in {
+//      val s = setup
+//      val longCallId = "1122334455"
+//      lazy val f = { Thread.sleep(2000); Future(Some(AdminData(date, longCallId))) }
+//      when(s.mockAdminDataRepository.lookup(date, longCallId)) thenReturn f
+//      val resp = s.controller.lookup(Some(dateString), longCallId).apply(FakeRequest())
+//      status(resp) mustBe INTERNAL_SERVER_ERROR
+//    }
   }
 }
