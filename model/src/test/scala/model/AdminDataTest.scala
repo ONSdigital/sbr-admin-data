@@ -14,7 +14,7 @@ import play.api.libs.json.Json
 
 class AdminDataTest extends FlatSpec with Matchers {
 
-  private val EXPECTED_JSON = """{"period":"20170601","id":"12345","vars":{"Employees":"10"}}"""
+  private val EXPECTED_JSON = """{"period":"20170601","id":"12345","variables":{"Employees":"10"}}"""
 
   behavior of "AdminData Object"
 

@@ -13,7 +13,7 @@ import akka.pattern.ask
 import com.typesafe.scalalogging.LazyLogging
 import models.ValidLookup
 import utils.{ LookupValidator, Utilities }
-import repository.AdminDataRepository
+import hbase.repository.AdminDataRepository
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import config.Properties._

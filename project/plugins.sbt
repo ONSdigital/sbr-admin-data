@@ -1,6 +1,6 @@
 //logLevel := Level.Warn
 //
-//resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+//resolvers += "Typesafe hbase.repository" at "http://repo.typesafe.com/typesafe/releases/"
 //----------------
 
 // Default sbt
@@ -39,6 +39,6 @@ addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.0.4")
 
-addSbtPlugin("org.scalastyle" % "scalastyle-sbt-plugin" % "0.9.0")
+addSbtPlugin("org.scalastyle" % "scalastyle-sbt-plugin" % "0.8.0")
 
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
+//addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
