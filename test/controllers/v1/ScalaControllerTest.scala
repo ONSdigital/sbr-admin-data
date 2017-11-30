@@ -43,14 +43,12 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
   "AdminDataController" must {
     "return a valid result" in {
       val id = "12345678"
-      val companyName = "Tesco"
-      when(mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id, Map("companyName" -> companyName))))
+      when(mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id)))
       val resp = controller.lookup(Some("201706"), id).apply(FakeRequest())
       status(resp) mustBe OK
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
       (contentAsJson(resp) \ "id").as[String] mustBe id
       (contentAsJson(resp) \ "period").as[String] mustBe dateString
-      (contentAsJson(resp) \ "vars" \ "companyName").as[String] mustBe companyName
     }
 
     "return 400 for an invalid period" in {
