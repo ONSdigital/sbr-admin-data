@@ -87,11 +87,11 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
 /**
   * PROJECT DEF
   */
-moduleName := "sbr-admin-data-repository-hbase"
+moduleName := "sbr-admin-data-hbase.repository-hbase"
 description := "<description>"
 libraryDependencies ++=  DevDeps
 //excludeDependencies ++= exTransiviveDeps
-resolvers += "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+resolvers += "cloudera" at "https://hbase.repository.cloudera.com/artifactory/cloudera-repos/"
 mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader")
 
 

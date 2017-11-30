@@ -55,7 +55,7 @@ object Common {
     * SETTINGS AND CONFIGURATION
     */
   lazy val Resolvers: Seq[MavenRepository] = Seq(
-//    "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
+//    "Typesafe hbase.repository" at "http://repo.typesafe.com/typesafe/releases/",
     "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
     Resolver.typesafeRepo("releases")
   )

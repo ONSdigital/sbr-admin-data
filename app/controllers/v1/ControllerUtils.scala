@@ -40,7 +40,7 @@ trait ControllerUtils extends Controller with LazyLogging {
 
   /**
    * On a result, use .future, e.g. Ok().future
-   * Method source: https://github.com/outworkers/util/blob/develop/util-play/src/main/scala/com/outworkers/util/play/package.scala#L98
+   * Method source: https://github.com/outworkers/hbase.util/blob/develop/hbase.util-play/src/main/scala/com/outworkers/hbase.util/play/package.scala#L98
    */
   implicit class ResultAugmenter(val res: Result) {
     def future: Future[Result] = Future.successful(res)

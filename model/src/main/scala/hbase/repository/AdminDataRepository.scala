@@ -1,6 +1,6 @@
-package repository
+package hbase.repository
 
-//import java.util.concurrent.CompletionStage
+//import java.hbase.util.concurrent.CompletionStage
 
 import scala.concurrent.Future
 

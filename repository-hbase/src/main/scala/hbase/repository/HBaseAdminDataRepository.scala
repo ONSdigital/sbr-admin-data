@@ -5,22 +5,21 @@ import javax.inject.Inject
 import scala.collection.JavaConversions._
 import scala.concurrent.{ ExecutionContext, Future }
 
-import org.apache.hadoop.hbase.client.{ Get, Result, _ }
+import org.apache.hadoop.hbase.client.{ Result, _ }
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{ CellUtil, TableName }
 import org.slf4j.{ Logger, LoggerFactory }
 import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 
 import hbase.connector.HBaseConnector
+import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
-import repository.AdminDataRepository
 //import hbase.table.TableNames
 import scala.util.{ Failure, Success, Try }
 
 import com.typesafe.config.{ Config, ConfigFactory }
 
 import model.AdminData
-import hbase.util.RowKeyUtils
 // import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -71,8 +70,25 @@ class HBaseAdminDataRepository @Inject() (
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: YearMonth, key: String): Option[AdminData] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+    val endRowKey = createEndRowKey(key)
+    val maxResult = 1L
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
+        val scan = new Scan()
+          .setStartRow(Bytes.toBytes(endRowKey))
+          .setStopRow(Bytes.toBytes(key))
+          .setReversed(true)
+          .setMaxVersions(maxResult.toInt)
+        scan.setMaxResultSize(maxResult)
+
+        //        Option(table.getScanner(scan).next) match {
+        //          case Some(rec) =>
+        //            logger.debug("Found data for row key '{}'", rowKey)
+        //            Some(convertToAdminData(rec))
+        //          case None =>
+        //            logger.debug("No data found for row key '{}'", rowKey)
+        //            None
+        //        }
         table.get(new Get(Bytes.toBytes(rowKey))) match {
           case res if res.isEmpty =>
             logger.debug("No data found for row key '{}'", rowKey)
@@ -97,6 +113,13 @@ class HBaseAdminDataRepository @Inject() (
     }.toMap
     val newPutAdminData = adminData.putVariable(varMap)
     newPutAdminData
+  }
+
+  // @TODO - Fix
+  private def createEndRowKey(key: String): String = {
+    val l = (key.last.toLong + 1).toChar
+    val p = key.substring(0, key.length() - 1) + s"$l"
+    p
   }
 
 }

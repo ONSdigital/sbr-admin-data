@@ -1,7 +1,6 @@
 package hbase.repository;
 
 import akka.actor.ActorSystem;
-import akka.testkit.javadsl.TestKit;
 import hbase.connector.HBaseConnector;
 import hbase.util.RowKeyUtils;
 import model.AdminData;
@@ -16,7 +15,6 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.joda.time.Months;
 import org.joda.time.YearMonth;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,9 +26,7 @@ import scala.concurrent.Future;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
-import org.joda.time.YearMonth;
 import static org.apache.hadoop.hbase.util.Bytes.toBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -92,11 +88,11 @@ public class HBaseAdminDataRepositoryTest {
         when(result.getRow()).thenReturn(Bytes.toBytes(rowKey));
 
         Option<AdminData> result = toJava(repository.lookup(testPeriod, testId)).toCompletableFuture().get();
+        System.out.println("TEST COMPLETE");
         assertTrue("Result should be present", result.isDefined());
         assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
         assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());
         assertEquals("Invalid id", "12335", result.get().id());
-        //@TODO - uncomment and resolve!!
         assertEquals("Invalid name", "My Company", result.get().variables().get("name").get());
     }
 

@@ -17,13 +17,13 @@ object RowKeyUtils {
   final val DELIMITER = "~"
 
   def createRowKey(referencePeriod: YearMonth, id: String): String =
-    String.join(DELIMITER, referencePeriod.toString(REFERENCE_PERIOD_FORMAT), id)
+    String.join(DELIMITER, id, referencePeriod.toString(REFERENCE_PERIOD_FORMAT))
 
   def createAdminDataFromRowKey(rowKey: String): AdminData = {
     val compositeRowKeyParts: Array[String] = rowKey.split(DELIMITER)
     val referencePeriod: YearMonth =
-      YearMonth.parse(compositeRowKeyParts.head, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
-    val id = compositeRowKeyParts.last
+      YearMonth.parse(compositeRowKeyParts.last, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
+    val id = compositeRowKeyParts.head
     AdminData(referencePeriod, id)
   }
 

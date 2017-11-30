@@ -8,7 +8,7 @@ Common.applicationConfig := {
   val artifactoryConf = conf.getConfig("artifactory")
   Map (
     "publishTrigger" -> artifactoryConf.getBoolean("publish-init").toString,
-    "artifactoryAddress" -> artifactoryConf.getString("publish-repository"),
+    "artifactoryAddress" -> artifactoryConf.getString("publish-hbase.repository"),
     "artifactoryHost" -> artifactoryConf.getString("host"),
     "artifactoryUser" -> artifactoryConf.getString("user"),
     "artifactoryPassword" -> artifactoryConf.getString("password")
@@ -22,7 +22,7 @@ lazy val initExec: Seq[Def.Setting[_]] = Seq(
   crossPaths := false,
   parallelExecution := false,
   // Java heap memory memory allocation - lots of deps
-  javaOptions += "-Xmx1G"
+  javaOptions += "-Xmx2G"
 )
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
