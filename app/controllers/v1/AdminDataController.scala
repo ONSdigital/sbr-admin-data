@@ -22,16 +22,19 @@ import model.AdminData
 /**
  * Created by coolit on 07/11/2017.
  */
-class AdminDataController @Inject() (repository: AdminDataRepository, cache: CacheApi, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
+// Cache should be injected
+class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
+  val validator = new LookupValidator(messagesApi)
   val cb = getCircuitBreaker(getRecordById)
 
   def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
-    LookupValidator.validateLookupParams(id, period) match {
+    validator.validateLookupParams(id, period) match {
       case Right(v) => {
         val cacheKey = List(v.id, v.period.getOrElse(None)).mkString(cacheDelimiter)
-        cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
+        //cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
+        repositoryLookup(v, cacheKey)
       }
       case Left(error) => BadRequest(Utilities.errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
     }
@@ -43,7 +46,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
     askFuture.flatMap(x => x.map(
       y => y match {
         case Some(s) => {
-          cache.set(cacheKey, s, cacheDuration)
+          //cache.set(cacheKey, s, cacheDuration)
           Ok(Json.toJson(s))
         }
         case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
