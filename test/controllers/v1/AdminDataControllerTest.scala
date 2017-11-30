@@ -25,7 +25,7 @@ import play.mvc.Result
 /**
  * Created by coolit on 28/11/2017.
  */
-class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
+class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
 
   // TODO:
   // - test cache duration

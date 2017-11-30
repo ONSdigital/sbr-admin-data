@@ -87,7 +87,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
     "must be opened after 5 failures and then fail a valid request" in {
       val s = setup
       val exceptionId = "99664411"
-      val validId = "1122334455"
+      val validId = "112233"
       when(s.mockAdminDataRepository.lookup(date, exceptionId)).thenThrow(new RuntimeException())
       when(s.mockAdminDataRepository.lookup(date, validId)) thenReturn Future(Some(AdminData(date, validId)))
       val results = (1 to 5).map { i =>

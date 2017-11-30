@@ -41,6 +41,15 @@ To run the `sbr-admin-api`, run the following:
 sbt run
 ```
 
+| Environment Variable | Default Value   | Valid Values                                              |
+|----------------------|-----------------|-----------------------------------------------------------|
+| validation.id        | ".{3,8}"        | Any regex string for validating the id                    |
+| cache.duration       | 60              | Any integer (number of minutes) for the cache duration    |
+| cache.delimiter      | "~"             | Any string for the cache delimiter                        |
+| cb.maxFailures       | 5               | Number of failures to change breaker to open state        |
+| cb.callTimeout       | 2               | Number of seconds after which to timeout a request        |
+| cb.resetTimeout      | 1               | Number of seconds after which the failure count is reset  |
+
 ### Running the API (database.in.memory = true)
 
 By default the API will run against an in-memory HBase instance
