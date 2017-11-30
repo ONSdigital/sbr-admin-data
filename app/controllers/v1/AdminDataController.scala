@@ -22,8 +22,7 @@ import model.AdminData
 /**
  * Created by coolit on 07/11/2017.
  */
-// Cache should be injected
-class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
+class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
   val validator = new LookupValidator(messagesApi)
   val cb = getCircuitBreaker(getRecordById)
@@ -33,7 +32,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
     validator.validateLookupParams(id, period) match {
       case Right(v) => {
         val cacheKey = List(v.id, v.period.getOrElse(None)).mkString(cacheDelimiter)
-        //cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
+        cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
         repositoryLookup(v, cacheKey)
       }
       case Left(error) => BadRequest(Utilities.errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
@@ -46,7 +45,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
     askFuture.flatMap(x => x.map(
       y => y match {
         case Some(s) => {
-          //cache.set(cacheKey, s, cacheDuration)
+          cache.set(cacheKey, s, cacheDuration)
           Ok(Json.toJson(s))
         }
         case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))

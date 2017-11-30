@@ -4,8 +4,8 @@ import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.config.ConfigFactory
 import model.AdminData
 import org.joda.time.format.DateTimeFormat
-import play.api.{ Configuration, Environment }
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.{Configuration, Environment}
+import play.api.i18n.{DefaultLangs, DefaultMessagesApi}
 import repository.AdminDataRepository
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -15,7 +15,7 @@ import play.api.test.Helpers._
 import akka.util.Timeout
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -39,10 +39,11 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
   // Use a fixture as we need the circuit breaker to reset after each test
   def setup =
     new {
+      val cache = new TestCache
       val mockAdminDataRepository = mock[AdminDataRepository]
       val config = Configuration(ConfigFactory.load("application.conf")) // Or test.conf, if you have test-specific config files
       val messages = new DefaultMessagesApi(Environment.simple(), config, new DefaultLangs(config))
-      val controller = new AdminDataController(mockAdminDataRepository, messages)
+      val controller = new AdminDataController(mockAdminDataRepository, messages, cache)
       val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
     }
 

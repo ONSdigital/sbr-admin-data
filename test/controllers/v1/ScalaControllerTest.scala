@@ -30,10 +30,11 @@ class ScalaControllerTest extends PlaySpec with MockitoSugar with Results {
   val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
 
   val mockAdminDataRepository = mock[AdminDataRepository]
+  val cache = new TestCache
 
   val config = Configuration(ConfigFactory.load("application.conf")) // Or test.conf, if you have test-specific config files
   val messages = new DefaultMessagesApi(Environment.simple(), config, new DefaultLangs(config))
-  val controller = new AdminDataController(mockAdminDataRepository, messages)
+  val controller = new AdminDataController(mockAdminDataRepository, messages, cache)
 
   lazy val messageException = throw new Exception("Unable to get message")
   lazy val noContentTypeException = throw new Exception("Unable to get content type")
