@@ -20,10 +20,9 @@ class AdminDataTest extends FlatSpec with Matchers {
 
   it must "create AdminData instance and add employee val with 10 in json form" in {
     val testAdminData: AdminData = new AdminData(YearMonth.parse("201706"), "12345")
-    val update = testAdminData.putVariable("Employees", "10")
+    val update = testAdminData.putVariable(Map("Employees" -> "10"))
     val json = Json.toJson(update)
-
     json.toString should equal(EXPECTED_JSON)
-    (json \ "vars" \ "Employees").as[String] should equal("10")
+    (json \ "variables" \ "Employees").as[String] should equal("10")
   }
 }
