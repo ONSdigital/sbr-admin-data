@@ -30,17 +30,17 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   val cb = getCircuitBreaker(getRecordById)
 
   @ApiOperation(
-    value = "JSON of the matching company",
-    notes = "The company is matched on CompanyNumber",
+    value = "Endpoint for getting a record by id and optional period",
+    notes = "Period is optional, a default period is used if none is provided",
     responseContainer = "JSONObject",
     code = 200,
     httpMethod = "GET"
   )
   @ApiResponses(Array(
     new ApiResponse(code = 200, responseContainer = "JSONObject", message = "Success -> Record found for id."),
-    new ApiResponse(code = 404, responseContainer = "JSONObject", message = "Client Side Error -> Id not found."),
-    new ApiResponse(code = 422, responseContainer = "JSONObject", message = "Client Side Error -> Wrong companyNumber format."),
-    new ApiResponse(code = 500, responseContainer = "JSONObject", message = "Server Side Error -> Request could not be completed.")
+    new ApiResponse(code = 400, responseContainer = "JSONObject", message = "Bad Request -> Invalid parameters."),
+    new ApiResponse(code = 404, responseContainer = "JSONObject", message = "Not Found -> Id not found."),
+    new ApiResponse(code = 500, responseContainer = "JSONObject", message = "Internal Server Error -> Request could not be completed.")
   ))
   def lookup(
     @ApiParam(value = "A valid period in yyyyMM format", example = "201706", required = false) period: Option[String],
