@@ -1,4 +1,4 @@
-package hbase.repository
+package repository
 
 import javax.inject.Inject
 
@@ -75,7 +75,7 @@ class HBaseAdminDataRepository @Inject() (
       case None =>
         RowKeyUtils.createRowKey(HARDCODED_CURRENT_PERIOD, key)
     }
-    val endRowKey = createEndRowKey(key)
+    val endRowKey = createEndRowKey(rowKey)
     val maxResult = 1L
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
@@ -86,19 +86,29 @@ class HBaseAdminDataRepository @Inject() (
           .setMaxVersions(maxResult.toInt)
         scan.setMaxResultSize(maxResult)
 
+        println(s"start = $endRowKey end = $rowKey")
         //        Option(table.getScanner(scan).next) match {
-        //          case Some(rec) =>
+        //          case Some(res) if res.isEmpty =>
+        //            println("EMPTY")
+        //            logger.debug("No data found for row key '{}'", rowKey)
+        //            None
+        //          case Some(result) =>
+        //            println("YOLO")
+        //            println(s"SCAN == ${Bytes.toString(result.getRow)}")
         //            logger.debug("Found data for row key '{}'", rowKey)
-        //            Some(convertToAdminData(rec))
-        //          case None =>
+        //            Some(convertToAdminData(result))
+        //          case _ =>
         //            logger.debug("No data found for row key '{}'", rowKey)
         //            None
         //        }
+
         table.get(new Get(Bytes.toBytes(rowKey))) match {
           case res if res.isEmpty =>
             logger.debug("No data found for row key '{}'", rowKey)
             None
           case result =>
+            println(s"GET == ${Bytes.toString(result.getRow)}")
+            println(s"SCAN == ${Bytes.toString(table.getScanner(scan).next.getRow)}")
             logger.debug("Found data for row key '{}'", rowKey)
             Some(convertToAdminData(result))
         }

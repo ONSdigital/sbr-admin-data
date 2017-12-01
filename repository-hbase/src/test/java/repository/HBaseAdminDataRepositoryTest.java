@@ -1,4 +1,4 @@
-package hbase.repository;
+package repository;
 
 import akka.actor.ActorSystem;
 import hbase.connector.HBaseConnector;

@@ -1,6 +1,4 @@
-package hbase.repository
-
-//import java.hbase.util.concurrent.CompletionStage
+package repository
 
 import scala.concurrent.Future
 
@@ -19,9 +17,7 @@ import model.AdminData
 trait AdminDataRepository {
 
   def getCurrentPeriod: Future[YearMonth]
-  //  def getCurrentPeriod: CompletionStage[Option[YearMonth]]
 
   def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
-  //  def lookup(referencePeriod: YearMonth, key: String): CompletionStage[AdminData]
 
 }
