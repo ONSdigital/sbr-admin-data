@@ -30,7 +30,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
   // TODO:
   // - test cache duration
 
-  val dateFormat = "yyyyMM"
+  val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
   val dateString = "201706"
   val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
 

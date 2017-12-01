@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class CircuitBreakerTest extends PlaySpec with MockitoSugar {
 
   implicit def defaultAwaitTimeout: Timeout = 20.seconds
-  val dateFormat = "yyyyMM"
+  val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
   val dateString = "201706"
   val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
 
