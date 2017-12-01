@@ -21,7 +21,7 @@ trait AdminDataRepository {
   def getCurrentPeriod: Future[YearMonth]
   //  def getCurrentPeriod: CompletionStage[Option[YearMonth]]
 
-  def lookup(referencePeriod: YearMonth, key: String): Future[Option[AdminData]]
+  def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
   //  def lookup(referencePeriod: YearMonth, key: String): CompletionStage[AdminData]
 
 }

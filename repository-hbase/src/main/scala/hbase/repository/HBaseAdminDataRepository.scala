@@ -63,13 +63,18 @@ class HBaseAdminDataRepository @Inject() (
   //  implicit val timeout = Timeout(2 seconds)
 
   // @TODO - fix + add circuit-breaker
-  override def lookup(referencePeriod: YearMonth, key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
+  override def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
   @throws(classOf[Exception])
-  private def getAdminData(referencePeriod: YearMonth, key: String): Option[AdminData] = {
-    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+  private def getAdminData(referencePeriod: Option[YearMonth], key: String): Option[AdminData] = {
+    val rowKey = referencePeriod match {
+      case (Some(r)) =>
+        RowKeyUtils.createRowKey(r, key)
+      case None =>
+        RowKeyUtils.createRowKey(HARDCODED_CURRENT_PERIOD, key)
+    }
     val endRowKey = createEndRowKey(key)
     val maxResult = 1L
     Try(connector.getConnection.getTable(tableName)) match {

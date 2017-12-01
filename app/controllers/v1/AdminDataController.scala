@@ -56,5 +56,5 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
     })
   }
 
-  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.get, v.id)
+  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 }

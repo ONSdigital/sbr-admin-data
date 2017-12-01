@@ -87,7 +87,7 @@ public class HBaseAdminDataRepositoryTest {
         when(result.listCells()).thenReturn(cells);
         when(result.getRow()).thenReturn(Bytes.toBytes(rowKey));
 
-        Option<AdminData> result = toJava(repository.lookup(testPeriod, testId)).toCompletableFuture().get();
+        Option<AdminData> result = toJava(repository.lookup(Option.apply(testPeriod), testId)).toCompletableFuture().get();
         System.out.println("TEST COMPLETE");
         assertTrue("Result should be present", result.isDefined());
         assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
@@ -99,13 +99,13 @@ public class HBaseAdminDataRepositoryTest {
     @Test
     public void lookupNoDataFound() throws Exception {
         when(result.isEmpty()).thenReturn(true);
-        assertEquals("Result should be empty", Option.empty(), toJava(repository.lookup(TEST_PERIOD, "12345")).toCompletableFuture().get());
+        assertEquals("Result should be empty", Option.empty(), toJava(repository.lookup(Option.apply(TEST_PERIOD), "12345")).toCompletableFuture().get());
     }
 
     @Test(expected = Exception.class)
     public void lookupException() throws Exception {
         when(connection.getTable(any())).thenThrow(new IOException("Failed to retrieve data"));
-        Future<Option<AdminData>> stage = repository.lookup(TEST_PERIOD, "12345");
+        Future<Option<AdminData>> stage = repository.lookup(Option.apply(TEST_PERIOD), "12345");
         toJava(stage).toCompletableFuture().get();
     }
 
