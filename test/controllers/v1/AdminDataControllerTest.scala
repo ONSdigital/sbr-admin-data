@@ -36,7 +36,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
   val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
 
   val mockAdminDataRepository = mock[AdminDataRepository]
-  val cache = new TestCache
+  val cache = new TestCache(false)
 
   val config = Configuration(ConfigFactory.load("application.conf")) // Or test.conf, if you have test-specific config files
   val messages = new DefaultMessagesApi(Environment.simple(), config, new DefaultLangs(config))
@@ -45,7 +45,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
   lazy val messageException = throw new Exception("Unable to get message")
   lazy val noContentTypeException = throw new Exception("Unable to get content type")
 
-  val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
+  val defaultMessages = messages.messages.getOrElse("default", throw new Exception("Unable to get messages"))
 
   "AdminDataController" must {
     "return a valid result" in {
@@ -73,7 +73,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
       val resp = controller.lookup(Some("201713"), "12345").apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
-      val errorMessage = defaultMessages.get("controller.invalid.period").getOrElse(messageException)
+      val errorMessage = defaultMessages.getOrElse("controller.invalid.period", messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", dateFormat)
     }
 
@@ -81,7 +81,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
       val resp = controller.lookup(Some("201706"), "0").apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
-      val errorMessage = defaultMessages.get("controller.invalid.id").getOrElse(messageException)
+      val errorMessage = defaultMessages.getOrElse("controller.invalid.id", messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
     }
 
@@ -91,7 +91,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
       val resp = controller.lookup(Some(dateString), notFoundId).apply(FakeRequest())
       status(resp) mustBe NOT_FOUND
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
-      val errorMessage = defaultMessages.get("controller.not.found").getOrElse(messageException)
+      val errorMessage = defaultMessages.getOrElse("controller.not.found", messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage.replace("{0}", notFoundId)
     }
 
@@ -101,7 +101,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
       val resp = controller.lookup(Some("201706"), exceptionId).apply(FakeRequest())
       status(resp) mustBe INTERNAL_SERVER_ERROR
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
-      val errorMessage = defaultMessages.get("controller.server.error").getOrElse(messageException)
+      val errorMessage = defaultMessages.getOrElse("controller.server.error", messageException)
       (contentAsJson(resp) \ "message_en").as[String] mustBe errorMessage
     }
   }

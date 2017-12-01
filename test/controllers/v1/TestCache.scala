@@ -8,7 +8,8 @@ import scala.reflect.ClassTag
 import scala.util.{ Failure, Success, Try }
 
 // https://stackoverflow.com/questions/39453838/play-scala-2-5-testing-classes-injecting-cache-leads-to-an-error
-class TestCache extends CacheApi {
+// Pass in noResults in case we want to turn the cache off - i.e. for circuit breaker testing
+class TestCache(noResults: Boolean) extends CacheApi {
   lazy val cache = {
     val manager = CacheManager.getInstance()
     manager.addCacheIfAbsent("play")
@@ -29,7 +30,7 @@ class TestCache extends CacheApi {
 
   def get[T: ClassTag](key: String): Option[T] = {
     Try(cache.get(key).getObjectValue.asInstanceOf[T]) match {
-      case Success(s) => Some(s)
+      case Success(s) => if (noResults) None else Some(s)
       case Failure(ex) => None
     }
   }

@@ -39,11 +39,12 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
   // Use a fixture as we need the circuit breaker to reset after each test
   def setup =
     new {
-      val cache = new TestCache
+      val cache = new TestCache(true) // Pass in true to turn off caching
       val mockAdminDataRepository = mock[AdminDataRepository]
       val config = Configuration(ConfigFactory.load("application.conf")) // Or test.conf, if you have test-specific config files
       val messages = new DefaultMessagesApi(Environment.simple(), config, new DefaultLangs(config))
       val controller = new AdminDataController(mockAdminDataRepository, messages, cache)
+      //      val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
       val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
     }
 

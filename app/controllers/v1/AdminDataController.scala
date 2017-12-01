@@ -10,6 +10,7 @@ import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
 import akka.pattern.ask
+import com.github.nscala_time.time.Imports._
 import com.typesafe.scalalogging.LazyLogging
 import models.ValidLookup
 import utils.{ LookupValidator, Utilities }
@@ -19,6 +20,7 @@ import play.api.mvc.Result
 import config.Properties._
 import io.swagger.annotations._
 import model.AdminData
+import org.joda.time.format.DateTimeFormat
 
 /**
  * Created by coolit on 07/11/2017.
@@ -28,6 +30,9 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
 
   val validator = new LookupValidator(messagesApi)
   val cb = getCircuitBreaker(getRecordById)
+
+  // Use hard coded default period until Option[Period] works
+  val defaultPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT))
 
   @ApiOperation(
     value = "Endpoint for getting a record by id and optional period",
@@ -48,24 +53,17 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   ): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
     validator.validateLookupParams(id, period) match {
-      case Right(v) => {
-        val cacheKey = Utilities.createCacheKey(v)
-        cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
-      }
+      case Right(v) => cache.getOrElse[Future[Result]](Utilities.createCacheKey(v), cacheDuration)(repositoryLookup(v))
       case Left(error) => BadRequest(Utilities.errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
     }
   }
 
-  def repositoryLookup(v: ValidLookup, cacheKey: String): Future[Result] = {
+  def repositoryLookup(v: ValidLookup): Future[Result] = {
     // Do the db call through a circuit breaker
     val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[AdminData]]]
     askFuture.flatMap(x => x.map(
       y => y match {
-        case Some(s) => {
-          val resp = Ok(Json.toJson(s))
-          cache.set(cacheKey, resp.future, cacheDuration)
-          resp
-        }
+        case Some(s) => Ok(Json.toJson(s))
         case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
       }
     )).recover({
