@@ -2,6 +2,7 @@ package controllers
 
 import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
 import org.joda.time.DateTime
+import play.api.libs.json.Json
 import play.api.mvc.{ Action, Controller }
 
 @Api("Health")
@@ -18,7 +19,18 @@ class HealthController extends Controller {
   ))
   def health = Action {
     val uptimeInMillis = uptime()
-    Ok(s"{Status: Ok, Uptime: ${uptimeInMillis}ms, Date and Time: " + new DateTime(startTime) + "}").as(JSON)
+    val dateTime = new DateTime(startTime)
+    Ok(Json.obj(
+      "startTime" -> s"${dateTime.toLocalDate} ${dateTime.toLocalTime}",
+      "uptime" -> millisToHoursMinutesDays(uptimeInMillis)
+    ))
+  }
+
+  private def millisToHoursMinutesDays(millis: Long): String = {
+    val days = (millis / (1000 * 60 * 60 * 24))
+    val hours = (millis / (1000 * 60 * 60) % 24)
+    val minutes = (millis / (1000 * 60) % 60)
+    s"$days days $hours hours $minutes minutes"
   }
 
   private def uptime(): Long = {
