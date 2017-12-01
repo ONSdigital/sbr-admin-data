@@ -17,17 +17,35 @@ import hbase.repository.AdminDataRepository
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import config.Properties._
+import io.swagger.annotations._
 import model.AdminData
 
 /**
  * Created by coolit on 07/11/2017.
  */
+@Api("Lookup")
 class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
   val validator = new LookupValidator(messagesApi)
   val cb = getCircuitBreaker(getRecordById)
 
-  def lookup(period: Option[String], id: String): Action[AnyContent] = Action.async { implicit request =>
+  @ApiOperation(
+    value = "JSON of the matching company",
+    notes = "The company is matched on CompanyNumber",
+    responseContainer = "JSONObject",
+    code = 200,
+    httpMethod = "GET"
+  )
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, responseContainer = "JSONObject", message = "Success -> Record found for id."),
+    new ApiResponse(code = 404, responseContainer = "JSONObject", message = "Client Side Error -> Id not found."),
+    new ApiResponse(code = 422, responseContainer = "JSONObject", message = "Client Side Error -> Wrong companyNumber format."),
+    new ApiResponse(code = 500, responseContainer = "JSONObject", message = "Server Side Error -> Request could not be completed.")
+  ))
+  def lookup(
+    @ApiParam(value = "A valid period in yyyyMM format", example = "201706", required = false) period: Option[String],
+    @ApiParam(value = "An id, validated using the validation.id environment variable regex", example = "123456", required = true) id: String
+  ): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Lookup with period [$period] for id [$id]")
     validator.validateLookupParams(id, period) match {
       case Right(v) => {
