@@ -5,11 +5,11 @@ import javax.inject.Inject
 import com.github.nscala_time.time.Imports.YearMonth
 import org.joda.time.format.DateTimeFormat
 import models._
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.i18n.Messages.Implicits._
 import config.Properties.idRegex
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Created by coolit on 16/11/2017.

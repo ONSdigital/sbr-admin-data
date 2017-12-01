@@ -1,11 +1,11 @@
 package controllers.v1
 
-import net.sf.ehcache.{CacheManager, Element}
+import net.sf.ehcache.{ CacheManager, Element }
 import play.api.cache.CacheApi
 
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 // https://stackoverflow.com/questions/39453838/play-scala-2-5-testing-classes-injecting-cache-leads-to-an-error
 class TestCache extends CacheApi {

@@ -4,18 +4,18 @@ import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.config.ConfigFactory
 import model.AdminData
 import org.joda.time.format.DateTimeFormat
-import play.api.{Configuration, Environment}
-import play.api.i18n.{DefaultLangs, DefaultMessagesApi}
-import repository.AdminDataRepository
+import play.api.{ Configuration, Environment }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import akka.util.Timeout
+import hbase.repository.AdminDataRepository
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -102,13 +102,13 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       verify(s.mockAdminDataRepository, times(0)).lookup(date, validId)
     }
 
-//    "must fail a db lookup call that takes too long" in {
-//      val s = setup
-//      val longCallId = "1122334455"
-//      lazy val f = { Thread.sleep(2000); Future(Some(AdminData(date, longCallId))) }
-//      when(s.mockAdminDataRepository.lookup(date, longCallId)) thenReturn f
-//      val resp = s.controller.lookup(Some(dateString), longCallId).apply(FakeRequest())
-//      status(resp) mustBe INTERNAL_SERVER_ERROR
-//    }
+    //    "must fail a db lookup call that takes too long" in {
+    //      val s = setup
+    //      val longCallId = "1122334455"
+    //      lazy val f = { Thread.sleep(2000); Future(Some(AdminData(date, longCallId))) }
+    //      when(s.mockAdminDataRepository.lookup(date, longCallId)) thenReturn f
+    //      val resp = s.controller.lookup(Some(dateString), longCallId).apply(FakeRequest())
+    //      status(resp) mustBe INTERNAL_SERVER_ERROR
+    //    }
   }
 }
