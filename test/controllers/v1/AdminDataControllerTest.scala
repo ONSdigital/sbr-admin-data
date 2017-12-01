@@ -21,6 +21,7 @@ import scala.concurrent._
 import ExecutionContext.Implicits.global
 import play.api.i18n._
 import play.mvc.Result
+import utils.Utilities
 
 /**
  * Created by coolit on 28/11/2017.
@@ -61,7 +62,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results {
       val id = "55667788"
       val lookup = ValidLookup(id, Some(date))
       when(mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id)))
-      val cacheKey = controller.createCacheKey(lookup)
+      val cacheKey = Utilities.createCacheKey(lookup)
       cache.get[Future[Result]](cacheKey) mustBe None
       val resp = controller.lookup(Some(dateString), id).apply(FakeRequest())
       status(resp) mustBe OK

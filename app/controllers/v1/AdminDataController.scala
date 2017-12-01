@@ -49,7 +49,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
     logger.info(s"Lookup with period [$period] for id [$id]")
     validator.validateLookupParams(id, period) match {
       case Right(v) => {
-        val cacheKey = createCacheKey(v)
+        val cacheKey = Utilities.createCacheKey(v)
         cache.get[Future[Result]](cacheKey).getOrElse(repositoryLookup(v, cacheKey))
       }
       case Left(error) => BadRequest(Utilities.errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
@@ -77,6 +77,4 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   }
 
   def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.get, v.id)
-
-  def createCacheKey(v: ValidLookup): String = List(v.id, v.period.getOrElse(None)).mkString(cacheDelimiter)
 }
