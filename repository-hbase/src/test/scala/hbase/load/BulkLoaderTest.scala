@@ -7,13 +7,13 @@ import scala.concurrent.Future
 
 import org.apache.hadoop.util.ToolRunner
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatest.{ BeforeAndAfterAll, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
 
 import model.AdminData
 import hbase.AbstractHBaseIT
+import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
-import repository.HBaseAdminDataRepository
 
 /**
  * BulkLoaderTest

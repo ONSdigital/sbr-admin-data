@@ -8,7 +8,7 @@ import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
 import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
-import repository.HBaseAdminDataRepository;
+import hbase.repository.HBaseAdminDataRepository;
 import load.AdminDataLoad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

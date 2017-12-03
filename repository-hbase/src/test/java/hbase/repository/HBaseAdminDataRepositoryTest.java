@@ -1,4 +1,4 @@
-package repository;
+package hbase.repository;
 
 import akka.actor.ActorSystem;
 import hbase.connector.HBaseConnector;
@@ -88,7 +88,6 @@ public class HBaseAdminDataRepositoryTest {
         when(result.getRow()).thenReturn(Bytes.toBytes(rowKey));
 
         Option<AdminData> result = toJava(repository.lookup(Option.apply(testPeriod), testId)).toCompletableFuture().get();
-        System.out.println("TEST COMPLETE");
         assertTrue("Result should be present", result.isDefined());
         assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
         assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());

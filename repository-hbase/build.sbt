@@ -73,7 +73,7 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
-) ++ hadoopDeps
+) ++ hadoopDeps.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
@@ -87,11 +87,11 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
 /**
   * PROJECT DEF
   */
-moduleName := "sbr-admin-data-hbase.repository-hbase"
+moduleName := "sbr-admin-data-hbase-repository"
 description := "<description>"
 libraryDependencies ++=  DevDeps
 //excludeDependencies ++= exTransiviveDeps
-resolvers += "cloudera" at "https://hbase.repository.cloudera.com/artifactory/cloudera-repos/"
+resolvers += "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
 mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader")
 
 

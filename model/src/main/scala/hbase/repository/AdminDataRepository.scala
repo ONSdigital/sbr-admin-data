@@ -1,4 +1,4 @@
-package repository
+package hbase.repository
 
 import scala.concurrent.Future
 

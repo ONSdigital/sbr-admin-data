@@ -1,8 +1,9 @@
-package repository
+package hbase.repository
 
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
 import org.apache.hadoop.hbase.client.{ Result, _ }
@@ -75,7 +76,7 @@ class HBaseAdminDataRepository @Inject() (
       case None =>
         RowKeyUtils.createRowKey(HARDCODED_CURRENT_PERIOD, key)
     }
-    val endRowKey = createEndRowKey(rowKey)
+    val endRowKey = createEndRowKey(key)
     val maxResult = 1L
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
@@ -86,32 +87,24 @@ class HBaseAdminDataRepository @Inject() (
           .setMaxVersions(maxResult.toInt)
         scan.setMaxResultSize(maxResult)
 
-        println(s"start = $endRowKey end = $rowKey")
-        //        Option(table.getScanner(scan).next) match {
-        //          case Some(res) if res.isEmpty =>
-        //            println("EMPTY")
-        //            logger.debug("No data found for row key '{}'", rowKey)
-        //            None
-        //          case Some(result) =>
-        //            println("YOLO")
-        //            println(s"SCAN == ${Bytes.toString(result.getRow)}")
-        //            logger.debug("Found data for row key '{}'", rowKey)
-        //            Some(convertToAdminData(result))
-        //          case _ =>
-        //            logger.debug("No data found for row key '{}'", rowKey)
-        //            None
-        //        }
+//        Option(table.getScanner(scan).next) match {
+//          case Some(result) =>
+//            logger.debug("Found data for row key '{}'", rowKey)
+//            Some(convertToAdminData(result))
+//          case None =>
+//            logger.debug("No data found for row key '{}'", rowKey)
+//            None
+//        }
 
         table.get(new Get(Bytes.toBytes(rowKey))) match {
           case res if res.isEmpty =>
             logger.debug("No data found for row key '{}'", rowKey)
             None
           case result =>
-            println(s"GET == ${Bytes.toString(result.getRow)}")
-            println(s"SCAN == ${Bytes.toString(table.getScanner(scan).next.getRow)}")
             logger.debug("Found data for row key '{}'", rowKey)
             Some(convertToAdminData(result))
         }
+      //        table.close()
       case Failure(e: Exception) =>
         logger.error(s"Error getting data for row key $rowKey", e)
         throw e
@@ -132,9 +125,27 @@ class HBaseAdminDataRepository @Inject() (
 
   // @TODO - Fix
   private def createEndRowKey(key: String): String = {
-    val l = (key.last.toLong + 1).toChar
-    val p = key.substring(0, key.length() - 1) + s"$l"
-    p
+    // pattern match
+    // case 1 -> if Z then return A in index
+    //        -> run again - recursion
+    // case 2 -> if 9 then return 0 in index
+    //        -> run again - rec
+    // case _ => increment current index no recusion return this value
+    // case all numbers are incremented then add '0' at the end of key
+    val chars = key.toUpperCase.toCharArray
+    (chars.length until 0).map( x =>
+      if (chars(x) == 'Z'){
+        chars(x) = 'A'
+        chars
+      }
+      else if (chars(x) == '9'){
+        chars(x) = '0'
+        chars
+      } else {
+        chars(x) + 1
+      }
+    )
+    String.valueOf(chars)
   }
 
 }
