@@ -61,12 +61,10 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   def repositoryLookup(v: ValidLookup): Future[Result] = {
     // Do the db call through a circuit breaker
     val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[AdminData]]]
-    askFuture.flatMap(x => x.map(
-      y => y match {
-        case Some(s) => Ok(Json.toJson(s))
-        case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
-      }
-    )).recover({
+    askFuture.flatMap(x => x.map(y => y match {
+      case Some(s) => Ok(Json.toJson(s))
+      case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
+    })).recover({
       case _ => {
         logger.error(s"Unable to get record from database")
         InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error")))
@@ -74,5 +72,5 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
     })
   }
 
-  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.get, v.id)
+  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.getOrElse(defaultPeriod), v.id)
 }
