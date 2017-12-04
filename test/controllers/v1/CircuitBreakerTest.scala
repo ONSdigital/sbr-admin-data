@@ -32,7 +32,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
   lazy val noContentTypeException = throw new Exception("Unable to get content type")
 
   // TODO:
-  // - Make sure can load in test application.conf
+  // - Potentially have more separation between the controller + cb in these tests
   // - Test that state goes back to isHalfOpen after reset timeout
   // - Test that callTimeout works
 
