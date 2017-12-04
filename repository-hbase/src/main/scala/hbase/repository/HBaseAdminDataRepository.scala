@@ -76,37 +76,38 @@ class HBaseAdminDataRepository @Inject() (
       case None =>
         key -> createEndRowKey(key)
     }
-    //    val endRowKey = createEndRowKey(key)
+    val startRowKey = rowKeyRange._1
+    val endRowKey = rowKeyRange._2
     val maxResult = 1L
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
         val scan = new Scan()
-          .setStartRow(Bytes.toBytes(rowKeyRange._2))
-          .setStopRow(Bytes.toBytes(rowKeyRange._1))
+          .setStartRow(Bytes.toBytes(endRowKey))
+          .setStopRow(Bytes.toBytes(startRowKey))
           .setReversed(true)
           .setMaxVersions(maxResult.toInt)
         scan.setMaxResultSize(maxResult)
 
-        Option(table.getScanner(scan).next) match {
-          case Some(result) =>
-            logger.debug("Found data for row key '{}'", rowKeyRange._1)
-            Some(convertToAdminData(result))
-          case None =>
-            logger.debug("No data found for row key '{}'", rowKeyRange._1)
-            None
-        }
+        //        Option(table.getScanner(scan).next) match {
+        //          case Some(result) =>
+        //            logger.debug("Found data for row key '{}'", rowKeyRange._1)
+        //            Some(convertToAdminData(result))
+        //          case None =>
+        //            logger.debug("No data found for row key '{}'", rowKeyRange._1)
+        //            None
+        //        }
 
-//      table.get(new Get(Bytes.toBytes(rowKeyRange._1))) match {
-//        case res if res.isEmpty =>
-//          logger.debug("No data found for row key '{}'", rowKeyRange._1)
-//          None
-//        case result =>
-//          logger.debug("Found data for row key '{}'", rowKeyRange._1)
-//          Some(convertToAdminData(result))
-//      }
+        table.get(new Get(Bytes.toBytes(startRowKey))) match {
+          case res if res.isEmpty =>
+            logger.debug("No data found for row key '{}'", startRowKey)
+            None
+          case result =>
+            logger.debug("Found data for row key '{}'", startRowKey)
+            Some(convertToAdminData(result))
+        }
       //        table.close()
       case Failure(e: Exception) =>
-        logger.error(s"Error getting data for row key ${rowKeyRange._1}", e)
+        logger.error(s"Error getting data for row key $startRowKey", e)
         throw e
     }
   }
