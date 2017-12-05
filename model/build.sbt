@@ -1,4 +1,4 @@
-moduleName := "sbr-admin-data-model"
+moduleName := "sbr-admin-data-hbase.model"
 
 logBuffered in Test := false
 //libraryDependencies += "junit" % "junit" % "4.12" % Test

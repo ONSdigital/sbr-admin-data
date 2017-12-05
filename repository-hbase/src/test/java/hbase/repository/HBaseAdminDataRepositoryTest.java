@@ -3,7 +3,7 @@ package hbase.repository;
 import akka.actor.ActorSystem;
 import hbase.connector.HBaseConnector;
 import hbase.util.RowKeyUtils;
-import model.AdminData;
+import hbase.model.AdminData;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HConstants;
@@ -70,6 +70,30 @@ public class HBaseAdminDataRepositoryTest {
         YearMonth period = toJava(repository.getCurrentPeriod()).toCompletableFuture().get();
         assertEquals("Failure - invalid year", 2017, period.getYear());
         assertEquals("Failure - invalid year", Months.SIX.getMonths(), period.getMonthOfYear());
+    }
+
+    @Test
+    public void lookupOvertime() throws Exception {
+        byte[] columnFamily = toBytes("d");
+        // Test data
+        String testId = "12335";
+        YearMonth testPeriod = new YearMonth(2008, 12);
+        // Create cells for each column
+        String rowKey = RowKeyUtils.createRowKey(testPeriod, testId);
+        Cell nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes("My Company"), HConstants.EMPTY_BYTE_ARRAY);
+        List<Cell> cells = new ArrayList<>();
+        cells.add(nameCell);
+        when(result.isEmpty()).thenReturn(false);
+        when(result.listCells()).thenReturn(cells);
+        when(result.getRow()).thenReturn(Bytes.toBytes(rowKey));
+        Option<AdminData> result = toJava(repository.lookup(Option.apply(testPeriod), testId)).toCompletableFuture().get();
+        assertTrue("Result should be present", result.isDefined());
+        assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
+        assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());
+        assertEquals("Invalid id", "12335", result.get().id());
+        assertEquals("Invalid name", "My Company", result.get().variables().get("name").get());
+
+        Option<AdminData> result2 = toJava(repository.lookupOvertime(testId, Option.apply(12L))).toCompletableFuture().get();
     }
 
     @Test

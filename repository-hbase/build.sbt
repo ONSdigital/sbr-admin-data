@@ -42,6 +42,8 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
 
 
 lazy val DevDeps: Seq[ModuleID] = Seq(
+  ws,
+
   //@NOTE - patch for unresolved dependency
   "commons-daemon"          %  "commons-daemon"                 % "1.0.13",
 
@@ -87,12 +89,12 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
 /**
   * PROJECT DEF
   */
-moduleName := "sbr-admin-data-hbase-repository"
+moduleName := "sbr-admin-data-hbase-hbase.repository"
 description := "<description>"
 libraryDependencies ++=  DevDeps
 //excludeDependencies ++= exTransiviveDeps
-resolvers += "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
-mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader")
+resolvers += "cloudera" at "https://hbase.repository.cloudera.com/artifactory/cloudera-repos/"
+mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
 
 
 crossPaths := false

@@ -40,7 +40,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class BulkLoader extends Configured implements Tool {
 
-    static final String REFERENCE_PERIOD = "load.period";
+    static final String REFERENCE_PERIOD = "hbase.load.period";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
     private static final int MIN_ARGS = 3;
@@ -92,7 +92,7 @@ public class BulkLoader extends Configured implements Tool {
 
     private int load(String tableNameStr, String referencePeriod, String inputFile, String outputFilePath) {
 
-        LOG.info("Starting bulk load of data from file {} into table '{}' for reference period '{}'", inputFile, tableNameStr, referencePeriod);
+        LOG.info("Starting bulk hbase.load of data from file {} into table '{}' for reference period '{}'", inputFile, tableNameStr, referencePeriod);
 
         // Time job
         Instant start = Instant.now();

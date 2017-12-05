@@ -10,10 +10,10 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterAll, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
 
-import model.AdminData
+import hbase.model.AdminData
 import hbase.AbstractHBaseIT
-import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
+import hbase.repository.HBaseAdminDataRepository
 
 /**
  * BulkLoaderTest

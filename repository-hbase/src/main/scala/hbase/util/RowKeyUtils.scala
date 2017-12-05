@@ -2,7 +2,7 @@ package hbase.util
 
 import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 
-import model.AdminData
+import hbase.model.AdminData
 
 /**
  * RowKeyUtils

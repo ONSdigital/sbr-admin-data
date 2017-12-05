@@ -10,7 +10,6 @@ import scala.concurrent.Future
 import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
-
 import akka.pattern.ask
 import com.typesafe.scalalogging.LazyLogging
 
@@ -20,8 +19,8 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 
 import config.Properties._
+import hbase.model.AdminData
 import hbase.repository.AdminDataRepository
-import model.AdminData
 
 /**
  * Created by coolit on 07/11/2017.

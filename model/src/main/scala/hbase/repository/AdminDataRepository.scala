@@ -4,7 +4,7 @@ import scala.concurrent.Future
 
 import com.github.nscala_time.time.Imports.YearMonth
 
-import model.AdminData
+import hbase.model.AdminData
 
 /**
  * AdminDataRepository

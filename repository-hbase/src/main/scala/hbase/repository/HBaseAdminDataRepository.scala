@@ -19,7 +19,7 @@ import scala.util.{ Failure, Success, Try }
 
 import com.typesafe.config.{ Config, ConfigFactory }
 
-import model.AdminData
+import hbase.model.AdminData
 // import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -64,50 +64,66 @@ class HBaseAdminDataRepository @Inject() (
 
   // @TODO - fix + add circuit-breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
+  def lookupOvertime(key: String, periodRange: Option[Long] = Some(12L)): Future[Option[AdminData]] = Future.successful(getAdminDataOverTime(key, periodRange.getOrElse(12L)))
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
   @throws(classOf[Exception])
-  private def getAdminData(referencePeriod: Option[YearMonth], key: String): Option[AdminData] = {
-    val rowKeyRange = referencePeriod match {
-      case (Some(r)) =>
-        val startKey = RowKeyUtils.createRowKey(r, key)
-        startKey -> createEndRowKey(startKey)
-      case None =>
-        key -> createEndRowKey(key)
-    }
-    val startRowKey = rowKeyRange._1
-    val endRowKey = rowKeyRange._2
-    val maxResult = 1L
+  private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
+    val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
         val scan = new Scan()
-          .setStartRow(Bytes.toBytes(endRowKey))
-          .setStopRow(Bytes.toBytes(startRowKey))
           .setReversed(true)
-          .setMaxVersions(maxResult.toInt)
-        scan.setMaxResultSize(maxResult)
-
-        //        Option(table.getScanner(scan).next) match {
-        //          case Some(result) =>
-        //            logger.debug("Found data for row key '{}'", rowKeyRange._1)
-        //            Some(convertToAdminData(result))
-        //          case None =>
-        //            logger.debug("No data found for row key '{}'", rowKeyRange._1)
-        //            None
-        //        }
-
-        table.get(new Get(Bytes.toBytes(startRowKey))) match {
+          .setRowPrefixFilter(Bytes.toBytes(key))
+        scan.setMaxResultSize(2)
+        table.get(new Get(Bytes.toBytes(rowKey))) match {
           case res if res.isEmpty =>
-            logger.debug("No data found for row key '{}'", startRowKey)
+            logger.debug("No data found for row key '{}'", rowKey)
             None
           case result =>
-            logger.debug("Found data for row key '{}'", startRowKey)
+            logger.debug("Found data for row key '{}'", rowKey)
             Some(convertToAdminData(result))
         }
-      //        table.close()
       case Failure(e: Exception) =>
-        logger.error(s"Error getting data for row key $startRowKey", e)
+        logger.error(s"Error getting data for row key $rowKey", e)
+        throw e
+    }
+  }
+
+  @throws(classOf[Exception])
+  private def getAdminDataRest(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
+    ???
+  }
+
+  @throws(classOf[Exception])
+  private def getAdminDataOverTime(key: String, periodRange: Long): Option[AdminData] = {
+    val cf = Bytes.toBytes("d")
+    val prefix = Bytes.toBytes(key)
+    Try(connector.getConnection.getTable(tableName)) match {
+      case Success(table: Table) =>
+        val scan = new Scan(prefix)
+          .setRowPrefixFilter(prefix)
+          //          .setStopRow(Bytes.toBytes("19999999999999"))
+          .setReversed(true)
+          .addFamily(cf)
+        //        scan.setCaching(5)
+        //        scan.setMaxResultSize(periodRange)
+        Try(table.getScanner(scan)) match {
+          // NOTE null filter
+          //          case Success(result) =>
+          //            logger.debug("the search key returned NULL", key)
+          //            None
+          case Success(result: ResultScanner) =>
+            logger.debug("Found data for row key '{}'", key)
+            Some(convertToAdminData(result.next))
+
+          case Failure(_) =>
+            logger.debug("No data found for row key '{}'", key)
+            None
+        }
+      case Failure(e: Exception) =>
+        logger.error(s"Error getting data for row key $key", e)
         throw e
     }
   }
@@ -124,6 +140,7 @@ class HBaseAdminDataRepository @Inject() (
     newPutAdminData
   }
 
+  //  @Unused( "using scan.setRowPrefixFilter" )
   private def createEndRowKey(key: String): String = {
     val l = (key.last.toLong + 1).toChar
     val newKey = key.substring(0, key.length() - 1) + s"$l"

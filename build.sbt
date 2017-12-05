@@ -8,7 +8,7 @@ Common.applicationConfig := {
   val artifactoryConf = conf.getConfig("artifactory")
   Map (
     "publishTrigger" -> artifactoryConf.getBoolean("publish-init").toString,
-    "artifactoryAddress" -> artifactoryConf.getString("publish-hbase.repository"),
+    "artifactoryAddress" -> artifactoryConf.getString("publish-hbase.hbase.repository"),
     "artifactoryHost" -> artifactoryConf.getString("host"),
     "artifactoryUser" -> artifactoryConf.getString("user"),
     "artifactoryPassword" -> artifactoryConf.getString("password")

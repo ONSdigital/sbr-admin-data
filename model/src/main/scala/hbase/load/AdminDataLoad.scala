@@ -1,7 +1,7 @@
-package load
+package hbase.load
 
 //import com.google.inject.ImplementedBy
-//import hbase.load.HBaseAdminDataLoader
+//import hbase.hbase.load.HBaseAdminDataLoader
 
 /**
  * AdminDataLoad
