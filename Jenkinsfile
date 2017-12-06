@@ -54,7 +54,7 @@ pipeline {
             steps {
                 colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/$MODULE_NAME-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh 'rm -rf conf/sample/201706/vat_data.csv'
@@ -75,6 +75,9 @@ pipeline {
                     }
                     else if (BRANCH_NAME == BRANCH_PROD) {
                         env.DEPLOY_NAME = DEPLOY_PROD
+                    }
+                    else {
+                       env.DEPLOY_NAME = DEPLOY_DEV 
                     }
                 }
             }
@@ -104,10 +107,10 @@ pipeline {
                     },
                     "Style" : {
                         colourText("info","Running style tests")
-                        sh """
-                            $SBT scalastyleGenerateConfig
-                            $SBT scalastyle
-                        """
+                        // sh """
+                        //     $SBT scalastyleGenerateConfig
+                        //     $SBT scalastyle
+                        // """
                     },
                     "Additional" : {
                         colourText("info","Running additional tests")
@@ -194,13 +197,13 @@ pipeline {
 
         stage('Deploy'){
             agent any
-            when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
-                }
-            }
+            // when {
+            //     anyOf {
+            //         branch DEPLOY_DEV
+            //         branch DEPLOY_TEST
+            //         branch DEPLOY_PROD
+            //     }
+            // }
             steps {
                 script {
                     env.NODE_STAGE = "Deploy"
@@ -262,6 +265,6 @@ def push (String newTag, String currentTag) {
 def deploy () {
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundry("cloud-foundry-$TEAM-${env.DEPLOY_NAME}-user", TEAM, "${env.DEPLOY_NAME}", "${env.DEPLOY_NAME}-$MODULE_NAME", "${env.DEPLOY_NAME}-$ORGANIZATION-$MODULE_NAME.zip", "conf/${env.DEPLOY_NAME}/manifest.yml", TABLE_NAME, NAMESPACE)
+        deployToCloudFoundryHBase("cloud-foundry-$TEAM-${env.DEPLOY_NAME}-user", TEAM, "${env.DEPLOY_NAME}", "${env.DEPLOY_NAME}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", TABLE_NAME, NAMESPACE)
     }
 }
