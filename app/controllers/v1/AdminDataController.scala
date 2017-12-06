@@ -60,4 +60,16 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
   }
 
   def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
+
+  def lookupRest(id: String): Action[AnyContent] = {
+    Action.async {
+      repository.lookupRest(id, None).map {
+        case response if response.status == OK => {
+          Ok(response.body).as(JSON)
+        }
+        //TODO - add not found message
+        case response if response.status == NOT_FOUND => NotFound(response.body).as(JSON)
+      } recover responseException
+    }
+  }
 }

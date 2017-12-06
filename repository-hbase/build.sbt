@@ -72,10 +72,13 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   "org.scalactic"           %%  "scalactic"                     % "3.0.4",
   "org.scalatest"           %%  "scalatest"                     % "3.0.4"                  % "test",
 
+  "io.lemonlabs"            %%  "scala-uri"                     % "0.5.0",
+
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
-) ++ hadoopDeps.map(_ % "provided")
+) ++ hadoopDeps
+//  .map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"

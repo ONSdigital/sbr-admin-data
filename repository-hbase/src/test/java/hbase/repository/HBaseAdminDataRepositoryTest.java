@@ -19,7 +19,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import scala.Option;
 import scala.concurrent.Future;
+import services.websocket.RequestGenerator;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,8 @@ public class HBaseAdminDataRepositoryTest {
     private Result result;
     @Mock
     private ResultScanner resultScanner;
+    @Inject
+    private RequestGenerator ws;
 
 //    @BeforeClass
 //    public static void setup() {
@@ -58,7 +62,7 @@ public class HBaseAdminDataRepositoryTest {
     @Before
     public void setUp() throws Exception {
 //        AdminDataExecutionContext context = new AdminDataExecutionContext(system);
-        repository = new HBaseAdminDataRepository(connector);
+        repository = new HBaseAdminDataRepository(connector, ws);
         when(connector.getConnection()).thenReturn(connection);
         when(connection.getTable(any())).thenReturn(table);
         when(table.get(any(Get.class))).thenReturn(result);

@@ -1,6 +1,7 @@
 package hbase.load
 
 import java.io.File
+import javax.inject.Inject
 
 import scala.compat.java8.FutureConverters.toJava
 import scala.concurrent.Future
@@ -14,6 +15,7 @@ import hbase.model.AdminData
 import hbase.AbstractHBaseIT
 import hbase.util.RowKeyUtils
 import hbase.repository.HBaseAdminDataRepository
+import services.websocket.RequestGenerator
 
 /**
  * BulkLoaderTest
@@ -24,7 +26,7 @@ import hbase.repository.HBaseAdminDataRepository
  */
 
 // @TODO - REMOVE NULLEXCEPTION methods
-class BulkLoaderTest extends AbstractHBaseIT with Matchers with MockitoSugar with BeforeAndAfterAll {
+class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT with Matchers with MockitoSugar with BeforeAndAfterAll {
 
   private val TEST_CSV_ID_COLUMN = "1"
   private val TEST_PERIOD: YearMonth = new YearMonth(2017, 6)
@@ -38,7 +40,7 @@ class BulkLoaderTest extends AbstractHBaseIT with Matchers with MockitoSugar wit
   @throws(classOf[Exception])
   private def setup = new {
     val bc = beforeClass
-    val repository: HBaseAdminDataRepository = new HBaseAdminDataRepository(bc.HBASE_CONNECTOR)
+    val repository: HBaseAdminDataRepository = new HBaseAdminDataRepository(bc.HBASE_CONNECTOR, ws)
     val bulkLoader: BulkLoader = new BulkLoader(bc.HBASE_CONNECTOR)
   }
 

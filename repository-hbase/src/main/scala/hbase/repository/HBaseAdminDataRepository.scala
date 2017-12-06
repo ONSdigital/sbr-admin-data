@@ -5,18 +5,25 @@ import javax.inject.Inject
 import scala.collection.JavaConversions._
 import scala.concurrent.{ ExecutionContext, Future }
 
+import play.api.http.Status
+import play.api.libs.ws.WSResponse
 import org.apache.hadoop.hbase.client.{ Result, _ }
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{ CellUtil, TableName }
 import org.slf4j.{ Logger, LoggerFactory }
 import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
+import com.google.common.base.Charsets
+import com.google.common.io.BaseEncoding
 
 import hbase.connector.HBaseConnector
 import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
+import services.websocket.RequestGenerator
 //import hbase.table.TableNames
 import scala.util.{ Failure, Success, Try }
 
+import com.netaporter.uri.Uri
+import com.netaporter.uri.dsl._
 import com.typesafe.config.{ Config, ConfigFactory }
 
 import hbase.model.AdminData
@@ -30,8 +37,9 @@ import hbase.model.AdminData
  * Copyright (c) 2017  Office for National Statistics
  */
 class HBaseAdminDataRepository @Inject() (
-    val connector: HBaseConnector
-) extends AdminDataRepository {
+    val connector: HBaseConnector,
+    ws: RequestGenerator
+) extends AdminDataRepository with Status {
 
   implicit val ec = ExecutionContext.global
 
@@ -40,7 +48,13 @@ class HBaseAdminDataRepository @Inject() (
     System.getProperty("hbase.table", "data")
   )
 
-  private final val config: Config = ConfigFactory.load()
+  // TODO - relocate config vals
+  private val config: Config = ConfigFactory.load().getConfig("hbase")
+  private val username: String = config.getString("authentication.username")
+  private val password: String = config.getString("authentication.password")
+  private val baseUrl: String = config.getString("rest.endpoint")
+  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
+
   private final val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   private final val HARDCODED_CURRENT_PERIOD: YearMonth = YearMonth.parse("201706", DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
   private final val OPEN_ALERT = "----- circuit breaker opened! -----"
@@ -68,6 +82,8 @@ class HBaseAdminDataRepository @Inject() (
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
+  override def lookupRest(key: String, referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD)): Future[WSResponse] = getAdminDataRest(key, referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD))
+
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
@@ -92,8 +108,15 @@ class HBaseAdminDataRepository @Inject() (
   }
 
   @throws(classOf[Exception])
-  private def getAdminDataRest(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
-    ???
+  private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = {
+    //    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+    val rowKey = "201706~9900156115~ENT"
+    println(tableName.getNameAsString)
+    val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey
+    val headers = Seq("Content-Type" -> "application/json", "Authorization" -> s"Basic $auth")
+    val request = ws.singleGETRequest(url.toString, headers)
+    request
+
   }
 
   @throws(classOf[Exception])
@@ -104,20 +127,12 @@ class HBaseAdminDataRepository @Inject() (
       case Success(table: Table) =>
         val scan = new Scan(prefix)
           .setRowPrefixFilter(prefix)
-          //          .setStopRow(Bytes.toBytes("19999999999999"))
           .setReversed(true)
           .addFamily(cf)
-        //        scan.setCaching(5)
-        //        scan.setMaxResultSize(periodRange)
         Try(table.getScanner(scan)) match {
-          // NOTE null filter
-          //          case Success(result) =>
-          //            logger.debug("the search key returned NULL", key)
-          //            None
           case Success(result: ResultScanner) =>
             logger.debug("Found data for row key '{}'", key)
             Some(convertToAdminData(result.next))
-
           case Failure(_) =>
             logger.debug("No data found for row key '{}'", key)
             None
