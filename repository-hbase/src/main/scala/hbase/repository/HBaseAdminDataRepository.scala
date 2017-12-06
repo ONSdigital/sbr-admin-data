@@ -3,15 +3,15 @@ package hbase.repository
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.http.Status
 import play.api.libs.ws.WSResponse
-import org.apache.hadoop.hbase.client.{ Result, _ }
+import org.apache.hadoop.hbase.CellUtil
+import org.apache.hadoop.hbase.client.{Result, _}
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.hadoop.hbase.{ CellUtil, TableName }
-import org.slf4j.{ Logger, LoggerFactory }
-import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
+import org.slf4j.{Logger, LoggerFactory}
+import com.github.nscala_time.time.Imports.{DateTimeFormat, YearMonth}
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
 
@@ -19,15 +19,13 @@ import hbase.connector.HBaseConnector
 import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
 import services.websocket.RequestGenerator
-//import hbase.table.TableNames
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
-import com.typesafe.config.{ Config, ConfigFactory }
 
 import hbase.model.AdminData
-// import scala.concurrent.ExecutionContext.Implicits.global
+import hbase.util.HBaseConfig._
 
 /**
  * HBaseAdminDataRepository
@@ -43,23 +41,31 @@ class HBaseAdminDataRepository @Inject() (
 
   implicit val ec = ExecutionContext.global
 
-  private final val tableName: TableName = TableName.valueOf(
-    System.getProperty("hbase.namespace", ""),
-    System.getProperty("hbase.table", "data")
-  )
+//  private final val tableName: TableName = TableName.valueOf(
+//    System.getProperty("hbase.namespace", ""),
+//    System.getProperty("hbase.table", "data")
+//  )
 
-  // TODO - relocate config vals
-  private val config: Config = ConfigFactory.load().getConfig("hbase")
-  private val username: String = config.getString("authentication.username")
-  private val password: String = config.getString("authentication.password")
-  private val baseUrl: String = config.getString("rest.endpoint")
-  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
+//  // TODO - relocate config vals
+//  private val config: Config = ConfigFactory.load().getConfig("hbase")
+//
+//  private final val tableName: TableName = TableName.valueOf(
+//    config.getString("namespace"),
+//    config.getString("table.name")
+//  )
+//  private val username: String = config.getString("authentication.username")
+//  private val password: String = config.getString("authentication.password")
+//  private val baseUrl: String = config.getString("rest.endpoint")
+//  private val columnFamily: String = config.getString("column.family")
+//  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
 
   private final val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   private final val HARDCODED_CURRENT_PERIOD: YearMonth = YearMonth.parse("201706", DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
   private final val OPEN_ALERT = "----- circuit breaker opened! -----"
   private final val CLOSED_ALERT = "----- circuit breaker closed! -----"
   private final val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
+
+  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
 
   //  private final val system = ActorSystem("hbase-repo-circuit-breaker")
   //  implicit val exc: ExecutionContextExecutor = system.dispatcher
@@ -109,10 +115,8 @@ class HBaseAdminDataRepository @Inject() (
 
   @throws(classOf[Exception])
   private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = {
-    //    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
-    val rowKey = "201706~9900156115~ENT"
-    println(tableName.getNameAsString)
-    val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey
+    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+    val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
     val headers = Seq("Content-Type" -> "application/json", "Authorization" -> s"Basic $auth")
     val request = ws.singleGETRequest(url.toString, headers)
     request
