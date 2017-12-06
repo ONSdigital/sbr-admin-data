@@ -3,15 +3,15 @@ package hbase.repository
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 import play.api.http.Status
 import play.api.libs.ws.WSResponse
 import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.client.{Result, _}
+import org.apache.hadoop.hbase.client.{ Result, _ }
 import org.apache.hadoop.hbase.util.Bytes
-import org.slf4j.{Logger, LoggerFactory}
-import com.github.nscala_time.time.Imports.{DateTimeFormat, YearMonth}
+import org.slf4j.{ Logger, LoggerFactory }
+import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
 
@@ -19,7 +19,7 @@ import hbase.connector.HBaseConnector
 import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
 import services.websocket.RequestGenerator
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
@@ -41,23 +41,23 @@ class HBaseAdminDataRepository @Inject() (
 
   implicit val ec = ExecutionContext.global
 
-//  private final val tableName: TableName = TableName.valueOf(
-//    System.getProperty("hbase.namespace", ""),
-//    System.getProperty("hbase.table", "data")
-//  )
+  //  private final val tableName: TableName = TableName.valueOf(
+  //    System.getProperty("hbase.namespace", ""),
+  //    System.getProperty("hbase.table", "data")
+  //  )
 
-//  // TODO - relocate config vals
-//  private val config: Config = ConfigFactory.load().getConfig("hbase")
-//
-//  private final val tableName: TableName = TableName.valueOf(
-//    config.getString("namespace"),
-//    config.getString("table.name")
-//  )
-//  private val username: String = config.getString("authentication.username")
-//  private val password: String = config.getString("authentication.password")
-//  private val baseUrl: String = config.getString("rest.endpoint")
-//  private val columnFamily: String = config.getString("column.family")
-//  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
+  //  // TODO - relocate config vals
+  //  private val config: Config = ConfigFactory.load().getConfig("hbase")
+  //
+  //  private final val tableName: TableName = TableName.valueOf(
+  //    config.getString("namespace"),
+  //    config.getString("table.name")
+  //  )
+  //  private val username: String = config.getString("authentication.username")
+  //  private val password: String = config.getString("authentication.password")
+  //  private val baseUrl: String = config.getString("rest.endpoint")
+  //  private val columnFamily: String = config.getString("column.family")
+  //  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
 
   private final val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   private final val HARDCODED_CURRENT_PERIOD: YearMonth = YearMonth.parse("201706", DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))

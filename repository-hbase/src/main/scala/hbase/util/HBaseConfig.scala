@@ -1,15 +1,15 @@
 package hbase.util
 
 import org.apache.hadoop.hbase.TableName
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 
 /**
-  * HBaseConfig
-  * ----------------
-  * Author: haqa
-  * Date: 06 December 2017 - 16:43
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * HBaseConfig
+ * ----------------
+ * Author: haqa
+ * Date: 06 December 2017 - 16:43
+ * Copyright (c) 2017  Office for National Statistics
+ */
 object HBaseConfig {
   lazy val config: Config = ConfigFactory.load().getConfig("hbase")
 
