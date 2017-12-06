@@ -8,10 +8,7 @@ import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.joda.time.Months;
 import org.joda.time.YearMonth;
@@ -50,6 +47,8 @@ public class HBaseAdminDataRepositoryTest {
     private Table table;
     @Mock
     private Result result;
+    @Mock
+    private ResultScanner resultScanner;
 
 //    @BeforeClass
 //    public static void setup() {
@@ -63,6 +62,8 @@ public class HBaseAdminDataRepositoryTest {
         when(connector.getConnection()).thenReturn(connection);
         when(connection.getTable(any())).thenReturn(table);
         when(table.get(any(Get.class))).thenReturn(result);
+        when(table.getScanner(any(Scan.class))).thenReturn(resultScanner);
+        when(resultScanner.next()).thenReturn(result);
     }
 
     @Test
