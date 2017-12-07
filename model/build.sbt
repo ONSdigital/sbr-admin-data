@@ -5,6 +5,15 @@ logBuffered in Test := false
 crossPaths := false
 //testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
 
+coverageMinimum := 80
+coverageFailOnMinimum := true
+
+scalastyleTarget := file("target/code-quality/style/scalastyle-result.xml")
+scalastyleFailOnError := true
+
+scapegoatOutputPath := "target/code-quality/style"
+scapegoatConsoleOutput := false
+
 libraryDependencies ++= Seq (
   filters,
   ws,

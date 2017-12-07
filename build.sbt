@@ -53,6 +53,14 @@ lazy val devDeps = Seq(
   "ch.qos.logback"             %   "logback-classic" %  "1.2.3"
 )
 
+//coverageMinimum := 80
+//coverageFailOnMinimum := true
+
+scalastyleTarget := file("target/code-quality/style/scalastyle-result.xml")
+scalastyleFailOnError := true
+
+scapegoatOutputPath := "target/code-quality/style"
+scapegoatConsoleOutput := false
 
 /**
   * PROJECT DEF

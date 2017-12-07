@@ -88,7 +88,8 @@ class HBaseAdminDataRepository @Inject() (
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
-  override def lookupRest(key: String, referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD)): Future[WSResponse] = getAdminDataRest(key, referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD))
+  override def lookupRest(key: String, referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD)): Future[WSResponse] =
+    getAdminDataRest(key, referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD))
 
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
