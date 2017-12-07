@@ -82,11 +82,9 @@ class HBaseAdminDataRepository @Inject() (
   private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
     val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-    println(s"URL IS ${url.toString}")
     logger.debug(s"sending ws request to ${url.toString}")
     val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
     val request = ws.singleGETRequest(url.toString, headers)
-
     request
 
   }

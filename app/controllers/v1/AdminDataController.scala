@@ -6,13 +6,13 @@ package controllers.v1
 import javax.inject.Inject
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 import akka.pattern.ask
 import play.api.cache.CacheApi
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.{ Action, AnyContent, Result }
 import org.joda.time.YearMonth
 import org.joda.time.format.DateTimeFormat
 import com.typesafe.scalalogging.LazyLogging
@@ -22,7 +22,7 @@ import models.ValidLookup
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository
 import utils.LookupValidator.REFERENCE_PERIOD_FORMAT
-import utils.{LookupValidator, Utilities}
+import utils.{ LookupValidator, Utilities }
 
 /**
  * Created by coolit on 07/11/2017.
@@ -73,9 +73,10 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
             }
             //TODO - add not found message
             case response if response.status == NOT_FOUND => NotFound(response.body).as(JSON)
-          } recover responseException
+            case ex => BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex"))
+          } // recover responseException
         case Failure(ex: IllegalArgumentException) =>
-          BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"Invalid date argument $period - must conform to YearMonth [yyyyMM]")).future
+          BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"Invalid date argument $period - must conform to YearMonth [yyyyMM]. Exception - $ex")).future
         case Failure(ex) => BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex")).future
       }
     }
