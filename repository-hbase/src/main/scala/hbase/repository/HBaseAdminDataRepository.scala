@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import scala.collection.JavaConversions._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 import play.api.http.Status
 import play.api.libs.ws.WSResponse
@@ -14,18 +15,15 @@ import org.slf4j.{ Logger, LoggerFactory }
 import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
-
-import hbase.connector.HBaseConnector
-import hbase.util.RowKeyUtils
-import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
-import services.websocket.RequestGenerator
-import scala.util.{ Failure, Success, Try }
-
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
 
+import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.util.HBaseConfig._
+import hbase.util.RowKeyUtils
+import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
+import services.websocket.RequestGenerator
 
 /**
  * HBaseAdminDataRepository
@@ -55,7 +53,7 @@ class HBaseAdminDataRepository @Inject() (
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
-  override def lookupRest(key: String, referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD)): Future[WSResponse] = getAdminDataRest(key, referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD))
+  override def lookupRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = getAdminDataRest(key, referencePeriod)
 
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
@@ -84,9 +82,11 @@ class HBaseAdminDataRepository @Inject() (
   private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
     val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+    println(s"URL IS ${url.toString}")
     logger.debug(s"sending ws request to ${url.toString}")
-    val headers = Seq("Content-Type" -> "application/json", "Authorization" -> s"Basic $auth")
+    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
     val request = ws.singleGETRequest(url.toString, headers)
+
     request
 
   }
@@ -114,6 +114,19 @@ class HBaseAdminDataRepository @Inject() (
         throw e
     }
   }
+
+  //  private def convertToAdminData(result: JsValue): AdminData = {
+  //    val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey((result \ "Row" \ "Key").as[String])
+  //    val varMap = (result \ "Row" \ "Key" \ "Cell").map
+  //    val varMap = result.listCells.toList.map { cell =>
+  //      val column = new String(CellUtil.cloneQualifier(cell))
+  //      val value = new String(CellUtil.cloneValue(cell))
+  //      logger.debug(s"Found data column $column with value $value")
+  //      column -> value
+  //    }.toMap
+  //    val newPutAdminData = adminData.putVariable(varMap)
+  //    newPutAdminData
+  //  }
 
   private def convertToAdminData(result: Result): AdminData = {
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow))
