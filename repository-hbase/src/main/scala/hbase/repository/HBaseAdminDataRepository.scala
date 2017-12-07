@@ -41,24 +41,6 @@ class HBaseAdminDataRepository @Inject() (
 
   implicit val ec = ExecutionContext.global
 
-  //  private final val tableName: TableName = TableName.valueOf(
-  //    System.getProperty("hbase.namespace", ""),
-  //    System.getProperty("hbase.table", "data")
-  //  )
-
-  //  // TODO - relocate config vals
-  //  private val config: Config = ConfigFactory.load().getConfig("hbase")
-  //
-  //  private final val tableName: TableName = TableName.valueOf(
-  //    config.getString("namespace"),
-  //    config.getString("table.name")
-  //  )
-  //  private val username: String = config.getString("authentication.username")
-  //  private val password: String = config.getString("authentication.password")
-  //  private val baseUrl: String = config.getString("rest.endpoint")
-  //  private val columnFamily: String = config.getString("column.family")
-  //  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
-
   private final val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   private final val HARDCODED_CURRENT_PERIOD: YearMonth = YearMonth.parse("201706", DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
   private final val OPEN_ALERT = "----- circuit breaker opened! -----"
@@ -66,21 +48,6 @@ class HBaseAdminDataRepository @Inject() (
   private final val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
 
   private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
-
-  //  private final val system = ActorSystem("hbase-repo-circuit-breaker")
-  //  implicit val exc: ExecutionContextExecutor = system.dispatcher
-  //
-  //  private final val circuitBreaker: CircuitBreaker =
-  //    new CircuitBreaker(
-  //      system.scheduler,
-  //      maxFailures = config.getInt("failure.threshold"),
-  //      callTimeout = config.getInt("failure.declaration.time") seconds,
-  //      resetTimeout = config.getInt("reset.timeout") seconds
-  //    ).onOpen(logger.info(OPEN_ALERT))
-  //      .onClose(logger.warn(CLOSED_ALERT))
-  //      .onHalfOpen(logger.warn(HALF_OPEN_ALERT))
-  //
-  //  implicit val timeout = Timeout(2 seconds)
 
   // @TODO - fix + add circuit-breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
@@ -117,6 +84,7 @@ class HBaseAdminDataRepository @Inject() (
   private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
     val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+    logger.debug(s"sending ws request to ${url.toString}")
     val headers = Seq("Content-Type" -> "application/json", "Authorization" -> s"Basic $auth")
     val request = ws.singleGETRequest(url.toString, headers)
     request
@@ -157,13 +125,6 @@ class HBaseAdminDataRepository @Inject() (
     }.toMap
     val newPutAdminData = adminData.putVariable(varMap)
     newPutAdminData
-  }
-
-  //  @Unused( "using scan.setRowPrefixFilter" )
-  private def createEndRowKey(key: String): String = {
-    val l = (key.last.toLong + 1).toChar
-    val newKey = key.substring(0, key.length() - 1) + s"$l"
-    newKey
   }
 
 }
