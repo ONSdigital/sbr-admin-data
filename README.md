@@ -103,17 +103,21 @@ The executable inside the .zip is configured to run with default environment var
 
 ## Test
 
-To test all test suites we can use:
+To run all test suites we can use:
 
 ```shell
 sbt test
 ```
 
-Testing an individual test suite can be specified by using the `testOnly`.
+Running an individual test can be specified by using the `testOnly` task, e.g.
+
+```shell
+sbt "project repository-hbase" "testOnly hbase.HBaseAdminDataRepositoryScalaTest"
+```
 
 SBR Api uses its own test configuration settings for integration tests, the details of which can be found on the[ONS Confluence](https://collaborate2.ons.gov.uk/confluence/display/SBR/Scala+Testing​).
 
-To run integration test run:
+To run integration tests execute the following command:
 ```shell
 sbt it:test
 ```
