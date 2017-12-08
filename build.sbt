@@ -8,7 +8,7 @@ Common.applicationConfig := {
   val artifactoryConf = conf.getConfig("artifactory")
   Map (
     "publishTrigger" -> artifactoryConf.getBoolean("publish-init").toString,
-    "artifactoryAddress" -> artifactoryConf.getString("publish-hbase.repository"),
+    "artifactoryAddress" -> artifactoryConf.getString("publish-hbase.hbase.repository"),
     "artifactoryHost" -> artifactoryConf.getString("host"),
     "artifactoryUser" -> artifactoryConf.getString("user"),
     "artifactoryPassword" -> artifactoryConf.getString("password")
@@ -64,7 +64,7 @@ javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf"
   */
 lazy val `sbr-admin-data` = (project in file("."))
   .enablePlugins(BuildInfoPlugin, GitVersioning, GitBranchPrompt, PlayScala)
-  .disablePlugins(AssemblyPlugin)
+  .enablePlugins(AssemblyPlugin)
   .configs(Common.ITest)
   .settings(inConfig(Common.ITest)(Defaults.testSettings) : _*)
   .settings(Common.commonSettings: _*)
@@ -74,6 +74,7 @@ lazy val `sbr-admin-data` = (project in file("."))
   .settings(Common.publishingSettings:_*)
   .settings(Common.buildInfoConfig:_*)
   .settings(initExec:_*)
+  .settings(Common.assemblySettings:_*)
   .settings(
     routesImport += "extensions.Binders._",
       //moduleName := "sbr-admin-data",
@@ -94,7 +95,7 @@ lazy val model = project
 
 
 lazy val `repository-hbase` = project
-  .enablePlugins(AssemblyPlugin)
+  .disablePlugins(AssemblyPlugin)
   .settings(Common.commonSettings: _*)
-  .settings(Common.assemblySettings:_*)
+//  .settings(Common.assemblySettings:_*)
   .dependsOn(model)

@@ -42,6 +42,8 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
 
 
 lazy val DevDeps: Seq[ModuleID] = Seq(
+  ws,
+
   //@NOTE - patch for unresolved dependency
   "commons-daemon"          %  "commons-daemon"                 % "1.0.13",
 
@@ -70,10 +72,13 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   "org.scalactic"           %%  "scalactic"                     % "3.0.4",
   "org.scalatest"           %%  "scalatest"                     % "3.0.4"                  % "test",
 
+  "io.lemonlabs"            %%  "scala-uri"                     % "0.5.0",
+
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
 ) ++ hadoopDeps
+//  .map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
@@ -87,12 +92,12 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
 /**
   * PROJECT DEF
   */
-moduleName := "sbr-admin-data-hbase.repository-hbase"
+moduleName := "sbr-admin-data-hbase-repository"
 description := "<description>"
 libraryDependencies ++=  DevDeps
 //excludeDependencies ++= exTransiviveDeps
-resolvers += "cloudera" at "https://hbase.repository.cloudera.com/artifactory/cloudera-repos/"
-mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader")
+resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
+mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
 
 
 crossPaths := false

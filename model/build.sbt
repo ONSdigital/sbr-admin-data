@@ -1,4 +1,4 @@
-moduleName := "sbr-admin-data-model"
+moduleName := "sbr-admin-data-hbase.model"
 
 logBuffered in Test := false
 //libraryDependencies += "junit" % "junit" % "4.12" % Test
@@ -7,6 +7,7 @@ crossPaths := false
 
 libraryDependencies ++= Seq (
   filters,
+  ws,
   // scala-date
   "com.github.nscala-time"          %%  "nscala-time"              %  "2.16.0",
 

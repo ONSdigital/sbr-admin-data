@@ -3,7 +3,7 @@ package hbase.util
 import org.scalatest.{ FlatSpec, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
 
-import model.AdminData
+import hbase.model.AdminData
 
 /**
  * RowKeyUtilsTest

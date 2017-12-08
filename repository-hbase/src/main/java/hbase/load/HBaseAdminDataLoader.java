@@ -1,7 +1,7 @@
 package hbase.load;
 
 import hbase.connector.HBaseConnector;
-import load.AdminDataLoad;
+import hbase.load.AdminDataLoad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

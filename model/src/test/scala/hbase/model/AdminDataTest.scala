@@ -1,4 +1,4 @@
-package model
+package hbase.model
 
 import org.scalatest.{ FlatSpec, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth

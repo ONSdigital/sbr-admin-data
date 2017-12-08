@@ -1,12 +1,11 @@
 package hbase.repository
 
-//import java.hbase.util.concurrent.CompletionStage
-
 import scala.concurrent.Future
 
 import com.github.nscala_time.time.Imports.YearMonth
+import play.api.mvc.Result
 
-import model.AdminData
+import hbase.model.AdminData
 
 /**
  * AdminDataRepository
@@ -19,9 +18,9 @@ import model.AdminData
 trait AdminDataRepository {
 
   def getCurrentPeriod: Future[YearMonth]
-  //  def getCurrentPeriod: CompletionStage[Option[YearMonth]]
 
-  def lookup(referencePeriod: YearMonth, key: String): Future[Option[AdminData]]
-  //  def lookup(referencePeriod: YearMonth, key: String): CompletionStage[AdminData]
+  def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
+
+  def lookup(key: String, referencePeriod: YearMonth): Future[Result]
 
 }

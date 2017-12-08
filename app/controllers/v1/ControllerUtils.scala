@@ -46,4 +46,32 @@ trait ControllerUtils extends Controller with LazyLogging {
   implicit class ResultAugmenter(val res: Result) {
     def future: Future[Result] = Future.successful(res)
   }
+
+  def responseException: PartialFunction[Throwable, Result] = {
+    case ex: DateTimeParseException =>
+      logger.error("cannot parse date to to specified date format", ex)
+      BadRequest(errAsJson(BAD_REQUEST, "invalid_date", s"cannot parse date exception found $ex"))
+    case ex: RuntimeException =>
+      logger.error(s"RuntimeException $ex", ex.getCause)
+      InternalServerError(errAsJson(INTERNAL_SERVER_ERROR, "runtime_exception", ex.getMessage))
+    case ex: ServiceUnavailableException =>
+      logger.error(s"ServiceUnavailableException $ex", ex.getCause)
+      ServiceUnavailable(errAsJson(SERVICE_UNAVAILABLE, "service_unavailable", s"$ex"))
+    case ex: TimeoutException =>
+      logger.error(s"TimeoutException $ex", ex.getCause)
+      RequestTimeout(errAsJson(REQUEST_TIMEOUT, "request_timeout", s"This may be due to connection being blocked. $ex"))
+    case ex =>
+      logger.error(s"Unknown error has occurred with exception $ex", ex.getCause)
+      InternalServerError(errAsJson(INTERNAL_SERVER_ERROR, "internal_server_error", s"$ex."))
+  }
+
+  protected def errAsJson(status: Int, code: String, msg: String, cause: String = "Not traced"): JsObject = {
+    Json.obj(
+      "status" -> status,
+      "code" -> code,
+      "route_with_cause" -> cause,
+      "message_en" -> msg
+    )
+  }
+
 }

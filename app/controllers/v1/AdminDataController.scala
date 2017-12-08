@@ -19,7 +19,7 @@ import com.typesafe.scalalogging.LazyLogging
 import io.swagger.annotations._
 
 import models.ValidLookup
-import utils.{ LookupValidator, Utilities }
+import hbase.model.AdminData
 import hbase.repository.AdminDataRepository
 import config.Properties._
 import model.AdminData
@@ -70,6 +70,6 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
       }
     })
   }
-
+  
   def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.getOrElse(defaultPeriod), v.id)
 }

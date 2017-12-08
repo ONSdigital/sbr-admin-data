@@ -1,4 +1,4 @@
-package model
+package hbase.model
 
 import com.github.nscala_time.time.Imports.YearMonth
 import play.api.libs.json.{ JsValue, Json, Writes }

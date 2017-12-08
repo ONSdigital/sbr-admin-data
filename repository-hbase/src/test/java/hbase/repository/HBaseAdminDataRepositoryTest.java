@@ -3,15 +3,12 @@ package hbase.repository;
 import akka.actor.ActorSystem;
 import hbase.connector.HBaseConnector;
 import hbase.util.RowKeyUtils;
-import model.AdminData;
+import hbase.model.AdminData;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.joda.time.Months;
 import org.joda.time.YearMonth;
@@ -22,7 +19,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import scala.Option;
 import scala.concurrent.Future;
+import services.websocket.RequestGenerator;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +49,10 @@ public class HBaseAdminDataRepositoryTest {
     private Table table;
     @Mock
     private Result result;
+    @Mock
+    private ResultScanner resultScanner;
+    @Mock @Inject
+    private RequestGenerator ws;
 
 //    @BeforeClass
 //    public static void setup() {
@@ -59,10 +62,12 @@ public class HBaseAdminDataRepositoryTest {
     @Before
     public void setUp() throws Exception {
 //        AdminDataExecutionContext context = new AdminDataExecutionContext(system);
-        repository = new HBaseAdminDataRepository(connector);
+        repository = new HBaseAdminDataRepository(connector, ws);
         when(connector.getConnection()).thenReturn(connection);
         when(connection.getTable(any())).thenReturn(table);
         when(table.get(any(Get.class))).thenReturn(result);
+        when(table.getScanner(any(Scan.class))).thenReturn(resultScanner);
+        when(resultScanner.next()).thenReturn(result);
     }
 
     @Test
@@ -70,6 +75,30 @@ public class HBaseAdminDataRepositoryTest {
         YearMonth period = toJava(repository.getCurrentPeriod()).toCompletableFuture().get();
         assertEquals("Failure - invalid year", 2017, period.getYear());
         assertEquals("Failure - invalid year", Months.SIX.getMonths(), period.getMonthOfYear());
+    }
+
+    @Test
+    public void lookupOvertime() throws Exception {
+        byte[] columnFamily = toBytes("d");
+        // Test data
+        String testId = "12335";
+        YearMonth testPeriod = new YearMonth(2008, 12);
+        // Create cells for each column
+        String rowKey = RowKeyUtils.createRowKey(testPeriod, testId);
+        Cell nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes("My Company"), HConstants.EMPTY_BYTE_ARRAY);
+        List<Cell> cells = new ArrayList<>();
+        cells.add(nameCell);
+        when(result.isEmpty()).thenReturn(false);
+        when(result.listCells()).thenReturn(cells);
+        when(result.getRow()).thenReturn(Bytes.toBytes(rowKey));
+        Option<AdminData> result = toJava(repository.lookup(Option.apply(testPeriod), testId)).toCompletableFuture().get();
+        assertTrue("Result should be present", result.isDefined());
+        assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
+        assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());
+        assertEquals("Invalid id", "12335", result.get().id());
+        assertEquals("Invalid name", "My Company", result.get().variables().get("name").get());
+
+        Option<AdminData> result2 = toJava(repository.lookupOvertime(testId, Option.apply(12L))).toCompletableFuture().get();
     }
 
     @Test
@@ -87,8 +116,7 @@ public class HBaseAdminDataRepositoryTest {
         when(result.listCells()).thenReturn(cells);
         when(result.getRow()).thenReturn(Bytes.toBytes(rowKey));
 
-        Option<AdminData> result = toJava(repository.lookup(testPeriod, testId)).toCompletableFuture().get();
-        System.out.println("TEST COMPLETE");
+        Option<AdminData> result = toJava(repository.lookup(Option.apply(testPeriod), testId)).toCompletableFuture().get();
         assertTrue("Result should be present", result.isDefined());
         assertEquals("Result should be for period 200812", 2008, result.get().referencePeriod().getYear());
         assertEquals("Result should be for period 200812", 12, result.get().referencePeriod().getMonthOfYear());
@@ -99,13 +127,13 @@ public class HBaseAdminDataRepositoryTest {
     @Test
     public void lookupNoDataFound() throws Exception {
         when(result.isEmpty()).thenReturn(true);
-        assertEquals("Result should be empty", Option.empty(), toJava(repository.lookup(TEST_PERIOD, "12345")).toCompletableFuture().get());
+        assertEquals("Result should be empty", Option.empty(), toJava(repository.lookup(Option.apply(TEST_PERIOD), "12345")).toCompletableFuture().get());
     }
 
     @Test(expected = Exception.class)
     public void lookupException() throws Exception {
         when(connection.getTable(any())).thenThrow(new IOException("Failed to retrieve data"));
-        Future<Option<AdminData>> stage = repository.lookup(TEST_PERIOD, "12345");
+        Future<Option<AdminData>> stage = repository.lookup(Option.apply(TEST_PERIOD), "12345");
         toJava(stage).toCompletableFuture().get();
     }
 

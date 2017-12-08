@@ -1,18 +1,21 @@
 package hbase.load
 
 import java.io.File
+import javax.inject.Inject
 
 import scala.compat.java8.FutureConverters.toJava
 import scala.concurrent.Future
 
 import org.apache.hadoop.util.ToolRunner
-import org.scalatest.{ BeforeAndAfter, BeforeAndAfterAll, Matchers }
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{ BeforeAndAfterAll, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
 
-import model.AdminData
+import hbase.model.AdminData
 import hbase.AbstractHBaseIT
-import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
+import hbase.repository.HBaseAdminDataRepository
+import services.websocket.RequestGenerator
 
 /**
  * BulkLoaderTest
@@ -23,7 +26,7 @@ import hbase.util.RowKeyUtils
  */
 
 // @TODO - REMOVE NULLEXCEPTION methods
-class BulkLoaderTest extends AbstractHBaseIT with Matchers with BeforeAndAfter with BeforeAndAfterAll {
+class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT with Matchers with MockitoSugar with BeforeAndAfterAll {
 
   private val TEST_CSV_ID_COLUMN = "1"
   private val TEST_PERIOD: YearMonth = new YearMonth(2017, 6)
@@ -37,7 +40,7 @@ class BulkLoaderTest extends AbstractHBaseIT with Matchers with BeforeAndAfter w
   @throws(classOf[Exception])
   private def setup = new {
     val bc = beforeClass
-    val repository: HBaseAdminDataRepository = new HBaseAdminDataRepository(bc.HBASE_CONNECTOR)
+    val repository: HBaseAdminDataRepository = new HBaseAdminDataRepository(bc.HBASE_CONNECTOR, ws)
     val bulkLoader: BulkLoader = new BulkLoader(bc.HBASE_CONNECTOR)
   }
 
@@ -55,7 +58,7 @@ class BulkLoaderTest extends AbstractHBaseIT with Matchers with BeforeAndAfter w
     val result = loadData(Array[String](TABLE_NAME, TEST_PERIOD_STR, TEST_CH_CSV))
     result should equal(0)
 
-    val company: Future[Option[AdminData]] = testSetup.repository.lookup(TEST_PERIOD, "04375380")
+    val company: Future[Option[AdminData]] = testSetup.repository.lookup(Some(TEST_PERIOD), "04375380")
 
     toJava(company).toCompletableFuture.get.isDefined should equal(true)
     toJava(company).toCompletableFuture.get.getOrElse(throw new Exception("Null object found")).id should equal("04375380")
@@ -75,7 +78,7 @@ class BulkLoaderTest extends AbstractHBaseIT with Matchers with BeforeAndAfter w
     val result = loadData(Array[String](TABLE_NAME, TEST_PERIOD_STR, TEST_PAYE_CSV))
     result should equal(0)
 
-    val payeReturn: Future[Option[AdminData]] = testSetup.repository.lookup(TEST_PERIOD, "8878574")
+    val payeReturn: Future[Option[AdminData]] = testSetup.repository.lookup(Some(TEST_PERIOD), "8878574")
 
     toJava(payeReturn).toCompletableFuture.get.isDefined should equal(true)
     toJava(payeReturn).toCompletableFuture.get.getOrElse(throw new Exception("Null object found")).id should equal("8878574")
@@ -94,7 +97,7 @@ class BulkLoaderTest extends AbstractHBaseIT with Matchers with BeforeAndAfter w
     val result = loadData(Array[String](TABLE_NAME, TEST_PERIOD_STR, TEST_VAT_CSV))
     result should equal(0)
 
-    val vatReturn = testSetup.repository.lookup(TEST_PERIOD, "808281648666")
+    val vatReturn = testSetup.repository.lookup(Some(TEST_PERIOD), "808281648666")
 
     toJava(vatReturn).toCompletableFuture.get.isDefined should equal(true)
     toJava(vatReturn).toCompletableFuture.get.getOrElse(throw new Exception("Null object found")).id should equal("808281648666")
