@@ -189,13 +189,13 @@ pipeline {
 
         stage('Deploy'){
             agent any
-            // when {
-            //     anyOf {
-            //         branch DEPLOY_DEV
-            //         branch DEPLOY_TEST
-            //         branch DEPLOY_PROD
-            //     }
-            // }
+             when {
+                 anyOf {
+                     branch DEPLOY_DEV
+                     branch DEPLOY_TEST
+                     branch DEPLOY_PROD
+                 }
+             }
             steps {
                 script {
                     env.NODE_STAGE = "Deploy"
