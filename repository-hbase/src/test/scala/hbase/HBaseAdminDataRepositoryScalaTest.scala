@@ -2,31 +2,31 @@ package hbase
 
 import java.io.IOException
 
+import scala.concurrent.Await
+import scala.reflect.ClassTag
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+
+import play.api.inject.guice.GuiceApplicationBuilder
+import services.websocket.RequestGenerator
 import org.apache.hadoop.hbase.CellUtil
 import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.util.Bytes.toBytes
 import org.apache.hadoop.hbase.KeyValue
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
-
-import scala.concurrent.Await
-import scala.reflect.ClassTag
-import scala.collection.JavaConverters._
-import com.github.nscala_time.time.Imports.YearMonth
 import org.joda.time.format.DateTimeFormat
 import org.scalatest.mockito.MockitoSugar
 import org.junit.Assert.assertEquals
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ FlatSpec, Matchers }
+import com.github.nscala_time.time.Imports.YearMonth
+
 import hbase.connector.HBaseConnector
 import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
 import hbase.model.AdminData
-import play.api.inject.guice.GuiceApplicationBuilder
-import services.websocket.RequestGenerator
-
-import scala.concurrent.duration._
 
 /**
  * Created by coolit on 07/12/2017.
