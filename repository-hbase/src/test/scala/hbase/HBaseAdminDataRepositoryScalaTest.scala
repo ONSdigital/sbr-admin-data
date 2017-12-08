@@ -41,15 +41,17 @@ trait Inject {
 }
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers with Inject {
-  lazy val ws = inject[RequestGenerator]
+  private lazy val ws = inject[RequestGenerator]
 
-  val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
+  private val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
 
-  val connector = mock[HBaseConnector]
-  val connection = mock[Connection]
-  val table = mock[Table]
-  val result = mock[Result]
-  val resultScanner = mock[ResultScanner]
+  private val connector = mock[HBaseConnector]
+  private val connection = mock[Connection]
+  private val table = mock[Table]
+  private val result = mock[Result]
+  private val resultScanner = mock[ResultScanner]
+
+  private def createRowKey(period: YearMonth, id: String) = RowKeyUtils.createRowKey(period, id)
 
   def setup =
     new {
@@ -60,8 +62,6 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
       when(table.getScanner(any[Scan])) thenReturn (resultScanner)
       when(resultScanner.next()) thenReturn (result)
     }
-
-  private def createRowKey(period: YearMonth, id: String) = RowKeyUtils.createRowKey(period, id)
 
   "repository.getCurrentPeriod()" should "return the current period" in {
     val s = setup
