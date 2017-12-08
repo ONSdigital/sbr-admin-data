@@ -1,8 +1,8 @@
 package config
 
-import com.typesafe.config.{ Config, ConfigFactory }
-
 import scala.concurrent.duration._
+
+import com.typesafe.config.{ Config, ConfigFactory }
 
 /**
  * Created by coolit on 23/11/2017.

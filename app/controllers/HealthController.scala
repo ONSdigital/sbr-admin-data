@@ -1,9 +1,9 @@
 package controllers
 
-import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Controller }
+import org.joda.time.DateTime
+import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
 
 @Api("Health")
 class HealthController extends Controller {

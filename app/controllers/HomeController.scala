@@ -1,7 +1,7 @@
 package controllers
 
-import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
 import play.api.mvc.{ Action, Controller }
+import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
 
 /**
  * Created by coolit on 01/12/2017.

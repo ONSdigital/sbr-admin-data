@@ -2,15 +2,16 @@ package filters
 
 import javax.inject.Inject
 
+import scala.concurrent.Future
+
 import akka.stream.Materializer
-import com.typesafe.scalalogging.LazyLogging
-import controllers.BuildInfo
 import play.api.http.DefaultHttpFilters
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.{ Filter, RequestHeader, Result }
 import play.filters.gzip.GzipFilter
+import com.typesafe.scalalogging.LazyLogging
 
-import scala.concurrent.Future
+import controllers.BuildInfo
 
 /**
  * Created by coolit on 16/11/2017.

@@ -2,15 +2,16 @@ package utils
 
 import javax.inject.Inject
 
-import com.github.nscala_time.time.Imports.YearMonth
+import scala.util.{ Failure, Success, Try }
+
 import org.joda.time.format.DateTimeFormat
-import models._
+import com.github.nscala_time.time.Imports.YearMonth
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.i18n.Messages.Implicits._
+
 import config.Properties.idRegex
 import model.AdminData
-
-import scala.util.{ Failure, Success, Try }
+import models._
 
 /**
  * Created by coolit on 16/11/2017.

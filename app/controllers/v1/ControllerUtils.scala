@@ -1,15 +1,16 @@
 package controllers.v1
 
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
 import akka.actor.{ ActorRef, ActorSystem, Props }
 import akka.pattern.CircuitBreaker
 import akka.util.Timeout
-import com.typesafe.scalalogging.LazyLogging
 import play.api.mvc.{ Controller, Result }
-import utils.CircuitBreakerActor
+import com.typesafe.scalalogging.LazyLogging
 
-import scala.concurrent.duration._
-import scala.concurrent.Future
 import config.Properties._
+import utils.CircuitBreakerActor
 
 /**
  * AdminDataControllerUtils

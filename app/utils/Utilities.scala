@@ -2,9 +2,10 @@ package utils
 
 import java.util.Optional
 
+import play.api.libs.json.{ JsObject, Json }
+
 import config.Properties._
 import models.ValidLookup
-import play.api.libs.json.{ JsObject, Json }
 
 /**
  * Created by coolit on 16/11/2017.

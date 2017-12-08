@@ -6,25 +6,24 @@ package controllers.v1
 import javax.inject.Inject
 
 import scala.concurrent.Future
+
+import akka.pattern.ask
+import play.api.libs.json.Json
+import play.api.mvc.Result
 import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
-import akka.pattern.ask
+import org.joda.time.format.DateTimeFormat
 import com.github.nscala_time.time.Imports._
 import com.typesafe.scalalogging.LazyLogging
+import io.swagger.annotations._
+
 import models.ValidLookup
 import utils.{ LookupValidator, Utilities }
 import hbase.repository.AdminDataRepository
-import play.api.libs.json.Json
-import play.api.mvc.Result
 import config.Properties._
-import io.swagger.annotations._
 import model.AdminData
-import org.joda.time.format.DateTimeFormat
 
-/**
- * Created by coolit on 07/11/2017.
- */
 @Api("Lookup")
 class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi) extends ControllerUtils with I18nSupport with LazyLogging {
 
