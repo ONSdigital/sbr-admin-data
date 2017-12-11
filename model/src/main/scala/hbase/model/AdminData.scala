@@ -12,10 +12,9 @@ import play.api.libs.json.{ JsValue, Json, Writes }
  */
 
 case class AdminData(
-    referencePeriod: YearMonth,
-    id: String,
-    variables: Map[String, String] = Map()
-) {
+  referencePeriod: YearMonth,
+  id: String,
+  variables: Map[String, String] = Map()) {
   def putVariable(newMap: Map[String, String]): AdminData = this.copy(variables = this.variables ++
     newMap)
 }
@@ -29,8 +28,7 @@ object AdminData {
       Json.obj(
         "period" -> a.referencePeriod.toString(REFERENCE_PERIOD_FORMAT),
         "id" -> a.id,
-        "variables" -> a.variables
-      )
+        "variables" -> a.variables)
     }
   }
 

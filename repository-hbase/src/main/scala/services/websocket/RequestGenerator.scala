@@ -23,7 +23,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 
 @Singleton
 class RequestGenerator @Inject() (
-    ws: WSClient
+  ws: WSClient
 //    durationMetric: TimeUnit = MILLISECONDS,
 //    timeout: Option[Long] = None
 ) extends Results with Status with ContentTypes {

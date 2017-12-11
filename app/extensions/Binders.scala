@@ -15,8 +15,7 @@ object Binders {
         bind(key, value).
         fold(
           left => Left(left),
-          right => Right(Some(right))
-        )
+          right => Right(Some(right)))
 
     def unbind(key: String, value: Option[T]): String = value map (_.toString) getOrElse ""
   }

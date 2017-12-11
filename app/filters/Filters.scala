@@ -27,8 +27,7 @@ class XResponseTimeHeader @Inject() (implicit val mat: Materializer) extends Fil
 
       result.withHeaders(
         "X-Response-Time" -> responseTime.toString,
-        "Server" -> (BuildInfo.name + "/" + BuildInfo.version)
-      )
+        "Server" -> (BuildInfo.name + "/" + BuildInfo.version))
     }
   }
 }

@@ -3,7 +3,7 @@
 * [sbr-api](https://github.com/ONSdigital/sbr-api):
 
 ```shell
-sbt "api/run -Dhttp.port=9002"
+sbt "api/run -Dhttp.port=9002 -Denvironment=local"
 ```
 
 * [sbr-control-api](https://github.com/ONSdigital/sbr-control-api):

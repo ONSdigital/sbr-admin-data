@@ -39,8 +39,7 @@ object ResponseUtil extends Status {
       "status" -> status,
       "code" -> code,
       "route_with_cause" -> cause,
-      "message_en" -> msg
-    )
+      "message_en" -> msg)
   }
 
   def decodeArrayByte(bytes: Array[Byte]) = bytes.map(_.toChar).mkString

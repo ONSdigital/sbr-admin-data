@@ -15,8 +15,7 @@ object Utilities {
     Json.obj(
       "status" -> status,
       "code" -> code,
-      "message_en" -> msg
-    )
+      "message_en" -> msg)
   }
 
   /**

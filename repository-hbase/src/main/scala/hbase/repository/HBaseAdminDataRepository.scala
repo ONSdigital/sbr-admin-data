@@ -35,9 +35,8 @@ import services.websocket.RequestGenerator
  * Copyright (c) 2017  Office for National Statistics
  */
 class HBaseAdminDataRepository @Inject() (
-    val connector: HBaseConnector,
-    ws: RequestGenerator
-) extends AdminDataRepository with Status with Results with ContentTypes {
+  val connector: HBaseConnector,
+  ws: RequestGenerator) extends AdminDataRepository with Status with Results with ContentTypes {
 
   implicit val ec = ExecutionContext.global
 
@@ -56,8 +55,13 @@ class HBaseAdminDataRepository @Inject() (
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
+<<<<<<< HEAD
   //  override def lookup(key: String, referencePeriod: YearMonth): Future[PlayResult] = getAdminDataRest(key, referencePeriod)
   override def lookup(key: String, referencePeriod: YearMonth): Future[PlayResult] = getAdminDataRest2(key, None)
+=======
+  override def lookup(key: String, referencePeriod: YearMonth): Future[play.api.mvc.Result] =
+    getAdminDataRest(key, referencePeriod)
+>>>>>>> 5e4328a04b1f7757951fc0767aa0329459dfcc8a
 
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
