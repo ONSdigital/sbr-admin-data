@@ -15,8 +15,7 @@ object HBaseConfig {
 
   lazy final val tableName: TableName = TableName.valueOf(
     config.getString("namespace"),
-    config.getString("table.name")
-  )
+    config.getString("table.name"))
   lazy val username: String = config.getString("authentication.username")
   lazy val password: String = config.getString("authentication.password")
   lazy val baseUrl: String = config.getString("rest.endpoint")

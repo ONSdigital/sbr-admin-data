@@ -5,6 +5,7 @@ logBuffered in Test := false
 crossPaths := false
 //testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
 
+
 libraryDependencies ++= Seq (
   filters,
   ws,

@@ -17,8 +17,7 @@ import scala.util.{ Failure, Success, Try }
  * @tparam Z return type of the db call method
  */
 class CircuitBreakerActor[T, Z](
-    f: T => Future[Option[Z]]
-) extends Actor with ActorLogging {
+  f: T => Future[Option[Z]]) extends Actor with ActorLogging {
 
   override def receive = {
     case params: T => {

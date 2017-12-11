@@ -52,8 +52,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
           Ok(Json.toJson(s))
         }
         case None => NotFound(Utilities.errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
-      }
-    )).recover({
+      })).recover({
       case _ => {
         logger.error(s"Unable to get record from database")
         InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error")))
