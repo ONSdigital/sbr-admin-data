@@ -4,9 +4,11 @@ import javax.inject.Inject
 
 import scala.collection.JavaConversions._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
-import play.api.http.Status
-import play.api.libs.ws.WSResponse
+import play.api.http.{ ContentTypes, Status }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.Results
 import org.apache.hadoop.hbase.CellUtil
 import org.apache.hadoop.hbase.client.{ Result, _ }
 import org.apache.hadoop.hbase.util.Bytes
@@ -14,18 +16,16 @@ import org.slf4j.{ Logger, LoggerFactory }
 import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
-
-import hbase.connector.HBaseConnector
-import hbase.util.RowKeyUtils
-import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
-import services.websocket.RequestGenerator
-import scala.util.{ Failure, Success, Try }
-
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
 
+import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.util.HBaseConfig._
+import hbase.util.RowKeyUtils
+import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
+import services.util.ResponseUtil.{ decodeBase64, errAsJson }
+import services.websocket.RequestGenerator
 
 /**
  * HBaseAdminDataRepository
@@ -37,27 +37,9 @@ import hbase.util.HBaseConfig._
 class HBaseAdminDataRepository @Inject() (
     val connector: HBaseConnector,
     ws: RequestGenerator
-) extends AdminDataRepository with Status {
+) extends AdminDataRepository with Status with Results with ContentTypes {
 
   implicit val ec = ExecutionContext.global
-
-  //  private final val tableName: TableName = TableName.valueOf(
-  //    System.getProperty("hbase.namespace", ""),
-  //    System.getProperty("hbase.table", "data")
-  //  )
-
-  //  // TODO - relocate config vals
-  //  private val config: Config = ConfigFactory.load().getConfig("hbase")
-  //
-  //  private final val tableName: TableName = TableName.valueOf(
-  //    config.getString("namespace"),
-  //    config.getString("table.name")
-  //  )
-  //  private val username: String = config.getString("authentication.username")
-  //  private val password: String = config.getString("authentication.password")
-  //  private val baseUrl: String = config.getString("rest.endpoint")
-  //  private val columnFamily: String = config.getString("column.family")
-  //  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
 
   private final val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   private final val HARDCODED_CURRENT_PERIOD: YearMonth = YearMonth.parse("201706", DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
@@ -66,21 +48,7 @@ class HBaseAdminDataRepository @Inject() (
   private final val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
 
   private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
-
-  //  private final val system = ActorSystem("hbase-repo-circuit-breaker")
-  //  implicit val exc: ExecutionContextExecutor = system.dispatcher
-  //
-  //  private final val circuitBreaker: CircuitBreaker =
-  //    new CircuitBreaker(
-  //      system.scheduler,
-  //      maxFailures = config.getInt("failure.threshold"),
-  //      callTimeout = config.getInt("failure.declaration.time") seconds,
-  //      resetTimeout = config.getInt("reset.timeout") seconds
-  //    ).onOpen(logger.info(OPEN_ALERT))
-  //      .onClose(logger.warn(CLOSED_ALERT))
-  //      .onHalfOpen(logger.warn(HALF_OPEN_ALERT))
-  //
-  //  implicit val timeout = Timeout(2 seconds)
+  //  private val auth = encodeBase64(Seq(username, password))
 
   // @TODO - fix + add circuit-breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
@@ -88,8 +56,8 @@ class HBaseAdminDataRepository @Inject() (
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
-  override def lookupRest(key: String, referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD)): Future[WSResponse] =
-    getAdminDataRest(key, referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD))
+  override def lookup(key: String, referencePeriod: YearMonth): Future[play.api.mvc.Result] =
+    getAdminDataRest(key, referencePeriod)
 
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
@@ -114,14 +82,36 @@ class HBaseAdminDataRepository @Inject() (
     }
   }
 
-  @throws(classOf[Exception])
-  private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[WSResponse] = {
+  @throws(classOf[Exception]) //  private def getAdminDataRest(key: String, referencePeriod: Option[YearMonth]): Option[AdminData] = {
+  //    val url: Uri = referencePeriod match {
+  //      case Some(r: YearMonth) =>
+  //        val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
+  //        baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+  //      case None =>
+  //        val scannerObj = "scanner"
+  //        baseUrl / tableName.getNameWithNamespaceInclAsString / scannerObj / key / columnFamily
+  //    }
+  private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[play.api.mvc.Result] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
     val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-    val headers = Seq("Content-Type" -> "application/json", "Authorization" -> s"Basic $auth")
+    logger.debug(s"sending ws request to ${url.toString}")
+    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
     val request = ws.singleGETRequest(url.toString, headers)
-    request
-
+    request.map {
+      case response if response.status == OK => {
+        val resp = (response.json \ "Row").as[Seq[JsValue]]
+        Try(convertToAdminData(resp.head)) match {
+          case Success(adminData: AdminData) =>
+            //            Some(adminData)
+            Ok(Json.toJson(adminData)).as(JSON)
+          case Failure(ex) =>
+            // TODO - add exception type
+            //            None
+            BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex"))
+        }
+      }
+      case response if response.status == NOT_FOUND => NotFound(response.body).as(JSON)
+    }
   }
 
   @throws(classOf[Exception])
@@ -148,6 +138,19 @@ class HBaseAdminDataRepository @Inject() (
     }
   }
 
+  private def convertToAdminData(result: JsValue): AdminData = {
+    val key = (result \ "key").as[String]
+    val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(decodeBase64(key))
+    val varMap = (result \ "Cell").as[Seq[JsValue]].map { cell =>
+      val column = decodeBase64((cell \ "qualifier").as[String])
+      val value = decodeBase64((cell \ "$").as[String])
+      logger.debug(s"Found data column $column with value $value")
+      column -> value
+    }.toMap
+    val newPutAdminData = adminData.putVariable(varMap)
+    newPutAdminData
+  }
+
   private def convertToAdminData(result: Result): AdminData = {
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow))
     val varMap = result.listCells.toList.map { cell =>
@@ -158,13 +161,6 @@ class HBaseAdminDataRepository @Inject() (
     }.toMap
     val newPutAdminData = adminData.putVariable(varMap)
     newPutAdminData
-  }
-
-  //  @Unused( "using scan.setRowPrefixFilter" )
-  private def createEndRowKey(key: String): String = {
-    val l = (key.last.toLong + 1).toChar
-    val newKey = key.substring(0, key.length() - 1) + s"$l"
-    newKey
   }
 
 }

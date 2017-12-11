@@ -2,9 +2,8 @@ package hbase.repository
 
 import scala.concurrent.Future
 
-import play.api.libs.json.JsValue
-import play.api.libs.ws.WSResponse
 import com.github.nscala_time.time.Imports.YearMonth
+import play.api.mvc.Result
 
 import hbase.model.AdminData
 
@@ -22,6 +21,6 @@ trait AdminDataRepository {
 
   def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
 
-  def lookupRest(key: String, referencePeriod: Option[YearMonth]): Future[WSResponse]
+  def lookup(key: String, referencePeriod: YearMonth): Future[Result]
 
 }

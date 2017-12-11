@@ -51,7 +51,7 @@ public class HBaseAdminDataRepositoryTest {
     private Result result;
     @Mock
     private ResultScanner resultScanner;
-    @Inject
+    @Mock @Inject
     private RequestGenerator ws;
 
 //    @BeforeClass

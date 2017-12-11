@@ -5,8 +5,12 @@ import javax.naming.ServiceUnavailableException
 
 import scala.concurrent.TimeoutException
 
+import com.google.common.base.Charsets
+import com.google.common.io.BaseEncoding
 import play.api.http.Status
 import play.api.libs.json.{ JsObject, Json }
+
+import hbase.util.HBaseConfig.{ password, username }
 
 /**
  * ResponseUtil
@@ -30,7 +34,7 @@ object ResponseUtil extends Status {
     case ex => errAsJson(INTERNAL_SERVER_ERROR, "internal_server_error", s"$ex", s"${ex.getCause}")
   }
 
-  private def errAsJson(status: Int, code: String, msg: String, cause: String = "Not traced"): JsObject = {
+  def errAsJson(status: Int, code: String, msg: String, cause: String = "Not traced"): JsObject = {
     Json.obj(
       "status" -> status,
       "code" -> code,
@@ -38,5 +42,15 @@ object ResponseUtil extends Status {
       "message_en" -> msg
     )
   }
+
+  def decodeArrayByte(bytes: Array[Byte]) = bytes.map(_.toChar).mkString
+
+  def encodeToArrayByte(str: String) = str.getBytes("UTF-8")
+
+  def encodeBase64(str: Seq[String], deliminator: String = ":") =
+    BaseEncoding.base64.encode(str.mkString(deliminator).getBytes(Charsets.UTF_8))
+
+  def decodeBase64(str: String) =
+    new String(BaseEncoding.base64().decode(str), "UTF-8")
 
 }
