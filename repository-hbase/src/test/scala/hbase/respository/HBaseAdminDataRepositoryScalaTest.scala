@@ -1,30 +1,28 @@
-package hbase
+package hbase.respository
 
 import java.io.IOException
 
-import scala.concurrent.Await
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import services.websocket.RequestGenerator
-import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.HConstants
-import org.apache.hadoop.hbase.util.Bytes.toBytes
-import org.apache.hadoop.hbase.KeyValue
+import org.apache.hadoop.hbase.{ CellUtil, HConstants, KeyValue }
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
+import org.apache.hadoop.hbase.util.Bytes.toBytes
 import org.joda.time.format.DateTimeFormat
-import org.scalatest.mockito.MockitoSugar
 import org.junit.Assert.assertEquals
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ FlatSpec, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
 
 import hbase.connector.HBaseConnector
+import hbase.model.AdminData
 import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
-import hbase.model.AdminData
+import services.websocket.RequestGenerator
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
@@ -42,11 +40,11 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   def setup =
     new {
       val repository = new HBaseAdminDataRepository(connector, ws)
-      when(connector.getConnection()) thenReturn (connection)
-      when(connection.getTable(any())) thenReturn (table)
-      when(table.get(any[Get])) thenReturn (result)
-      when(table.getScanner(any[Scan])) thenReturn (resultScanner)
-      when(resultScanner.next()) thenReturn (result)
+      when(connector.getConnection) thenReturn connection
+      when(connection.getTable(any())) thenReturn table
+      when(table.get(any[Get])) thenReturn result
+      when(table.getScanner(any[Scan])) thenReturn resultScanner
+      when(resultScanner.next()) thenReturn result
     }
 
   "repository.getCurrentPeriod()" should "return the current period" in {
@@ -71,9 +69,9 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
     val cells = List(nameCell).asJava
 
-    when(result.isEmpty()) thenReturn (false)
-    when(result.listCells()) thenReturn (cells)
-    when(result.getRow()) thenReturn (Bytes.toBytes(rowKey))
+    when(result.isEmpty) thenReturn false
+    when(result.listCells()) thenReturn cells
+    when(result.getRow) thenReturn Bytes.toBytes(rowKey)
 
     val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId), 1 second).getOrElse(throw new Exception("Unable to do repository lookup"))
     assertEquals(lookup.id, testId)
@@ -103,9 +101,9 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val nameCell3 = CellUtil.createCell(Bytes.toBytes(rowKey3), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName3), HConstants.EMPTY_BYTE_ARRAY)
     val cells = List(nameCell1, nameCell2, nameCell3).asJava
 
-    when(result.isEmpty()) thenReturn (false)
-    when(result.listCells()) thenReturn (cells)
-    when(result.getRow()) thenReturn (Bytes.toBytes(rowKey1), Bytes.toBytes(rowKey2), Bytes.toBytes(rowKey3))
+    when(result.isEmpty) thenReturn false
+    when(result.listCells()) thenReturn cells
+    when(result.getRow) thenReturn (Bytes.toBytes(rowKey1), Bytes.toBytes(rowKey2), Bytes.toBytes(rowKey3))
 
     Await.result(s.repository.lookupOvertime(testId, Some(3L)), 1 second).getOrElse(throw new Exception("Unable to do repository lookup"))
     // Need to test that it returns a list of results
@@ -115,7 +113,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   "repository.lookup()" should "return an empty result if no record with that id is present" in {
     val s = setup
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
-    when(result.isEmpty()) thenReturn (true)
+    when(result.isEmpty) thenReturn true
     val lookup = Await.result(s.repository.lookup(Some(testPeriod), "12345"), 1 second)
     assertEquals(lookup, None)
   }
@@ -123,7 +121,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   "repository.lookup()" should "throw an exception" in {
     val s = setup
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
-    when(connection.getTable(any())) thenThrow (new IOException("Failed to retrieve data"))
+    when(connection.getTable(any())) thenThrow new IOException("Failed to retrieve data")
     assertThrows[IOException] {
       Await.result(s.repository.lookup(Some(testPeriod), "12345"), 1 second)
     }

@@ -8,7 +8,7 @@ import scala.util.{ Failure, Success, Try }
 
 import play.api.http.{ ContentTypes, Status }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.Results
+import play.api.mvc.{ Results, Result => PlayResult }
 import org.apache.hadoop.hbase.CellUtil
 import org.apache.hadoop.hbase.client.{ Result, _ }
 import org.apache.hadoop.hbase.util.Bytes
@@ -56,7 +56,8 @@ class HBaseAdminDataRepository @Inject() (
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
-  override def lookup(key: String, referencePeriod: YearMonth): Future[play.api.mvc.Result] = getAdminDataRest(key, referencePeriod)
+  //  override def lookup(key: String, referencePeriod: YearMonth): Future[PlayResult] = getAdminDataRest(key, referencePeriod)
+  override def lookup(key: String, referencePeriod: YearMonth): Future[PlayResult] = getAdminDataRest2(key, None)
 
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
@@ -78,38 +79,6 @@ class HBaseAdminDataRepository @Inject() (
       case Failure(e: Exception) =>
         logger.error(s"Error getting data for row key $rowKey", e)
         throw e
-    }
-  }
-
-  @throws(classOf[Exception]) //  private def getAdminDataRest(key: String, referencePeriod: Option[YearMonth]): Option[AdminData] = {
-  //    val url: Uri = referencePeriod match {
-  //      case Some(r: YearMonth) =>
-  //        val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
-  //        baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-  //      case None =>
-  //        val scannerObj = "scanner"
-  //        baseUrl / tableName.getNameWithNamespaceInclAsString / scannerObj / key / columnFamily
-  //    }
-  private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[play.api.mvc.Result] = {
-    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
-    val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-    logger.debug(s"sending ws request to ${url.toString}")
-    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
-    val request = ws.singleGETRequest(url.toString, headers)
-    request.map {
-      case response if response.status == OK => {
-        val resp = (response.json \ "Row").as[Seq[JsValue]]
-        Try(convertToAdminData(resp.head)) match {
-          case Success(adminData: AdminData) =>
-            //            Some(adminData)
-            Ok(Json.toJson(adminData)).as(JSON)
-          case Failure(ex) =>
-            // TODO - add exception type
-            //            None
-            BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex"))
-        }
-      }
-      case response if response.status == NOT_FOUND => NotFound(response.body).as(JSON)
     }
   }
 
@@ -137,11 +106,67 @@ class HBaseAdminDataRepository @Inject() (
     }
   }
 
+  @throws(classOf[Exception])
+  private def getAdminDataRest2(key: String, referencePeriod: Option[YearMonth], max: Long = 12L): Future[PlayResult] = {
+    val url: Uri = referencePeriod match {
+      case Some(r: YearMonth) =>
+        val rowKey = RowKeyUtils.createRowKey(r, key)
+        baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+      case None =>
+        val limit = "limit="
+        val reversed = "reversed=true"
+        baseUrl / tableName.getNameWithNamespaceInclAsString / key + "?" + reversed + "&" + limit + max.toString
+    }
+    logger.debug(s"sending ws request to ${url.toString}")
+    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
+    val request = ws.singleGETRequest(url.toString, headers)
+    request.map {
+      case response if response.status == OK => {
+        val resp = (response.json \ "Row").as[Seq[JsValue]]
+        Try(convertToAdminData(resp.head)) match {
+          case Success(adminData: AdminData) =>
+            //            Some(adminData)
+            Ok(Json.toJson(adminData)).as(JSON)
+          case Failure(ex) =>
+            // TODO - add exception type
+            //            None
+            BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex"))
+        }
+      }
+      case response if response.status == NOT_FOUND => NotFound(response.body).as(JSON)
+    }
+  }
+
+  @throws(classOf[Exception])
+  private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[PlayResult] = {
+    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+    val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+    logger.debug(s"sending ws request to ${url.toString}")
+    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
+    val request = ws.singleGETRequest(url.toString, headers)
+    request.map {
+      case response if response.status == OK => {
+        val resp = (response.json \ "Row").as[Seq[JsValue]]
+        Try(convertToAdminData(resp.head)) match {
+          case Success(adminData: AdminData) =>
+            //            Some(adminData)
+            Ok(Json.toJson(adminData)).as(JSON)
+          case Failure(ex) =>
+            // TODO - add exception type
+            //            None
+            BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex"))
+        }
+      }
+      case response if response.status == NOT_FOUND => NotFound(response.body).as(JSON)
+    }
+  }
+
   private def convertToAdminData(result: JsValue): AdminData = {
     val key = (result \ "key").as[String]
+    logger.debug(s"Found record $key")
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(decodeBase64(key))
     val varMap = (result \ "Cell").as[Seq[JsValue]].map { cell =>
-      val column = decodeBase64((cell \ "qualifier").as[String])
+      val column = decodeBase64((cell \ "column").as[String])
       val value = decodeBase64((cell \ "$").as[String])
       logger.debug(s"Found data column $column with value $value")
       column -> value

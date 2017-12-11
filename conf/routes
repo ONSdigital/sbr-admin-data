@@ -8,7 +8,7 @@ GET        /v1/records/:id                              controllers.v1.AdminData
 # Searching for a specific period
 #GET        /v1/periods/:period/records/:id              controllers.v1.AdminDataController.lookup(period: Option[String], id)
 
-GET        /v1/rest/periods/:period/records/:id              controllers.v1.AdminDataController.lookupRest(period, id)
+GET        /v1/rest/periods/:period/records/:id         controllers.v1.AdminDataController.lookupRest(period, id)
 
 # Route for health check information (in JSON).
 GET        /health                                      controllers.HealthController.health

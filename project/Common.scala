@@ -66,10 +66,7 @@ object Common {
     resourceDirectory in ITest := baseDirectory.value / "test/resources",
     scalaSource in ITest := baseDirectory.value / "test/controllers/v1/it",
     // test setup
-    parallelExecution in Test := false,
-
-    // trigger inmemory in test
-    javaOptions in Test += "-Ddatabase.in.memory=true"
+    parallelExecution in Test := false
   )
 
   lazy val noPublishSettings: Seq[Def.Setting[_]] = Seq(

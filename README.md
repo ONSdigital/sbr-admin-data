@@ -112,7 +112,7 @@ sbt test
 Running an individual test can be specified by using the `testOnly` task, e.g.
 
 ```shell
-sbt "project repository-hbase" "testOnly hbase.HBaseAdminDataRepositoryScalaTest"
+sbt "project repository-hbase" "testOnly hbase.respository.HBaseAdminDataRepositoryScalaTest"
 ```
 
 SBR Api uses its own test configuration settings for integration tests, the details of which can be found on the[ONS Confluence](https://collaborate2.ons.gov.uk/confluence/display/SBR/Scala+Testing​).
