@@ -71,5 +71,18 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
     })
   }
   
-  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period.getOrElse(defaultPeriod), v.id)
+  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
+
+  def lookupRest(period: String, id: String): Action[AnyContent] = {
+    Action.async {
+      Try(YearMonth.parse(period, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
+        case Success(date: YearMonth) =>
+          repository.lookup(id, date) recover responseException
+        case Failure(ex: IllegalArgumentException) =>
+          BadRequest(errAsJson(BAD_REQUEST, "bad_request",
+            s"Invalid date argument $period - must conform to YearMonth [yyyyMM]. Exception - $ex")).future
+        case Failure(ex) => BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex")).future
+      }
+    }
+  }
 }
