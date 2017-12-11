@@ -1,24 +1,10 @@
 # sbr-admin-data
-An API for use by sbr-api for accessing CompanyHouse/VAT/PAYE data
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]() [![Dependency Status](https://www.versioneye.com/user/projects/596f195e6725bd0027f25e93/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/596f195e6725bd0027f25e93)
 
-### Prerequisites
+A bulk loader for parsing and loading CSV files into a data store with a supporting API for single record retrieval for a period and primary key combination. A "period" is defined as a year and month combination i.e. 201706, a primary key is a string value.
 
-* Java 8 or higher
-* SBT ([Download](http://www.scala-sbt.org/))
-
-
-### Development Setup (MacOS)
-
-To install SBT quickly you can use Homebrew ([Brew](http://brew.sh)):
-```shell
-brew install sbt
-```
-Similarly we can get Scala (for development purposes) using brew:
-```shell
-brew install scala
-```
+The current implementation of the data store uses HBase.
 
 ## API Endpoints
 
@@ -26,17 +12,15 @@ If you do not specify a period, the record for the most recent period will be re
 
 | method | endpoint                       | example                    |
 |--------|--------------------------------|----------------------------|
-| GET    | /v1/companies/${companyNumber} | GET /v1/companies/AB123456 |
-| GET    | /v1/vats/${vatReference}       | GET /v1/vats/123456789012  |
-| GET    | /v1/payes/${payeReference}     | GET /v1/payes/12345678     |
+| GET    | /v1/records/${id}              | GET /v1/records/AB123456   |
+
 
 If you want to specify a particular period, use the format below.
 
 | method | endpoint                                         | example                               |
 |--------|--------------------------------------------------|---------------------------------------|
-| GET    | /v1/periods/${period}/companies/${companyNumber} | /v1/periods/201706/companies/AB123456 |
-| GET    | /v1/periods/${period}/vats/${vatRef}             | /v1/periods/201706/vats/123456789012  |
-| GET    | /v1/periods/${period}/payes/${payeRef}           | /v1/periods/201706/payes/12345        |
+| GET    | /v1/periods/${period}/records/${id}              | /v1/periods/201706/records/AB123456   |
+
 
 ## Environment Setup
 
@@ -47,42 +31,90 @@ If you want to specify a particular period, use the format below.
 brew install sbt
 ```
 
-## Running
+## Running the API
 
 With the minimal environment setup described above (just Java 8 and SBT), the sbr-admin-data-api will only work with the csv file or in-memory HBase. Further instructions for Hbase (not in memory), Hive and Impala setup/installations can be found [below](#source-setup).
 
-To run the `sbr-ch-data-api`, run the following:
+To run the `sbr-admin-api`, run the following:
 
 ``` shell
-sbt "api/run -Dsource=hbaseInMemory -Dsbr.hbase.inmemory=true"
+sbt run
 ```
 
-Note: When using In-Memory HBase, make sure the path to the project path does not include spaces.
+| Environment Variable | Default Value   | Valid Values                                              |
+|----------------------|-----------------|-----------------------------------------------------------|
+| validation.id        | ".{3,8}"        | Any regex string for validating the id                    |
+| cache.duration       | 60              | Any integer (number of minutes) for the cache duration    |
+| cache.delimiter      | "~"             | Any string for the cache delimiter                        |
+| cb.maxFailures       | 5               | Number of failures to change breaker to open state        |
+| cb.callTimeout       | 2               | Number of seconds after which to timeout a request        |
+| cb.resetTimeout      | 1               | Number of seconds after which the failure count is reset  |
 
-The environment variable `sbr.hbase.inmemory` only needs to passed in when running `source=hbaseInMemory`.
+### Running the API (database.in.memory = true)
 
-Swap the `hbaseInMemory` argument with any of the values in the hbase.hbase.table below:
+By default the API will run against an in-memory HBase instance
 
-| -Dsource value | Data Access                                                                                     |
-|----------------|-------------------------------------------------------------------------------------------------|
-| csv            | Local CSV files `./conf/sample/...` (Real CompanyHouse data, test VAT/PAYE data)                |
-| hiveLocal      | Hive which runs inside the Hortonworks VM                                                       |
-| hbaseLocal     | A local HBase installation                                                                      |
-| hbaseInMemory  | In memory HBase tables with the CompanyHouse/VAT/PAYE CSVs loaded in                            |
+| Environment Variable | Default Value                  | Valid Values                                         |
+|----------------------|--------------------------------|------------------------------------------------------|
+| database.in.memory   | true                           | true                                                 |
+| hbase.table          | admin_data                     | any valid HBase table name                           |
 
-## Source Setup
+When running with an in memory database a csv file will be loaded on startup. To configure that load further environment variables may be set.
 
-#### csv - No setup required
+| Environment Variable | Default Value                  | Valid Values                                         |
+|----------------------|--------------------------------|------------------------------------------------------|
+| csv.file             | conf/sample/201706/ch-data.csv | path to csv file to load                             | 
+| csv.header.string    |                                | string to be found in the header row of the csv file |
 
-#### hiveLocal - [Hive (Hortonworks Sandbox VM) Setup](HIVE.md)
+### Running the API (database.in.memory = false)
 
-#### hbaseLocal - [HBase Setup](HBASE.md)
+To run against a local HBase instance set the in-memory option to false
 
-#### hbaseInMemory - No setup required
+| Environment Variable | Default Value                  | Valid Values                                         |
+|----------------------|--------------------------------|------------------------------------------------------|
+| database.in.memory   | true                           | false                                                |
+| hbase.table          | admin_data                     | any valid HBase table name                           |
 
-### Assembly
+## Loading Data
 
-To package the project in a runnable fat-jar:
+### Physical HBase Instance(database.in.memory = false)
+
+To load data into a physical HBase instance
+
+
+| Environment Variable | Default Value                  | Valid Values                                         |
+|----------------------|--------------------------------|------------------------------------------------------|
+| database.in.memory   | true                           | false                                                |
+| hbase.conf.dir       |                                | path to dir containing hbase-site.xml                |
+| csv.header.string    |                                | string to be found in the header row of the csv file |
+
+Syntax (direct load)
+```shell
+sbt repository-hbase/"run-main hbase.load.BulkLoader {tablename} {period} {file}.csv"
+```
+
+Syntax (load via HFile)
+```shell
+sbt repository-hbase/"run-main hbase.load.BulkLoader {tablename} {period} {file}.csv {hfiledir}"
+```
+
+
+Example
+```shell
+sbt -Ddatabase.in.memory=false
+    -Dcsv.header.string=companyname
+    -Dhbase.conf.dir=/Users/myuser/hbase/conf
+    repository-hbase/"run-main hbase.load.BulkLoader mytable 201706 /Users/myuser/data/ch-data.csv"
+```
+
+
+#### LocalHBase Setup
+
+[HBase Setup](HBASE.md)
+
+## Assembly
+
+To package the project into a runnable fat-jar:
 
 ```shell
 sbt assembly
@@ -96,12 +128,9 @@ After running the following command:
 sbt clean compile "project api" universal:packageBin
 ```
 
-A .zip file is created here, `/target/universal/sbr-admin-data-api.zip`, which is pushed to CloudFoundry. 
+A `.zip` file is created here, `/target/universal/sbr-admin-data-api.zip`, which is pushed to CloudFoundry in the deploy stage of the `Jenkinsfile`.
 
-The executable inside the .zip is configured to run with default environment variables passed in, as defined in the [build.sbt](https://github.com/ONSdigital/sbr-admin-data-api/blob/feature/hbase-in-memory/build.sbt#L85).
-
-
-## Test
+## Testing
 
 To run all test suites we can use:
 
@@ -115,16 +144,15 @@ Running an individual test can be specified by using the `testOnly` task, e.g.
 sbt "project repository-hbase" "testOnly hbase.HBaseAdminDataRepositoryScalaTest"
 ```
 
-SBR Api uses its own test configuration settings for integration tests, the details of which can be found on the[ONS Confluence](https://collaborate2.ons.gov.uk/confluence/display/SBR/Scala+Testing​).
+SBR Admin Data uses its own test configuration settings for integration tests, the details of which can be found on the [ONS Confluence](https://collaborate2.ons.gov.uk/confluence/display/SBR/Scala+Testing​).
 
 To run integration tests execute the following command:
+
 ```shell
 sbt it:test
 ```
-See[CONTRIBUTING](CONTRIBUTING.md) for more details on creating tests. 
 
-##### Approach
-
+See[CONTRIBUTING](CONTRIBUTING.md) for more details on creating tests.
 
 ## API Documentation
 Swagger API is used to document and expose swagger definitions of the routes and capabilities for this project.
@@ -134,9 +162,6 @@ Swagger API is used to document and expose swagger definitions of the routes and
  
  For a graphical interface using Swagger Ui use path:
  `http://localhost:9000/docs`
- 
-## Troubleshooting
-See [FAQ](FAQ.md) for possible and common solutions.
 
 ## Contributing
 

@@ -1,15 +1,11 @@
 package controllers.v1
 
-import java.time.format.DateTimeParseException
-import javax.naming.ServiceUnavailableException
-
-import scala.concurrent.{ Future, TimeoutException }
 import scala.concurrent.duration._
+import scala.concurrent.Future
 
 import akka.actor.{ ActorRef, ActorSystem, Props }
 import akka.pattern.CircuitBreaker
 import akka.util.Timeout
-import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc.{ Controller, Result }
 import com.typesafe.scalalogging.LazyLogging
 

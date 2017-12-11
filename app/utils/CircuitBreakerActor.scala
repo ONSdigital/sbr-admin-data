@@ -1,10 +1,11 @@
 package utils
 
-import akka.actor._
-import models.ServerError
-
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
+
+import akka.actor._
+
+import models.ServerError
 
 /**
  * Created by coolit on 16/11/2017.

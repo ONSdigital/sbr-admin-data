@@ -13,5 +13,9 @@ GET        /v1/rest/periods/:period/records/:id              controllers.v1.Admi
 # Route for health check information (in JSON).
 GET        /health                                      controllers.HealthController.health
 
+# Swagger
+GET       /swagger.json                                 controllers.ApiHelpController.getResources
+GET       /docs                                         controllers.HomeController.swagger
+
 # Map static resources from the /public folder to the /assets URL path
 GET        /assets/*file                                controllers.Assets.at(path="/public", file)
