@@ -3,29 +3,29 @@ package hbase.repository
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
-import com.github.nscala_time.time.Imports.{DateTimeFormat, YearMonth}
+import play.api.http.{ ContentTypes, Status }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.Results
+import org.apache.hadoop.hbase.CellUtil
+import org.apache.hadoop.hbase.client.{ Result, _ }
+import org.apache.hadoop.hbase.util.Bytes
+import org.slf4j.{ Logger, LoggerFactory }
+import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
-import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.client.{Result, _}
-import org.apache.hadoop.hbase.util.Bytes
-import org.slf4j.{Logger, LoggerFactory}
-import play.api.http.{ContentTypes, Status}
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.Results
 
-import services.util.ResponseUtil.{errAsJson, encodeBase64, decodeBase64}
-import services.websocket.RequestGenerator
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.util.HBaseConfig._
 import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
+import services.util.ResponseUtil.{ decodeBase64, errAsJson }
+import services.websocket.RequestGenerator
 
 /**
  * HBaseAdminDataRepository
@@ -48,7 +48,7 @@ class HBaseAdminDataRepository @Inject() (
   private final val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
 
   private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
-//  private val auth = encodeBase64(Seq(username, password))
+  //  private val auth = encodeBase64(Seq(username, password))
 
   // @TODO - fix + add circuit-breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
@@ -81,16 +81,15 @@ class HBaseAdminDataRepository @Inject() (
     }
   }
 
-  @throws(classOf[Exception])
-//  private def getAdminDataRest(key: String, referencePeriod: Option[YearMonth]): Option[AdminData] = {
-//    val url: Uri = referencePeriod match {
-//      case Some(r: YearMonth) =>
-//        val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
-//        baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-//      case None =>
-//        val scannerObj = "scanner"
-//        baseUrl / tableName.getNameWithNamespaceInclAsString / scannerObj / key / columnFamily
-//    }
+  @throws(classOf[Exception]) //  private def getAdminDataRest(key: String, referencePeriod: Option[YearMonth]): Option[AdminData] = {
+  //    val url: Uri = referencePeriod match {
+  //      case Some(r: YearMonth) =>
+  //        val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
+  //        baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+  //      case None =>
+  //        val scannerObj = "scanner"
+  //        baseUrl / tableName.getNameWithNamespaceInclAsString / scannerObj / key / columnFamily
+  //    }
   private def getAdminDataRest(key: String, referencePeriod: YearMonth): Future[play.api.mvc.Result] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
     val url: Uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
@@ -102,11 +101,11 @@ class HBaseAdminDataRepository @Inject() (
         val resp = (response.json \ "Row").as[Seq[JsValue]]
         Try(convertToAdminData(resp.head)) match {
           case Success(adminData: AdminData) =>
-//            Some(adminData)
+            //            Some(adminData)
             Ok(Json.toJson(adminData)).as(JSON)
           case Failure(ex) =>
             // TODO - add exception type
-//            None
+            //            None
             BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex"))
         }
       }

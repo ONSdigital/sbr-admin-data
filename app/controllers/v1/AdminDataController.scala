@@ -63,7 +63,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
 
   def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 
-  def lookup(period: String, id: String): Action[AnyContent] = {
+  def lookupRest(period: String, id: String): Action[AnyContent] = {
     Action.async {
       Try(YearMonth.parse(period, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
         case Success(date: YearMonth) =>
@@ -75,4 +75,5 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
       }
     }
   }
+
 }
