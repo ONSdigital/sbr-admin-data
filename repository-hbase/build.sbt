@@ -83,14 +83,7 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
 
-coverageMinimum := 39
-coverageFailOnMinimum := true
-
-scalastyleTarget := file("target/code-quality/style/scalastyle-result.xml")
-scalastyleFailOnError := true
-
-scapegoatOutputPath := "target/code-quality/style"
-scapegoatConsoleOutput := false
+coverageMinimum := 28
 
 lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule("commons-logging", "commons-logging"),

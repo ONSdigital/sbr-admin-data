@@ -5,11 +5,12 @@ import sbtassembly.PathList
 import sbtbuildinfo.BuildInfoPlugin.autoImport.{buildInfoKeys, buildInfoOptions, buildInfoPackage}
 import sbtbuildinfo.{BuildInfoKey, BuildInfoOption}
 import sbtrelease.ReleasePlugin.autoImport.{releaseCommitMessage, releaseIgnoreUntrackedFiles, releaseTagComment}
-
 import play.sbt.PlayImport.PlayKeys
+import org.scalastyle.sbt.ScalastylePlugin.autoImport.{scalastyleFailOnError, scalastyleTarget}
+import com.sksamuel.scapegoat.sbt.ScapegoatSbtPlugin.autoImport.{scapegoatConsoleOutput, scapegoatOutputPath}
 import com.typesafe.sbt.SbtGit.git
 
-import scoverage.ScoverageKeys.coverageExcludedPackages
+import scoverage.ScoverageKeys.{coverageExcludedPackages, coverageFailOnMinimum, coverageMinimum}
 
 /**
   * Common
@@ -173,7 +174,13 @@ object Common {
     ),
     logLevel := Level.Warn,
     resolvers ++= Resolvers,
-    coverageExcludedPackages := ".*Routes.*;.*ReverseRoutes.*;.*javascript.*"
+    coverageExcludedPackages := ".*Routes.*;.*ReverseRoutes.*;.*javascript.*",
+    coverageMinimum := 80,
+    coverageFailOnMinimum := true,
+    scalastyleTarget := (target.value / "code-quality/style/scalastyle-result.xml"),
+    scalastyleFailOnError := true,
+    scapegoatOutputPath := "target/code-quality/style",
+    scapegoatConsoleOutput := false
   )
 
   lazy val assemblySettings: Seq[Def.Setting[_]] = Seq(

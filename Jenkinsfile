@@ -123,7 +123,7 @@ pipeline {
 
                     // removed subfolder scala-2.11/ from target path
                     step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
-                    step([$class: 'CheckStylePublisher', pattern: 'target/code-quality/style/*scalastyle*.xml'])
+                    step([$class: 'CheckStylePublisher', pattern: '**/target/code-quality/style/*scalastyle*.xml'])
                 }
                 failure {
                     colourText("warn","Failed to retrieve reports.")

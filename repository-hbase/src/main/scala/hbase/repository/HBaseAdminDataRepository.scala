@@ -35,9 +35,8 @@ import services.websocket.RequestGenerator
  * Copyright (c) 2017  Office for National Statistics
  */
 class HBaseAdminDataRepository @Inject() (
-    val connector: HBaseConnector,
-    ws: RequestGenerator
-) extends AdminDataRepository with Status with Results with ContentTypes {
+  val connector: HBaseConnector,
+  ws: RequestGenerator) extends AdminDataRepository with Status with Results with ContentTypes {
 
   implicit val ec = ExecutionContext.global
 

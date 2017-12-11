@@ -18,6 +18,9 @@ Common.applicationConfig := {
 /**
   * SETTINGS AND CONFIGURATION
   */
+
+coverageMinimum := 0
+
 lazy val initExec: Seq[Def.Setting[_]] = Seq(
   crossPaths := false,
   parallelExecution := false,
@@ -52,15 +55,6 @@ lazy val devDeps = Seq(
   "com.typesafe.scala-logging" %%  "scala-logging"   %  "3.7.2",
   "ch.qos.logback"             %   "logback-classic" %  "1.2.3"
 )
-
-//coverageMinimum := 80
-//coverageFailOnMinimum := true
-
-scalastyleTarget := file("target/code-quality/style/scalastyle-result.xml")
-scalastyleFailOnError := true
-
-scapegoatOutputPath := "target/code-quality/style"
-scapegoatConsoleOutput := false
 
 /**
   * PROJECT DEF
