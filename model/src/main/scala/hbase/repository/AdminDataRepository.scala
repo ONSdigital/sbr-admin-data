@@ -19,7 +19,6 @@ trait AdminDataRepository {
 
   def getCurrentPeriod: Future[YearMonth]
 
-  @deprecated("Migrated to lookup with key, period", "12 Dec 2017 - feature/HBase-Rest")
   def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
 
   def lookup(key: String, referencePeriod: Option[YearMonth]): Future[Result]
