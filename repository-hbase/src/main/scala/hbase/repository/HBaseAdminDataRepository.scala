@@ -3,19 +3,17 @@ package hbase.repository
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
-import play.api.http.{ ContentTypes, Status }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Results, Result => PlayResult }
+import play.api.http.{ContentTypes, Status}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Results, Result => PlayResult}
 import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.client.{ Result, _ }
+import org.apache.hadoop.hbase.client.{Result, _}
 import org.apache.hadoop.hbase.util.Bytes
-import org.slf4j.{ Logger, LoggerFactory }
-import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
-import com.google.common.base.Charsets
-import com.google.common.io.BaseEncoding
+import org.slf4j.{Logger, LoggerFactory}
+import com.github.nscala_time.time.Imports.{DateTimeFormat, YearMonth}
 import com.netaporter.uri.dsl._
 
 import hbase.connector.HBaseConnector
@@ -23,7 +21,7 @@ import hbase.model.AdminData
 import hbase.util.HBaseConfig._
 import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
-import services.util.ResponseUtil.{ decodeBase64, errAsJson }
+import services.util.ResponseUtil.{decodeBase64, encodeBase64, errAsJson}
 import services.websocket.RequestGenerator
 
 /**
@@ -46,18 +44,15 @@ class HBaseAdminDataRepository @Inject() (
   private final val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
 
   private val maxResultSize: Long = 12L
-  private val auth = BaseEncoding.base64.encode(s"$username:$password".getBytes(Charsets.UTF_8))
-  //  private val auth = encodeBase64(Seq(username, password))
+  private val auth = encodeBase64(Seq(username, password))
 
   // @TODO - fix + add circuit-breaker
-  @deprecated("Migrated to other lookup", "12 Dec 2017 - feature/HBase-Rest")
   override def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]] = Future.successful(getAdminData(referencePeriod, key))
 
   override def getCurrentPeriod: Future[YearMonth] = Future.successful(HARDCODED_CURRENT_PERIOD)
 
-  override def lookup(key: String, referencePeriod: Option[YearMonth]): Future[PlayResult] = getAdminDataRest(key, referencePeriod)
+  override def lookup(key: String, referencePeriod: Option[YearMonth]): Future[PlayResult] = getAdminData(key, referencePeriod)
 
-  @deprecated("Migrated to getAdminDataRest", "12 Dec 2017 - feature/HBase-Rest")
   @throws(classOf[Exception])
   private def getAdminData(referencePeriod: Option[YearMonth] = Some(HARDCODED_CURRENT_PERIOD), key: String): Option[AdminData] = {
     val rowKey = RowKeyUtils.createRowKey(referencePeriod.getOrElse(HARDCODED_CURRENT_PERIOD), key)
@@ -82,7 +77,7 @@ class HBaseAdminDataRepository @Inject() (
   }
 
   @throws(classOf[Exception])
-  private def getAdminDataRest(key: String, referencePeriod: Option[YearMonth], max: Long = maxResultSize): Future[PlayResult] = {
+  private def getAdminData(key: String, referencePeriod: Option[YearMonth], max: Long = maxResultSize): Future[PlayResult] = {
     val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
     val request = referencePeriod match {
       case Some(r: YearMonth) =>
@@ -125,7 +120,6 @@ class HBaseAdminDataRepository @Inject() (
     newPutAdminData
   }
 
-  @deprecated("Migrated to convertToAdminData with JsValue param", "12 Dec 2017 - feature/HBase-Rest")
   private def convertToAdminData(result: Result): AdminData = {
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow))
     val varMap = result.listCells.toList.map { cell =>
