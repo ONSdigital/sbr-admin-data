@@ -42,6 +42,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
     }
   }
 
+
   def repositoryLookup(v: ValidLookup, cacheKey: String): Future[Result] = {
     // Do the db call through a circuit breaker
     val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[AdminData]]]
@@ -62,15 +63,20 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
 
   def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 
-  def lookupRest(period: String, id: String): Action[AnyContent] = {
+  def lookupRest(period: Option[String], id: String): Action[AnyContent] = {
     Action.async {
-      Try(YearMonth.parse(period, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
-        case Success(date: YearMonth) =>
-          repository.lookup(id, date) recover responseException
-        case Failure(ex: IllegalArgumentException) =>
-          BadRequest(errAsJson(BAD_REQUEST, "bad_request",
-            s"Invalid date argument $period - must conform to YearMonth [yyyyMM]. Exception - $ex")).future
-        case Failure(ex) => BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex")).future
+      period match {
+        case Some(p) =>
+          Try(YearMonth.parse(p, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
+            case Success(date: YearMonth) =>
+              repository.lookup(id, Some(date)) recover responseException
+            case Failure(ex: IllegalArgumentException) =>
+              BadRequest(errAsJson(BAD_REQUEST, "bad_request",
+                s"Invalid date argument $period - must conform to YearMonth [yyyyMM]. Exception - $ex")).future
+            case Failure(ex) => BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex")).future
+          }
+        case None =>
+          repository.lookup(id, None) recover responseException
       }
     }
   }
