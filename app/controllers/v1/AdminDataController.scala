@@ -42,7 +42,6 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
     }
   }
 
-
   def repositoryLookup(v: ValidLookup, cacheKey: String): Future[Result] = {
     // Do the db call through a circuit breaker
     val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[AdminData]]]

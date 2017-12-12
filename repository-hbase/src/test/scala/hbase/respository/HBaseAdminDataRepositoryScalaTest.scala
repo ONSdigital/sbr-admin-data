@@ -79,36 +79,39 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     assertEquals(lookup.variables.getOrElse("name", throw new Exception("Unable to get company name")), companyName)
   }
 
-  "repository.lookupOvertime()" should "return all the results relating to a particular id" in {
-    val s = setup
-    val columnFamily = toBytes("d")
-
-    // Test data
-    val testId = "12345"
-    val testPeriod1 = YearMonth.parse("200812", DateTimeFormat.forPattern(dateFormat))
-
-    val rowKey1 = createRowKey(testPeriod1, testId)
-    val rowKey2 = createRowKey(testPeriod1, testId)
-    val rowKey3 = createRowKey(testPeriod1, testId)
-
-    val companyName1 = "name 200812"
-    val companyName2 = "name 200812"
-    val companyName3 = "name 200812"
-
-    // Create cells for each column
-    val nameCell1 = CellUtil.createCell(Bytes.toBytes(rowKey1), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName1), HConstants.EMPTY_BYTE_ARRAY)
-    val nameCell2 = CellUtil.createCell(Bytes.toBytes(rowKey2), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName2), HConstants.EMPTY_BYTE_ARRAY)
-    val nameCell3 = CellUtil.createCell(Bytes.toBytes(rowKey3), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName3), HConstants.EMPTY_BYTE_ARRAY)
-    val cells = List(nameCell1, nameCell2, nameCell3).asJava
-
-    when(result.isEmpty) thenReturn false
-    when(result.listCells()) thenReturn cells
-    when(result.getRow) thenReturn (Bytes.toBytes(rowKey1), Bytes.toBytes(rowKey2), Bytes.toBytes(rowKey3))
-
-    Await.result(s.repository.lookupOvertime(testId, Some(3L)), 1 second).getOrElse(throw new Exception("Unable to do repository lookup"))
-    // Need to test that it returns a list of results
-    // Also test when we use 1L it only returns 1 result
-  }
+  //  "repository.lookupOvertime()" should "return all the results relating to a particular id" in {
+  //    val s = setup
+  //    val columnFamily = toBytes("d")
+  //
+  //    // Test data
+  //    val testId = "12345"
+  //    val testPeriod1 = YearMonth.parse("200812", DateTimeFormat.forPattern(dateFormat))
+  //
+  //    val rowKey1 = createRowKey(testPeriod1, testId)
+  //    val rowKey2 = createRowKey(testPeriod1, testId)
+  //    val rowKey3 = createRowKey(testPeriod1, testId)
+  //
+  //    val companyName1 = "name 200812"
+  //    val companyName2 = "name 200812"
+  //    val companyName3 = "name 200812"
+  //
+  //    // Create cells for each column
+  //    val nameCell1 = CellUtil.createCell(Bytes.toBytes(rowKey1), columnFamily, Bytes.toBytes("name"),
+  //      9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName1), HConstants.EMPTY_BYTE_ARRAY)
+  //    val nameCell2 = CellUtil.createCell(Bytes.toBytes(rowKey2), columnFamily, Bytes.toBytes("name"),
+  //      9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName2), HConstants.EMPTY_BYTE_ARRAY)
+  //    val nameCell3 = CellUtil.createCell(Bytes.toBytes(rowKey3), columnFamily, Bytes.toBytes("name"),
+  //      9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName3), HConstants.EMPTY_BYTE_ARRAY)
+  //    val cells = List(nameCell1, nameCell2, nameCell3).asJava
+  //
+  //    when(result.isEmpty) thenReturn false
+  //    when(result.listCells()) thenReturn cells
+  //    when(result.getRow) thenReturn (Bytes.toBytes(rowKey1), Bytes.toBytes(rowKey2), Bytes.toBytes(rowKey3))
+  //
+  //    Await.result(s.repository.lookupOvertime(testId, Some(3L)), 1 second).getOrElse(throw new Exception("Unable to do repository lookup"))
+  //    // Need to test that it returns a list of results
+  //    // Also test when we use 1L it only returns 1 result
+  //  }
 
   "repository.lookup()" should "return an empty result if no record with that id is present" in {
     val s = setup
