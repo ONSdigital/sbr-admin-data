@@ -3,17 +3,17 @@ package hbase.repository
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
-import play.api.http.{ContentTypes, Status}
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Results, Result => PlayResult}
+import play.api.http.{ ContentTypes, Status }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Results, Result => PlayResult }
 import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.client.{Result, _}
+import org.apache.hadoop.hbase.client.{ Result, _ }
 import org.apache.hadoop.hbase.util.Bytes
-import org.slf4j.{Logger, LoggerFactory}
-import com.github.nscala_time.time.Imports.{DateTimeFormat, YearMonth}
+import org.slf4j.{ Logger, LoggerFactory }
+import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
 import com.netaporter.uri.dsl._
@@ -23,7 +23,7 @@ import hbase.model.AdminData
 import hbase.util.HBaseConfig._
 import hbase.util.RowKeyUtils
 import hbase.util.RowKeyUtils.REFERENCE_PERIOD_FORMAT
-import services.util.ResponseUtil.{decodeBase64, errAsJson}
+import services.util.ResponseUtil.{ decodeBase64, errAsJson }
 import services.websocket.RequestGenerator
 
 /**
