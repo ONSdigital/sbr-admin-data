@@ -27,7 +27,8 @@ import utils.{ LookupValidator, Utilities }
 /**
  * Created by coolit on 07/11/2017.
  */
-class AdminDataController @Inject() (repository: AdminDataRepository, cache: CacheApi, val messagesApi: MessagesApi) extends ControllerUtils with I18nSupport with LazyLogging {
+class AdminDataController @Inject() (repository: AdminDataRepository, cache: CacheApi, val messagesApi: MessagesApi)
+  extends ControllerUtils with I18nSupport with LazyLogging {
 
   val cb = getCircuitBreaker(getRecordById)
 
@@ -55,7 +56,8 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
       })).recover({
       case _ => {
         logger.error(s"Unable to get record from database")
-        InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error", Messages("controller.server.error")))
+        InternalServerError(Utilities.errAsJson(INTERNAL_SERVER_ERROR, "Internal Server Error",
+          Messages("controller.server.error")))
       }
     })
   }
@@ -71,8 +73,11 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
               repository.lookup(id, Some(date)) recover responseException
             case Failure(ex: IllegalArgumentException) =>
               BadRequest(errAsJson(BAD_REQUEST, "bad_request",
-                s"Invalid date argument $period - must conform to YearMonth [yyyyMM]. Exception - $ex")).future
-            case Failure(ex) => BadRequest(errAsJson(BAD_REQUEST, "bad_request", s"$ex")).future
+                Messages("controller.invalid.period", p, REFERENCE_PERIOD_FORMAT, ex.toString)
+              )
+
+              ).future
+            case Failure(ex) => BadRequest(s"$ex").future
           }
         case None =>
           repository.lookup(id, None) recover responseException
