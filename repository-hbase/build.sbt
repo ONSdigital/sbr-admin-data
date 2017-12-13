@@ -83,7 +83,7 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
 
-coverageMinimum := 28
+coverageMinimum := 27
 
 lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule("commons-logging", "commons-logging"),
