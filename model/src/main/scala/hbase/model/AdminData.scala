@@ -21,7 +21,7 @@ case class AdminData(
 
 object AdminData {
 
-  final val REFERENCE_PERIOD_FORMAT = "yyyyMM"
+  val REFERENCE_PERIOD_FORMAT = "yyyyMM"
 
   implicit val writer: Writes[AdminData] = new Writes[AdminData] {
     def writes(a: AdminData): JsValue = {

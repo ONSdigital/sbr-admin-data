@@ -72,11 +72,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
             case Success(date: YearMonth) =>
               repository.lookup(id, Some(date)) recover responseException
             case Failure(ex: IllegalArgumentException) =>
-              BadRequest(errAsJson(BAD_REQUEST, "bad_request",
-                Messages("controller.invalid.period", p, REFERENCE_PERIOD_FORMAT, ex.toString)
-              )
-
-              ).future
+              BadRequest(Messages("controller.invalid.period", p, REFERENCE_PERIOD_FORMAT, ex.toString)).future
             case Failure(ex) => BadRequest(s"$ex").future
           }
         case None =>

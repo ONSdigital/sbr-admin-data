@@ -47,13 +47,13 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
       when(resultScanner.next()) thenReturn result
     }
 
-  "repository.getCurrentPeriod()" should "return the current period" in {
-    val s = setup
-    val dateString = "201706"
-    val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
-    val period = Await.result(s.repository.getCurrentPeriod, 1 second)
-    assertEquals(period, date)
-  }
+  //  "repository.getCurrentPeriod()" should "return the current period" in {
+  //    val s = setup
+  //    val dateString = "201706"
+  //    val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
+  //    val period = Await.result(s.repository.getCurrentPeriod, 1 second)
+  //    assertEquals(period, date)
+  //  }
 
   "repository.lookup()" should "return a valid result" in {
     val s = setup

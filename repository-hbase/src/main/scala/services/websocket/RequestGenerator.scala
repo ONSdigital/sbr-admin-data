@@ -49,12 +49,6 @@ class RequestGenerator @Inject() (
       .flashing("redirect" -> s"You are being redirected to $route route", "status" -> "ok")
   }
 
-  //  def singleRawGETRequest(url: Z, headers: ((String, String)*), queryString: ((String, String)*) ): Future[WSResponse] =
-  //    ws.url(url.toString)
-  //      .withHeaders(headers)
-  //      .withQueryString(queryString)
-  //      .withRequestTimeout(Duration(TIMEOUT_REQUEST, DURATION_METRIC)).get
-
   def singleGETRequest(path: String, headers: Seq[(String, String)] = Seq(), params: Seq[(String, String)] = Seq()): Future[WSResponse] =
     ws.url(path.toString)
       .withQueryString(params: _*)

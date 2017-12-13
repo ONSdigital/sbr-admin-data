@@ -12,7 +12,7 @@ import play.api.libs.json.Json
  * Copyright (c) 2017  Office for National Statistics
  */
 
-class AdminDataTest extends FlatSpec with Matchers {
+class AdminDataJsonTest extends FlatSpec with Matchers {
 
   private val EXPECTED_JSON = """{"period":"20170601","id":"12345","variables":{"Employees":"10"}}"""
 
