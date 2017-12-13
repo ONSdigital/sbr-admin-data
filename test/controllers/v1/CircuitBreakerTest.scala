@@ -2,7 +2,8 @@ package controllers.v1
 
 import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.config.ConfigFactory
-import model.AdminData
+import hbase.model.AdminData
+import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
 import org.joda.time.format.DateTimeFormat
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
@@ -18,15 +19,11 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
- * Created by coolit on 28/11/2017.
- */
 class CircuitBreakerTest extends PlaySpec with MockitoSugar {
 
   implicit def defaultAwaitTimeout: Timeout = 20.seconds
-  val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
   val dateString = "201706"
-  val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(dateFormat))
+  val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
 
   lazy val messageException = throw new Exception("Unable to get message")
   lazy val noContentTypeException = throw new Exception("Unable to get content type")
@@ -43,7 +40,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val mockAdminDataRepository = mock[AdminDataRepository]
       val config = Configuration(ConfigFactory.load("application.conf")) // Or test.conf, if you have test-specific config files
       val messages = new DefaultMessagesApi(Environment.simple(), config, new DefaultLangs(config))
-      val controller = new AdminDataController(mockAdminDataRepository, messages, cache)
+      val controller = new AdminDataController(mockAdminDataRepository, messages, cache, config)
       //      val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
       val defaultMessages = messages.messages.get("default").getOrElse(throw new Exception("Unable to get messages"))
     }
@@ -52,7 +49,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
     "be able to handle failures in the wrapped method (getFromDb)" in {
       val s = setup
       val exceptionId = "19283746"
-      when(s.mockAdminDataRepository.lookup(date, exceptionId)).thenThrow(new RuntimeException())
+      when(s.mockAdminDataRepository.lookup(Some(date), exceptionId)).thenThrow(new RuntimeException())
       val resp = s.controller.lookup(Some("201706"), exceptionId).apply(FakeRequest())
       status(resp) mustBe INTERNAL_SERVER_ERROR
       contentType(resp).getOrElse(noContentTypeException) mustBe "application/json"
@@ -63,7 +60,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
     "must stay closed after successful requests" in {
       val s = setup
       val id = "12345"
-      when(s.mockAdminDataRepository.lookup(date, id)) thenReturn Future(Some(AdminData(date, id)))
+      when(s.mockAdminDataRepository.lookup(Some(date), id)) thenReturn Future(Some(AdminData(date, id)))
       val results = (1 to 20).map { i =>
         s.controller.lookup(Some(dateString), "12345").apply(FakeRequest())
       }
@@ -76,7 +73,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
     "must be opened after 5 failures" in {
       val s = setup
       val exceptionId = "99664411"
-      when(s.mockAdminDataRepository.lookup(date, exceptionId)).thenThrow(new RuntimeException())
+      when(s.mockAdminDataRepository.lookup(Some(date), exceptionId)).thenThrow(new RuntimeException())
       val results = (1 to 5).map { i =>
         s.controller.lookup(Some(dateString), exceptionId).apply(FakeRequest())
       }
@@ -89,8 +86,8 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val s = setup
       val exceptionId = "99664411"
       val validId = "112233"
-      when(s.mockAdminDataRepository.lookup(date, exceptionId)).thenThrow(new RuntimeException())
-      when(s.mockAdminDataRepository.lookup(date, validId)) thenReturn Future(Some(AdminData(date, validId)))
+      when(s.mockAdminDataRepository.lookup(Some(date), exceptionId)).thenThrow(new RuntimeException())
+      when(s.mockAdminDataRepository.lookup(Some(date), validId)) thenReturn Future(Some(AdminData(date, validId)))
       val results = (1 to 5).map { i =>
         s.controller.lookup(Some(dateString), exceptionId).apply(FakeRequest())
       }
@@ -100,7 +97,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val validLookup = s.controller.lookup(Some(dateString), validId).apply(FakeRequest())
       status(validLookup) mustBe INTERNAL_SERVER_ERROR
       // Make sure the circuit breaker caught the last lookup due to it being open
-      verify(s.mockAdminDataRepository, times(0)).lookup(date, validId)
+      verify(s.mockAdminDataRepository, times(0)).lookup(Some(date), validId)
     }
 
     //    "must fail a db lookup call that takes too long" in {

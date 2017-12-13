@@ -1,16 +1,22 @@
 package controllers.v1
 
-import org.scalatestplus.play._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.{ contentAsString, _ }
 import play.api.test._
+import play.api.{ Application, Configuration }
+import org.scalatestplus.play._
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import com.typesafe.config.ConfigFactory
 
-/**
- * Created by coolit on 04/12/2017.
- */
-class ApplicationSpec extends PlaySpec with OneAppPerTest {
+class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite {
+
+  override def fakeApplication(): Application =
+    new GuiceApplicationBuilder()
+      .loadConfig(Configuration(ConfigFactory.load("application.test.conf")))
+      .build()
 
   "Routes" should {
-    "send 404 on a bad request" in {
+    "send 404 for request of unknown resource" in {
       route(app, FakeRequest(GET, "/abcdef")).map(status) mustBe Some(NOT_FOUND)
     }
   }
@@ -28,7 +34,7 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
     }
   }
 
-  "SearchController" should {
+  "AdminDataController" should {
     "return 400 when an incorrect period format is used" in {
       val search = fakeRequest("/v1/periods/1706/records/12345")
       status(search) mustBe BAD_REQUEST

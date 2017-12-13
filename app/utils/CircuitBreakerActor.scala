@@ -25,7 +25,9 @@ class CircuitBreakerActor[T, Z](
     case params: T => {
       Try(f(params)) match {
         case Success(s) => sender() ! s
-        case Failure(ex) => Status.Failure(new ServerError(ex.getMessage))
+        case Failure(ex) =>
+          log.error("Failure result from function execution.", ex)
+          sender() ! Status.Failure(new ServerError(ex.getMessage))
       }
     }
     case _ => sender() ! new Exception()

@@ -8,9 +8,7 @@ import scala.concurrent.TimeoutException
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
 import play.api.http.Status
-import play.api.libs.json.{JsObject, Json}
-
-import hbase.util.HBaseConfig.{password, username}
+import play.api.libs.json.{ JsObject, Json }
 
 /**
  * ResponseUtil
@@ -52,6 +50,5 @@ object ResponseUtil extends Status {
 
   def decodeBase64(str: String) =
     new String(BaseEncoding.base64().decode(str), "UTF-8")
-
 
 }

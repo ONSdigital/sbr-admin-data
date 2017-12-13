@@ -1,15 +1,20 @@
 package controllers.v1
 
+import java.time.format.DateTimeParseException
+import javax.naming.ServiceUnavailableException
+
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{ Future, TimeoutException }
 
 import akka.actor.{ ActorRef, ActorSystem, Props }
 import akka.pattern.CircuitBreaker
 import akka.util.Timeout
+import play.api.Configuration
+import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc.{ Controller, Result }
 import com.typesafe.scalalogging.LazyLogging
 
-import config.Properties._
+import config.Properties
 import utils.CircuitBreakerActor
 
 /**
@@ -19,7 +24,7 @@ import utils.CircuitBreakerActor
  * Date: 22 November 2017 - 14:19
  * Copyright (c) 2017  Office for National Statistics
  */
-trait ControllerUtils extends Controller with LazyLogging {
+trait ControllerUtils extends Controller with LazyLogging with Properties {
 
   val system = ActorSystem("sbr-admin-data-circuit-breaker")
   implicit val ec = system.dispatcher
@@ -35,7 +40,8 @@ trait ControllerUtils extends Controller with LazyLogging {
       onClose(logger.warn("----- circuit breaker closed! -----")).
       onHalfOpen(logger.warn("----- circuit breaker half-open -----"))
 
-  implicit val timeout = Timeout(2 seconds)
+  implicit val configuration: Configuration
+  implicit val timeout = Timeout(configuration.getMilliseconds("akka.ask.timeout").map(_ millis).getOrElse(2 seconds))
 
   def getCircuitBreaker[T, Z](f: T => Future[Option[Z]]): ActorRef = system.actorOf(Props(new CircuitBreakerActor(f)))
 

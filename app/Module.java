@@ -41,9 +41,9 @@ public class Module extends AbstractModule {
 
     @Override
     public void configure() {
-        if (configuration.getBoolean("database.in.memory")) {
+        if (configuration.getBoolean("hbase.in.memory")) {
             System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
-            bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("database.table")));
+            bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")));
             bind(RepositoryInitializer.class).asEagerSingleton();
         } else {
             bind(HBaseConnector.class).to(HBaseInstanceConnector.class).asEagerSingleton();
@@ -59,8 +59,8 @@ public class Module extends AbstractModule {
 class RepositoryInitializer {
 
     @Inject
-    public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) throws Exception {
-        dataLoader.load(configuration.getString("database.table"), "201706", configuration.getString("csv.file"));
+    public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) {
+        dataLoader.load(configuration.getString("hbase.table.name"), "201706", configuration.getString("csv.file"));
     }
 }
 

@@ -33,7 +33,7 @@ class RequestGenerator @Inject() (
   private final val config: Config = ConfigFactory.load()
   //    .getConfig("ws")
   private final val DURATION_METRIC: TimeUnit = MILLISECONDS
-  private final val TIMEOUT_REQUEST: Long = config.getString("ws.request.timeout").toLong
+  private final val TIMEOUT_REQUEST: Long = config.getString("play.ws.request.timeout").toLong
   private final val INF_REQUEST: Infinite = Duration.Inf
 
   private val TimeUnitCollection: List[TimeUnit] =

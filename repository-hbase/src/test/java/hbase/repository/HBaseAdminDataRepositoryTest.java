@@ -1,6 +1,7 @@
 package hbase.repository;
 
 import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import hbase.connector.HBaseConnector;
 import hbase.util.RowKeyUtils;
 import hbase.model.AdminData;
@@ -17,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import play.api.Configuration;
 import scala.Option;
 import scala.concurrent.Future;
 import services.websocket.RequestGenerator;
@@ -62,7 +64,7 @@ public class HBaseAdminDataRepositoryTest {
     @Before
     public void setUp() throws Exception {
 //        AdminDataExecutionContext context = new AdminDataExecutionContext(system);
-        repository = new HBaseAdminDataRepository(connector, ws);
+        repository = new HBaseAdminDataRepository(connector, ws, new Configuration(ConfigFactory.load()));
         when(connector.getConnection()).thenReturn(connection);
         when(connection.getTable(any())).thenReturn(table);
         when(table.get(any(Get.class))).thenReturn(result);

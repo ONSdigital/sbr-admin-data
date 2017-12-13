@@ -2,14 +2,12 @@ package config
 
 import scala.concurrent.duration._
 
-import com.typesafe.config.{ Config, ConfigFactory }
+import play.api.Configuration
 
-/**
- * Created by coolit on 23/11/2017.
- */
-object Properties {
+trait Properties {
 
-  private val config: Config = SBRPropertiesConfiguration.envConfig(ConfigFactory.load())
+  implicit val configuration: Configuration
+  lazy val config = configuration.underlying
 
   // CircuitBreaker
   lazy val cbMaxFailures = config.getInt("circuitBreaker.maxFailures")
