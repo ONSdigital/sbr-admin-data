@@ -92,7 +92,6 @@ lazy val model = project
 
 
 lazy val `repository-hbase` = project
-  .disablePlugins(AssemblyPlugin)
+  .enablePlugins(AssemblyPlugin)
   .settings(Common.commonSettings: _*)
-//  .settings(Common.assemblySettings:_*)
   .dependsOn(model)

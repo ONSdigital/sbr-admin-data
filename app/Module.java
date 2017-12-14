@@ -42,7 +42,6 @@ public class Module extends AbstractModule {
     @Override
     public void configure() {
         if (configuration.getBoolean("database.in.memory")) {
-            System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
             bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("database.table")));
             bind(RepositoryInitializer.class).asEagerSingleton();
         } else {
