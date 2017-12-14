@@ -64,7 +64,7 @@ pipeline {
                 sh 'cp gitlab/dev/conf/* conf'
 
                 sh """
-                    $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
+                    $SBT clean compile "project $MODULE_NAME" coverage test coverageReport coverageAggregate universal:packageBin
                 """
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
