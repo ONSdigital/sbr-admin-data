@@ -19,7 +19,7 @@ Common.applicationConfig := {
   * SETTINGS AND CONFIGURATION
   */
 
-coverageMinimum := 0
+coverageMinimum := 55
 
 lazy val initExec: Seq[Def.Setting[_]] = Seq(
   crossPaths := false,
