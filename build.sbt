@@ -80,7 +80,10 @@ lazy val `sbr-admin-data` = (project in file("."))
     // di router -> swagger
     routesGenerator := InjectedRoutesGenerator,
     dependencyOverrides += "com.google.guava" % "guava" % "14.0.1",
-    unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
+    unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test"),
+    // assembly
+    mainClass in assembly := Some("play.core.server.ProdServerStart"),
+    fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
   )
   .dependsOn(model)
   .dependsOn(`repository-hbase`)
@@ -94,4 +97,5 @@ lazy val model = project
 lazy val `repository-hbase` = project
   .enablePlugins(AssemblyPlugin)
   .settings(Common.commonSettings: _*)
+  .settings(Common.assemblySettings:_*)
   .dependsOn(model)
