@@ -11,11 +11,11 @@ GET        /v1/periods/:period/records/:id              controllers.v1.AdminData
 GET        /v1/records/:id/periods                      controllers.v1.AdminDataController.lookupRest(period: Option[String] ?= None, id)
 
 # Route for health check information (in JSON).
-GET        /health                                      controllers.HealthController.health
+GET        /health                                             controllers.HealthController.health
 
 # Swagger
 GET        /swagger.json                                 controllers.ApiHelpController.getResources
 GET        /docs                                         controllers.HomeController.swagger
 
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file                                controllers.Assets.at(path="/public", file)
+GET        /assets/*file                                       controllers.Assets.at(path="/public", file)

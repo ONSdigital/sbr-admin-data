@@ -1,10 +1,25 @@
 # sbr-admin-data
+An API for use by sbr-api for accessing CompanyHouse/VAT/PAYE data
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]() [![Dependency Status](https://www.versioneye.com/user/projects/596f195e6725bd0027f25e93/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/596f195e6725bd0027f25e93)
 
-A bulk loader for parsing and loading CSV files into a data store with a supporting API for single record retrieval for a period and primary key combination. A "period" is defined as a year and month combination i.e. 201706, a primary key is a string value.
 
-The current implementation of the data store uses HBase.
+### Prerequisites
+
+* Java 8 or higher
+* SBT ([Download](http://www.scala-sbt.org/))
+
+
+### Development Setup (MacOS)
+
+To install SBT quickly you can use Homebrew ([Brew](http://brew.sh)):
+```shell
+brew install sbt
+```
+Similarly we can get Scala (for development purposes) using brew:
+```shell
+brew install scala
+```
 
 ## API Endpoints
 
@@ -31,14 +46,14 @@ If you want to specify a particular period, use the format below.
 brew install sbt
 ```
 
-## Running the API
+## Running
 
 With the minimal environment setup described above (just Java 8 and SBT), the sbr-admin-data-api will only work with the csv file or in-memory HBase. Further instructions for Hbase (not in memory), Hive and Impala setup/installations can be found [below](#source-setup).
 
 To run the `sbr-admin-api`, run the following:
 
 ``` shell
-sbt run
+sbt "api/run -Dsource=hbaseInMemory -Dsbr.hbase.inmemory=true"
 ```
 
 | Environment Variable | Default Value   | Valid Values                                              |
