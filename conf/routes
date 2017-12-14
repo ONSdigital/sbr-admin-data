@@ -2,14 +2,19 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Searching Company for the default period
-GET        /v1/records/:id                                    controllers.v1.AdminDataController.lookup(period = null, id)
+# Searching for the default period
+#GET        /v1/records/:id                              controllers.v1.AdminDataController.lookup(period: Option[String], id)
 
-# Searching Company for a specific period
-GET        /v1/periods/:period/records/:id                    controllers.v1.AdminDataController.lookup(period, id)
+# Searching for a specific period
+#GET        /v1/periods/:period/records/:id              controllers.v1.AdminDataController.lookup(period: Option[String], id)
+
+#GET        /v1/rest/periods/:period/records/:id         controllers.v1.AdminDataController.lookupRest(period: Option[String] ?= None, id)
+
+
+GET        /v1/records/:id/periods                 controllers.v1.AdminDataController.lookupRest(period: Option[String] ?= None, id)
 
 # Route for health check information (in JSON).
-GET        /health                                             controllers.HealthController.health
+GET        /health                                      controllers.HealthController.health
 
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file                                       controllers.Assets.at(path="/public", file)
+GET        /assets/*file                                controllers.Assets.at(path="/public", file)

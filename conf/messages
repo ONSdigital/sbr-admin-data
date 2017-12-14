@@ -1,3 +1,6 @@
 controller.invalid.id=ID cannot be empty
-controller.invalid.period=Invalid period. Not a valid year and month in the format '{0}'.
-controller.invalid.source="Invalid admin data type."
+controller.invalid.period=Invalid period. Not a valid year and month in the format {0}
+controller.invalid.source=Invalid admin data type.
+controller.server.error=Please contact your system administrator.
+controller.not.found=Could not find record with id: {0}
+controller.invalid.period=Invalid period argument {0}. Period must conform to YearMonth [{1}]. Exception found - {2}

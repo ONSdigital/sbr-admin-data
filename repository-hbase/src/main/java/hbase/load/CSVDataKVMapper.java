@@ -1,6 +1,7 @@
 package hbase.load;
 
 import au.com.bytecode.opencsv.CSVParser;
+import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Put;
@@ -8,12 +9,12 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
+import org.joda.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,9 +76,9 @@ public class CSVDataKVMapper extends
         }
         String periodStr = System.getProperty(REFERENCE_PERIOD);
         try {
-            referencePeriod = YearMonth.parse(periodStr, DateTimeFormatter.ofPattern(RowKeyUtils.getReferencePeriodFormat()));
+            referencePeriod = YearMonth.parse(periodStr, DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT()));
         } catch (Exception e) {
-            LOG.error("Cannot parse '{}' system property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, RowKeyUtils.getReferencePeriodFormat());
+            LOG.error("Cannot parse '{}' system property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, AdminData.REFERENCE_PERIOD_FORMAT());
             throw e;
         }
         if (getHeaderString().isEmpty() && useCsvHeaderAsColumnNames()){

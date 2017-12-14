@@ -9,12 +9,12 @@ import hbase.connector.HBaseInstanceConnector;
 import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
 import hbase.repository.HBaseAdminDataRepository;
-import load.AdminDataLoad;
+import hbase.load.AdminDataLoad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Configuration;
 import play.Environment;
-import repository.AdminDataRepository;
+import hbase.repository.AdminDataRepository;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
