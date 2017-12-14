@@ -186,12 +186,11 @@ object Common {
       case PathList("org", "apache", xs@_*)                             => MergeStrategy.last
       case PathList("META-INF", "io.netty.versions.properties", xs@_ *) => MergeStrategy.last
       case "application.conf"                                           => MergeStrategy.first
+      case "logback.xml"                                                => MergeStrategy.first
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
-    },
-    mainClass in assembly := Some("play.core.server.ProdServerStart"),
-    fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
+    }
   )
 
 }
