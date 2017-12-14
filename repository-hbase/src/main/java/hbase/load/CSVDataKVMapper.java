@@ -1,6 +1,7 @@
 package hbase.load;
 
 import au.com.bytecode.opencsv.CSVParser;
+import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Put;
@@ -75,9 +76,9 @@ public class CSVDataKVMapper extends
         }
         String periodStr = System.getProperty(REFERENCE_PERIOD);
         try {
-            referencePeriod = YearMonth.parse(periodStr, DateTimeFormat.forPattern(RowKeyUtils.REFERENCE_PERIOD_FORMAT()));
+            referencePeriod = YearMonth.parse(periodStr, DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT()));
         } catch (Exception e) {
-            LOG.error("Cannot parse '{}' system property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, RowKeyUtils.REFERENCE_PERIOD_FORMAT());
+            LOG.error("Cannot parse '{}' system property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, AdminData.REFERENCE_PERIOD_FORMAT());
             throw e;
         }
         if (getHeaderString().isEmpty() && useCsvHeaderAsColumnNames()){

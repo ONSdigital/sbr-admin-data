@@ -2,6 +2,7 @@ package hbase.load;
 
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
+import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -65,10 +66,10 @@ public class BulkLoader extends Configured implements Tool {
             System.exit(ERROR);
         }
         try {
-            YearMonth.parse(strings[ARG_REFERENCE_PERIOD], DateTimeFormatter.ofPattern(RowKeyUtils.REFERENCE_PERIOD_FORMAT()));
+            YearMonth.parse(strings[ARG_REFERENCE_PERIOD], DateTimeFormatter.ofPattern(AdminData.REFERENCE_PERIOD_FORMAT()));
             System.setProperty(REFERENCE_PERIOD, strings[ARG_REFERENCE_PERIOD]);
         } catch (Exception e) {
-            LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], RowKeyUtils.REFERENCE_PERIOD_FORMAT());
+            LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], AdminData.REFERENCE_PERIOD_FORMAT());
             System.exit(ERROR);
         }
         // Parse table name

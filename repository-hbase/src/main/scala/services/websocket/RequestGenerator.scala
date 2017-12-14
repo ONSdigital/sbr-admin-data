@@ -9,7 +9,7 @@ import scala.concurrent.{ Await, Future }
 import play.api.http.{ ContentTypes, Status }
 import play.api.libs.json.JsValue
 import play.api.libs.ws.{ WSClient, WSResponse }
-import play.api.mvc.Results
+import play.api.mvc.{ Result, Results }
 import org.slf4j.LoggerFactory
 import com.typesafe.config.{ Config, ConfigFactory }
 
@@ -23,7 +23,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 
 @Singleton
 class RequestGenerator @Inject() (
-    ws: WSClient
+  ws: WSClient
 //    durationMetric: TimeUnit = MILLISECONDS,
 //    timeout: Option[Long] = None
 ) extends Results with Status with ContentTypes {
@@ -43,25 +43,20 @@ class RequestGenerator @Inject() (
     TimeUnitCollection.find(_.toString.equalsIgnoreCase(s))
       .getOrElse(throw new IllegalArgumentException(s"Could not find TimeUnit + $s"))
 
-  def reroute(host: String, route: String) = {
+  def reroute(host: String, route: String): Result = {
     LOGGER.debug(s"rerouting to search route $route")
     Redirect(url = s"http://$host/v1/searchBy$route")
       .flashing("redirect" -> s"You are being redirected to $route route", "status" -> "ok")
   }
 
-  //  def singleRawGETRequest(url: Z, headers: ((String, String)*), queryString: ((String, String)*) ): Future[WSResponse] =
-  //    ws.url(url.toString)
-  //      .withHeaders(headers)
-  //      .withQueryString(queryString)
-  //      .withRequestTimeout(Duration(TIMEOUT_REQUEST, DURATION_METRIC)).get
-
-  def singleGETRequest(path: String, headers: Seq[(String, String)]): Future[WSResponse] =
+  def singleGETRequest(path: String, headers: Seq[(String, String)] = Seq(), params: Seq[(String, String)] = Seq()): Future[WSResponse] =
     ws.url(path.toString)
+      .withQueryString(params: _*)
       .withHeaders(headers: _*)
       .withRequestTimeout(Duration(TIMEOUT_REQUEST, DURATION_METRIC))
       .get
 
-  def singleGETRequestWithTimeout(url: String, timeout: Duration = Duration(TIMEOUT_REQUEST, DURATION_METRIC)) =
+  def singleGETRequestWithTimeout(url: String, timeout: Duration = Duration(TIMEOUT_REQUEST, DURATION_METRIC)): WSResponse =
     Await.result(ws.url(url.toString).get(), timeout)
 
   def singlePOSTRequest(url: String, headers: (String, String), body: JsValue): Future[WSResponse] = {

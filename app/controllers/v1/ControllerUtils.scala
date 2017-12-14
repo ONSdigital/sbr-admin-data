@@ -34,8 +34,7 @@ trait ControllerUtils extends Controller with LazyLogging with Properties {
       system.scheduler,
       maxFailures = cbMaxFailures,
       callTimeout = cbCallTimeout,
-      resetTimeout = cbResetTimeout
-    ).
+      resetTimeout = cbResetTimeout).
       onOpen(logger.warn("----- circuit breaker opened! -----")).
       onClose(logger.warn("----- circuit breaker closed! -----")).
       onHalfOpen(logger.warn("----- circuit breaker half-open -----"))
@@ -76,8 +75,7 @@ trait ControllerUtils extends Controller with LazyLogging with Properties {
       "status" -> status,
       "code" -> code,
       "route_with_cause" -> cause,
-      "message_en" -> msg
-    )
+      "message_en" -> msg)
   }
 
 }

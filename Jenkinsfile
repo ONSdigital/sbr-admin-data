@@ -64,7 +64,7 @@ pipeline {
                 sh 'cp gitlab/dev/conf/* conf'
 
                 sh """
-                    $SBT clean compile "project $MODULE_NAME" universal:packageBin coverage test coverageReport coverageAggregate
+                    $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
                 """
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
@@ -75,9 +75,6 @@ pipeline {
                     }
                     else if (BRANCH_NAME == BRANCH_PROD) {
                         env.DEPLOY_NAME = DEPLOY_PROD
-                    }
-                    else {
-                       env.DEPLOY_NAME = DEPLOY_DEV 
                     }
                 }
             }
@@ -101,19 +98,12 @@ pipeline {
             agent any
             steps {
                 parallel (
-                    "Unit" :  {
-                        colourText("info","Running unit tests")
-                        // sh "$SBT test"
+                    "Scalastyle" : {
+                        colourText("info","Running scalastyle analysis")
+                        sh "$SBT scalastyle"
                     },
-                    "Style" : {
-                        colourText("info","Running style tests")
-                        // sh """
-                        //     $SBT scalastyleGenerateConfig
-                        //     $SBT scalastyle
-                        // """
-                    },
-                    "Additional" : {
-                        colourText("info","Running additional tests")
+                    "Scapegoat" : {
+                        colourText("info","Running scapegoat analysis")
                         sh "$SBT scapegoat"
                     }
                 )
@@ -130,8 +120,7 @@ pipeline {
 
                     // removed subfolder scala-2.11/ from target path
                     step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
-                    // target/scalastyle-result.xml,
-                    step([$class: 'CheckStylePublisher', pattern: 'target/scapegoat-report/scapegoat-scalastyle.xml'])
+                    step([$class: 'CheckStylePublisher', pattern: '**/target/code-quality/style/*scalastyle*.xml'])
                 }
                 failure {
                     colourText("warn","Failed to retrieve reports.")
@@ -197,13 +186,13 @@ pipeline {
 
         stage('Deploy'){
             agent any
-            // when {
-            //     anyOf {
-            //         branch DEPLOY_DEV
-            //         branch DEPLOY_TEST
-            //         branch DEPLOY_PROD
-            //     }
-            // }
+             when {
+                 anyOf {
+                     branch DEPLOY_DEV
+                     branch DEPLOY_TEST
+                     branch DEPLOY_PROD
+                 }
+             }
             steps {
                 script {
                     env.NODE_STAGE = "Deploy"

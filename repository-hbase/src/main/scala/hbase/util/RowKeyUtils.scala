@@ -13,16 +13,15 @@ import hbase.model.AdminData
  */
 object RowKeyUtils {
 
-  final val REFERENCE_PERIOD_FORMAT = "yyyyMM"
-  final val DELIMITER = "~"
+  val DELIMITER = "~"
 
   def createRowKey(referencePeriod: YearMonth, id: String): String =
-    String.join(DELIMITER, id, referencePeriod.toString(REFERENCE_PERIOD_FORMAT))
+    String.join(DELIMITER, id, referencePeriod.toString(AdminData.REFERENCE_PERIOD_FORMAT))
 
   def createAdminDataFromRowKey(rowKey: String): AdminData = {
     val compositeRowKeyParts: Array[String] = rowKey.split(DELIMITER)
     val referencePeriod: YearMonth =
-      YearMonth.parse(compositeRowKeyParts.last, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
+      YearMonth.parse(compositeRowKeyParts.last, DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT))
     val id = compositeRowKeyParts.head
     AdminData(referencePeriod, id)
   }

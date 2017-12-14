@@ -132,17 +132,22 @@ A `.zip` file is created here, `/target/universal/sbr-admin-data-api.zip`, which
 
 ## Testing
 
-To test all test suites we can use:
+To run all test suites we can use:
 
 ```shell
 sbt test
 ```
 
-Testing an individual test suite can be specified by using `testOnly`, e.g. `sbt "testOnly *CircuitBreakerTest"`
+Running an individual test can be specified by using the `testOnly` task, e.g.
+
+```shell
+sbt "project repository-hbase" "testOnly hbase.respository.HBaseAdminDataRepositoryScalaTest"
+```
+
 
 SBR Admin Data uses its own test configuration settings for integration tests, the details of which can be found on the [ONS Confluence](https://collaborate2.ons.gov.uk/confluence/display/SBR/Scala+Testing​).
 
-To run integration test run:
+To run integration tests execute the following command:
 
 ```shell
 sbt it:test

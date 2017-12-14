@@ -12,18 +12,15 @@ class HealthController extends Controller {
   @ApiOperation(
     value = "Health endpoint",
     notes = "This endpoints shows the API uptime",
-    httpMethod = "GET"
-  )
+    httpMethod = "GET")
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Success - Displays API health")
-  ))
+    new ApiResponse(code = 200, message = "Success - Displays API health")))
   def health = Action {
     val uptimeInMillis = uptime()
     val dateTime = new DateTime(startTime)
     Ok(Json.obj(
       "startTime" -> s"${dateTime.toLocalDate} ${dateTime.toLocalTime}",
-      "uptime" -> millisToHoursMinutesDays(uptimeInMillis)
-    ))
+      "uptime" -> millisToHoursMinutesDays(uptimeInMillis)))
   }
 
   private def millisToHoursMinutesDays(millis: Long): String = {

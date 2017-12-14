@@ -3,11 +3,12 @@ package config
 import scala.concurrent.duration._
 
 import play.api.Configuration
+import com.typesafe.config.Config
 
 trait Properties {
 
   implicit val configuration: Configuration
-  lazy val config = configuration.underlying
+  lazy val config: Config = configuration.underlying
 
   // CircuitBreaker
   lazy val cbMaxFailures = config.getInt("circuitBreaker.maxFailures")

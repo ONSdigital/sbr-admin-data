@@ -1,9 +1,11 @@
 package controllers.v1
 
+import play.api.cache.CacheApi
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.{ contentAsString, _ }
 import play.api.test._
 import play.api.{ Application, Configuration }
+import play.api.inject.bind
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import com.typesafe.config.ConfigFactory
@@ -13,16 +15,14 @@ class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite {
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .loadConfig(Configuration(ConfigFactory.load("application.test.conf")))
+      .overrides(bind[CacheApi].toInstance(new TestCache(false)))
       .build()
 
   "Routes" should {
     "send 404 for request of unknown resource" in {
-      route(app, FakeRequest(GET, "/abcdef")).map(status) mustBe Some(NOT_FOUND)
+      status(fakeRequest("/abcdef")) mustBe NOT_FOUND
     }
   }
-
-  private[this] def fakeRequest(uri: String, method: String = GET) =
-    route(app, FakeRequest(method, uri)).getOrElse(sys.error(s"Can not find route $uri."))
 
   "HealthController" should {
     "get the health status" in {
@@ -71,4 +71,7 @@ class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite {
       status(search) mustBe OK
     }
   }
+
+  private[this] def fakeRequest(uri: String, method: String = GET) =
+    route(app, FakeRequest(method, uri)).getOrElse(sys.error(s"Can not find route $uri."))
 }

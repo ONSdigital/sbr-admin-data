@@ -17,10 +17,12 @@ import hbase.model.AdminData
 
 trait AdminDataRepository {
 
-  def getCurrentPeriod: Future[YearMonth]
-
+  @deprecated("Migrated to getAdminData with three param", "13 Dec 2017 - feature/HBase-Rest")
   def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
 
-  def lookup(key: String, referencePeriod: YearMonth): Future[Result]
+  def lookup(referencePeriod: Option[YearMonth], key: String, max: Long): Future[Option[Seq[AdminData]]]
+
+  @deprecated("Migrated to getAdminData with three param", "13 Dec 2017 - feature/HBase-Rest")
+  def lookup(key: String, referencePeriod: Option[YearMonth]): Future[Result]
 
 }

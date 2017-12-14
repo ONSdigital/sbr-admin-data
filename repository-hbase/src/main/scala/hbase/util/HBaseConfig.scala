@@ -18,8 +18,8 @@ trait HBaseConfig {
 
   lazy final val tableName: TableName = TableName.valueOf(
     hBaseConfig.getString("namespace"),
-    hBaseConfig.getString("table.name")
-  )
+    hBaseConfig.getString("table.name"))
+
   lazy val username: String = hBaseConfig.getString("authentication.username")
   lazy val password: String = hBaseConfig.getString("authentication.password")
   lazy val baseUrl: String = hBaseConfig.getString("rest.endpoint")

@@ -13,9 +13,6 @@ import com.typesafe.scalalogging.LazyLogging
 
 import controllers.BuildInfo
 
-/**
- * Created by coolit on 16/11/2017.
- */
 class XResponseTimeHeader @Inject() (implicit val mat: Materializer) extends Filter with LazyLogging {
   def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
     val startTime = System.currentTimeMillis
@@ -28,8 +25,7 @@ class XResponseTimeHeader @Inject() (implicit val mat: Materializer) extends Fil
 
       result.withHeaders(
         "X-Response-Time" -> responseTime.toString,
-        "Server" -> (BuildInfo.name + "/" + BuildInfo.version)
-      )
+        "Server" -> (BuildInfo.name + "/" + BuildInfo.version))
     }
   }
 }

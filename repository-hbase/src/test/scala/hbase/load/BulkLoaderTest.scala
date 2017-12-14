@@ -13,9 +13,8 @@ import org.scalatest.{ BeforeAndAfterAll, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.config.ConfigFactory
 
-import hbase.model.AdminData
 import hbase.AbstractHBaseIT
-import hbase.util.RowKeyUtils
+import hbase.model.AdminData
 import hbase.repository.HBaseAdminDataRepository
 
 import services.websocket.RequestGenerator
@@ -33,7 +32,7 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
 
   private val TEST_CSV_ID_COLUMN = "1"
   private val TEST_PERIOD: YearMonth = new YearMonth(2017, 6)
-  private val TEST_PERIOD_STR = TEST_PERIOD.toString(RowKeyUtils.REFERENCE_PERIOD_FORMAT)
+  private val TEST_PERIOD_STR = TEST_PERIOD.toString(AdminData.REFERENCE_PERIOD_FORMAT)
   private val TEST_CH_CSV = "test/resources/ch-data.csv"
   private val TEST_PAYE_CSV = "test/resources/paye-data.csv"
   private val TEST_VAT_CSV = "test/resources/vat-data.csv"
