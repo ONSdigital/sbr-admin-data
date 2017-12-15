@@ -1,3 +1,4 @@
+*.jar
 logs
 project/project
 project/target

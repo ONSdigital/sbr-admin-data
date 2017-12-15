@@ -49,50 +49,26 @@ pipeline {
                 }
             }
         }
-        stage('Build'){
+        stage('Test'){
             agent any
             steps {
                 colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
-                dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
-                }
-                // Replace fake VAT/PAYE data with real data
-                sh 'rm -rf conf/sample/201706/vat_data.csv'
-                sh 'rm -rf conf/sample/201706/paye_data.csv'
-                sh 'cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv'
-                sh 'cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv'
-                sh 'cp gitlab/dev/conf/* conf'
 
                 sh """
-                    $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
+                    $SBT clean compile "project $MODULE_NAME" coverage test coverageReport coverageAggregate
                 """
-                script {
-                    if (BRANCH_NAME == BRANCH_DEV) {
-                        env.DEPLOY_NAME = DEPLOY_DEV
-                    }
-                    else if  (BRANCH_NAME == BRANCH_TEST) {
-                        env.DEPLOY_NAME = DEPLOY_TEST
-                    }
-                    else if (BRANCH_NAME == BRANCH_PROD) {
-                        env.DEPLOY_NAME = DEPLOY_PROD
-                    }
-                    else {
-                       env.DEPLOY_NAME = DEPLOY_DEV
-                    }
-                }
             }
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Build"
+                        env.NODE_STAGE = "Test"
                     }
                 }
                 success {
-                    colourText("info","Successful Build!")
-                    sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip"
+                    colourText("info","Tests successful!")
                 }
                 failure {
-                    colourText("warn","Something went wrong!")
+                    colourText("warn","Failure during tests!")
                 }
             }
         }
@@ -101,14 +77,14 @@ pipeline {
             agent any
             steps {
                 parallel (
-                    "Scalastyle" : {
-                        colourText("info","Running scalastyle analysis")
-                        sh "$SBT scalastyle"
-                    },
-                    "Scapegoat" : {
-                        colourText("info","Running scapegoat analysis")
-                        sh "$SBT scapegoat"
-                    }
+                        "Scalastyle" : {
+                            colourText("info","Running scalastyle analysis")
+                            sh "$SBT scalastyle"
+                        },
+                        "Scapegoat" : {
+                            colourText("info","Running scapegoat analysis")
+                            sh "$SBT scapegoat"
+                        }
                 )
             }
             post {
@@ -127,6 +103,51 @@ pipeline {
                 }
                 failure {
                     colourText("warn","Failed to retrieve reports.")
+                }
+            }
+        }
+
+        stage('Package'){
+            agent any
+            steps {
+                colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
+                dir('gitlab') {
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
+                }
+                // Replace fake VAT/PAYE data with real data
+                sh 'rm -rf conf/sample/201706/vat_data.csv'
+                sh 'rm -rf conf/sample/201706/paye_data.csv'
+                sh 'cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv'
+                sh 'cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv'
+                sh 'cp gitlab/dev/conf/* conf'
+
+                sh """
+                    $SBT clean compile "project $MODULE_NAME" universal:packageBin
+                """
+                script {
+                    if (BRANCH_NAME == BRANCH_DEV) {
+                        env.DEPLOY_NAME = DEPLOY_DEV
+                    }
+                    else if  (BRANCH_NAME == BRANCH_TEST) {
+                        env.DEPLOY_NAME = DEPLOY_TEST
+                    }
+                    else if (BRANCH_NAME == BRANCH_PROD) {
+                        env.DEPLOY_NAME = DEPLOY_PROD
+                    }
+                }
+            }
+            post {
+                always {
+                    script {
+                        env.NODE_STAGE = "Package"
+                    }
+                }
+                success {
+                    colourText("info","Packaging Successful!")
+                    sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip"
+                }
+                failure {
+                    colourText("warn","Something went wrong!")
                 }
             }
         }

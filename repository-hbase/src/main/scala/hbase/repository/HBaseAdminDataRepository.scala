@@ -6,6 +6,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
+import play.api.Configuration
 import play.api.http.{ ContentTypes, Status }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Results, Result => PlayResult }
@@ -18,8 +19,8 @@ import com.netaporter.uri.dsl._
 
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
-import hbase.util.HBaseConfig._
-import hbase.util.RowKeyUtils
+import hbase.util.{ HBaseConfig, RowKeyUtils }
+
 import services.util.EncodingUtil.{ decodeBase64, encodeBase64 }
 import services.websocket.RequestGenerator
 
@@ -32,7 +33,8 @@ import services.websocket.RequestGenerator
  */
 class HBaseAdminDataRepository @Inject() (
   val connector: HBaseConnector,
-  ws: RequestGenerator) extends AdminDataRepository with Status with Results with ContentTypes {
+  ws: RequestGenerator,
+  val configuration: Configuration) extends AdminDataRepository with Status with Results with ContentTypes with HBaseConfig {
 
   implicit val ec = ExecutionContext.global
 
@@ -72,7 +74,7 @@ class HBaseAdminDataRepository @Inject() (
             logger.debug("Found data for row key '{}'", rowKey)
             Some(convertToAdminData(result))
         }
-      case Failure(e: Exception) =>
+      case Failure(e: Throwable) =>
         logger.error(s"Error getting data for row key $rowKey", e)
         throw e
     }

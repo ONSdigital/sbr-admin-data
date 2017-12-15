@@ -6,6 +6,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+import play.api.Configuration
 import org.apache.hadoop.hbase.{ CellUtil, HConstants, KeyValue }
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
@@ -17,11 +18,13 @@ import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ FlatSpec, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
+import com.typesafe.config.ConfigFactory
 
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
+
 import services.websocket.RequestGenerator
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
@@ -39,7 +42,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
 
   def setup =
     new {
-      val repository = new HBaseAdminDataRepository(connector, ws)
+      val repository = new HBaseAdminDataRepository(connector, ws, Configuration(ConfigFactory.load()))
       when(connector.getConnection) thenReturn connection
       when(connection.getTable(any())) thenReturn table
       when(table.get(any[Get])) thenReturn result

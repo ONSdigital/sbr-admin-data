@@ -6,14 +6,17 @@ import javax.inject.Inject
 import scala.compat.java8.FutureConverters.toJava
 import scala.concurrent.Future
 
+import play.api.Configuration
 import org.apache.hadoop.util.ToolRunner
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterAll, Matchers }
 import com.github.nscala_time.time.Imports.YearMonth
+import com.typesafe.config.ConfigFactory
 
 import hbase.AbstractHBaseIT
 import hbase.model.AdminData
 import hbase.repository.HBaseAdminDataRepository
+
 import services.websocket.RequestGenerator
 
 /**
@@ -39,7 +42,7 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
   @throws(classOf[Exception])
   private def setup = new {
     val bc = beforeClass
-    val repository: HBaseAdminDataRepository = new HBaseAdminDataRepository(bc.HBASE_CONNECTOR, ws)
+    val repository: HBaseAdminDataRepository = new HBaseAdminDataRepository(bc.HBASE_CONNECTOR, ws, Configuration(ConfigFactory.load()))
     val bulkLoader: BulkLoader = new BulkLoader(bc.HBASE_CONNECTOR)
   }
 

@@ -19,7 +19,7 @@ Common.applicationConfig := {
   * SETTINGS AND CONFIGURATION
   */
 
-coverageMinimum := 0
+coverageMinimum := 55
 
 lazy val initExec: Seq[Def.Setting[_]] = Seq(
   crossPaths := false,
@@ -50,11 +50,17 @@ lazy val devDeps = Seq(
   "org.mockito"                %   "mockito-core"    %   "2.10.0"    %   "test",
   "com.novocode"               %   "junit-interface" %   "0.11"      %   Test,
   "junit"                      %   "junit"           %   "4.12"      %   Test,
-
-  // controller
-  "com.typesafe.scala-logging" %%  "scala-logging"   %  "3.7.2",
-  "ch.qos.logback"             %   "logback-classic" %  "1.2.3"
+  // Controller
+  "io.swagger"                 %%  "swagger-play2"   %   "1.5.1",
+  "com.typesafe.scala-logging" %%  "scala-logging"   %   "3.7.2",
+  "ch.qos.logback"             %   "logback-classic" %   "1.2.3",
+  "org.scalatestplus.play"     %%  "scalatestplus-play" % "2.0.0" % "test"
 )
+
+// Run tests with full stack traces
+testOptions in Test += Tests.Argument("-oG")
+
+javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf"
 
 /**
   * PROJECT DEF

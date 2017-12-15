@@ -171,7 +171,7 @@ object Common {
     ),
     logLevel := Level.Warn,
     resolvers ++= Resolvers,
-    coverageExcludedPackages := ".*Routes.*;.*ReverseRoutes.*;.*javascript.*",
+    coverageExcludedPackages := ".*Routes.*;.*ReverseRoutes.*;.*javascript.*;controllers\\..*Reverse.*",
     coverageMinimum := 80,
     coverageFailOnMinimum := true,
     scalastyleTarget := (target.value / "code-quality/style/scalastyle-result.xml"),
