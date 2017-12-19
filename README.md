@@ -100,16 +100,16 @@ Use the following commands to load data into hbase:
 start-hbase.sh
 hbase shell
 create_namespace 'sbr_local_db'
-create 'sbr_local_db:ch', 'd'
-put ‘sbr_local_db:ch’ , ’03007252~201706’, ’d:companynumber’, ’03007252’
-put ‘sbr_local_db:ch’ , ’00032311~201706’, ’d:companynumber’, ’00032311’
+create 'sbr_local_db:admin_data', 'd'
+put ‘sbr_local_db:admin_data’ , ’03007252~201706’, ’d:companynumber’, ’03007252’
+put ‘sbr_local_db:admin_data’ , ’00032311~201706’, ’d:companynumber’, ’00032311’
 ```
 
-Test the above command works by doing a 'get', which should return a row of data.
+Test the above commands works by doing a 'get', which should return a row of data.
 
 ```shell
 hbase shell
-get 'sbr_local_db:ch', '03007252~201706'
+get 'sbr_local_db:admin_data', '03007252~201706'
 ```
 
 ### Physical HBase Instance(database.in.memory = false)
