@@ -94,7 +94,6 @@ To run against a local HBase instance set the in-memory option to false
 
 ### Loading Data using the hbase shell
 
-
 Use the following commands to load data into hbase:
 
 ```shell
@@ -104,6 +103,13 @@ create_namespace 'sbr_local_db'
 create 'sbr_local_db:ch', 'd'
 put ‘sbr_local_db:ch’ , ’03007252~201706’, ’d:companynumber’, ’03007252’
 put ‘sbr_local_db:ch’ , ’00032311~201706’, ’d:companynumber’, ’00032311’
+```
+
+Test the above command works by doing a 'get', which should return a row of data.
+
+```shell
+hbase shell
+get 'sbr_local_db:ch', '03007252~201706'
 ```
 
 ### Physical HBase Instance(database.in.memory = false)
