@@ -75,6 +75,26 @@ sbt "run -DDB_IN_MEMORY=true"
 
 ## Loading Data
 
+### Loading Data using the hbase shell
+
+Use the following commands to load data into hbase:
+
+```shell
+start-hbase.sh
+hbase shell
+create_namespace 'sbr_local_db'
+create 'sbr_local_db:admin_data', 'd'
+put ‘sbr_local_db:admin_data’ , ’03007252~201706’, ’d:companynumber’, ’03007252’
+put ‘sbr_local_db:admin_data’ , ’00032311~201706’, ’d:companynumber’, ’00032311’
+```
+
+Test the above commands works by doing a 'get', which should return a row of data.
+
+```shell
+hbase shell
+get 'sbr_local_db:admin_data', '03007252~201706'
+```
+
 ### Physical HBase Instance(database.in.memory = false)
 
 To load data into a physical HBase instance
