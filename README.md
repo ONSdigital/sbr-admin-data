@@ -48,13 +48,21 @@ brew install sbt
 
 ## Running
 
-With the minimal environment setup described above (just Java 8 and SBT), the sbr-admin-data-api will only work with the csv file or in-memory HBase. Further instructions for Hbase (not in memory), Hive and Impala setup/installations can be found [below](#source-setup).
-
-To run the `sbr-admin-api`, run the following:
+To run the `sbr-admin-data`, run the following command:
 
 ``` shell
-sbt "api/run -Dsource=hbaseInMemory -Dsbr.hbase.inmemory=true"
+sbt run
 ```
+
+By default, `sbr-admin-data` will look try to access data using HBase REST, which means you will have to have some data loaded into a local HBase table for this to work. You can find instructions for loading data into HBase in the [Loading Data section](#loading-data).
+
+To run `sbr-admin-data` against an in memory HBase instance, run the following command:
+
+```shell
+sbt "run -DDB_IN_MEMORY=true"
+```
+
+## Environment Variables
 
 | Environment Variable | Default Value   | Valid Values                                              |
 |----------------------|-----------------|-----------------------------------------------------------|
@@ -64,31 +72,6 @@ sbt "api/run -Dsource=hbaseInMemory -Dsbr.hbase.inmemory=true"
 | cb.maxFailures       | 5               | Number of failures to change breaker to open state        |
 | cb.callTimeout       | 2               | Number of seconds after which to timeout a request        |
 | cb.resetTimeout      | 1               | Number of seconds after which the failure count is reset  |
-
-### Running the API (database.in.memory = true)
-
-By default the API will run against an in-memory HBase instance
-
-| Environment Variable | Default Value                  | Valid Values                                         |
-|----------------------|--------------------------------|------------------------------------------------------|
-| database.in.memory   | true                           | true                                                 |
-| hbase.table          | admin_data                     | any valid HBase table name                           |
-
-When running with an in memory database a csv file will be loaded on startup. To configure that load further environment variables may be set.
-
-| Environment Variable | Default Value                  | Valid Values                                         |
-|----------------------|--------------------------------|------------------------------------------------------|
-| csv.file             | conf/sample/201706/ch-data.csv | path to csv file to load                             | 
-| csv.header.string    |                                | string to be found in the header row of the csv file |
-
-### Running the API (database.in.memory = false)
-
-To run against a local HBase instance set the in-memory option to false
-
-| Environment Variable | Default Value                  | Valid Values                                         |
-|----------------------|--------------------------------|------------------------------------------------------|
-| database.in.memory   | true                           | false                                                |
-| hbase.table          | admin_data                     | any valid HBase table name                           |
 
 ## Loading Data
 

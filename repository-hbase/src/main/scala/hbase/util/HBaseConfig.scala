@@ -16,8 +16,11 @@ trait HBaseConfig {
   implicit val configuration: Configuration
   protected val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
 
+  // When running HBase in memory, the namespace has to be ""
+  val nameSpace = if (hBaseConfig.getBoolean("in.memory")) "" else hBaseConfig.getString("namespace")
+
   lazy final val tableName: TableName = TableName.valueOf(
-    hBaseConfig.getString("namespace"),
+    nameSpace,
     hBaseConfig.getString("table.name"))
 
   lazy val username: String = hBaseConfig.getString("authentication.username")
