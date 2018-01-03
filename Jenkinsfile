@@ -66,9 +66,6 @@ pipeline {
 
                 sh """
                     $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
-                    $SBT clean compile assembly
-                    sh 'ls ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar'
-                    sh 'ls '
                 """
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
@@ -98,6 +95,18 @@ pipeline {
                 failure {
                     colourText("warn","Something went wrong!")
                 }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+		      //bundleApp()
+               sh """
+		          $SBT clean compile 
+               
+		          scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$ENV-ci@$HBASE_NODE:$HBASE_CONNECTOR_DIR/lib
+				  echo "Successfully copied jar file to $HBASE_CONNECTOR_DIR/lib directory on $HBASE_NODE"
+               """
             }
         }
 
