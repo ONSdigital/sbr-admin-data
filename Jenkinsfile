@@ -67,8 +67,8 @@ pipeline {
                 sh """
                     $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
                     $SBT clean compile assembly
-                    sh 'ls ${WORKSPACE}/*'
-                    sh 'ls target/*'
+                    sh 'ls ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar'
+                    sh 'ls '
                 """
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
