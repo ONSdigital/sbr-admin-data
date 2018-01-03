@@ -114,7 +114,7 @@ pipeline {
             }
         }*/
 
-        stage('Static Analysis') {
+        /*stage('Static Analysis') {
             agent any
             steps {
                 parallel (
@@ -146,7 +146,7 @@ pipeline {
                     colourText("warn","Failed to retrieve reports.")
                 }
             }
-        }
+        }*/
 
         stage ('Bundle') {
             agent any
