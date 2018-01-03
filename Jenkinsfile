@@ -200,7 +200,7 @@ pipeline {
             }
         }
 
-        stage('Deploy'){
+        /*stage('Deploy'){
             agent any
              when {
                  anyOf {
@@ -220,7 +220,7 @@ pipeline {
                     colourText("success", 'Deploy.')
                 }
             }
-        }
+        }*/
 
         stage('Integration Tests') {
             agent any
