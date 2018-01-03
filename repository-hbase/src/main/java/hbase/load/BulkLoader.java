@@ -79,11 +79,11 @@ public class BulkLoader extends Configured implements Tool {
             System.exit(ERROR);
         }
         // Check input file exists
-        File f = new File(strings[ARG_CSV_FILE]);
+        /*File f = new File(strings[ARG_CSV_FILE]);
         if (!f.exists() || f.isDirectory()) {
             LOG.error("CSV file does not exist or is a directory");
             System.exit(ERROR);
-        }
+        }*/
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
         getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
