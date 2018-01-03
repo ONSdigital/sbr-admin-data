@@ -86,7 +86,7 @@ pipeline {
                     }
                 }
             }
-            post {
+           /* post {
                 always {
                     script {
                         env.NODE_STAGE = "Build"
@@ -99,7 +99,7 @@ pipeline {
                 failure {
                     colourText("warn","Something went wrong!")
                 }
-            }
+            } */
         }
         
        /* stage('Deploy') {
