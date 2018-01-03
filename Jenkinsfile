@@ -64,8 +64,8 @@ pipeline {
                 sh 'cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv'
                 sh 'cp gitlab/dev/conf/* conf'
 
+		 // $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
                 sh """
-                    $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
 		    $SBT clean compile assembly
                
                 """
