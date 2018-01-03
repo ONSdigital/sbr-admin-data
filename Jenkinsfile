@@ -102,17 +102,15 @@ pipeline {
             } */
         }
         
-       /* stage('Deploy') {
+       stage('Deploy') {
             steps {
 		      //bundleApp()
                sh """
-		          $SBT clean compile assembly
-               
 		          scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$ENV-ci@$HBASE_NODE:dev/sbr-hbase-connector/lib
 				  echo "Successfully copied jar file to $HBASE_CONNECTOR_DIR/lib directory on $HBASE_NODE"
                """
             }
-        }*/
+        }
 
         stage ('Bundle') {
             agent any
