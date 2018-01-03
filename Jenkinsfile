@@ -114,40 +114,6 @@ pipeline {
             }
         }*/
 
-        /*stage('Static Analysis') {
-            agent any
-            steps {
-                parallel (
-                    "Scalastyle" : {
-                        colourText("info","Running scalastyle analysis")
-                        sh "$SBT scalastyle"
-                    },
-                    "Scapegoat" : {
-                        colourText("info","Running scapegoat analysis")
-                        sh "$SBT scapegoat"
-                    }
-                )
-            }
-            post {
-                always {
-                    script {
-                        env.NODE_STAGE = "Static Analysis"
-                    }
-                }
-                success {
-                    colourText("info","Generating reports for tests")
-                    //   junit '**/target/test-reports/*.xml'
-
-                    // removed subfolder scala-2.11/ from target path
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
-                    step([$class: 'CheckStylePublisher', pattern: '**/target/code-quality/style/*scalastyle*.xml'])
-                }
-                failure {
-                    colourText("warn","Failed to retrieve reports.")
-                }
-            }
-        }*/
-
         stage ('Bundle') {
             agent any
             when {
