@@ -68,8 +68,8 @@ pipeline {
                     $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
 		    $SBT clean compile assembly
                
-		    scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-dev-ci@cdhdn-p01-01:dev/sbr-hbase-connector/lib
-				  echo "Successfully copied jar file to sbr-hbase-connector/lib directory on cdhdn-p01-01"
+		    // scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-dev-ci@cdhdn-p01-01:dev/sbr-hbase-connector/lib
+			//	  echo "Successfully copied jar file to sbr-hbase-connector/lib directory on cdhdn-p01-01"
                 """
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
