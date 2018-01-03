@@ -35,7 +35,7 @@ pipeline {
     }
     agent any
     stages {
-        stage('Checkout') {
+       /* stage('Checkout') {
             agent any
             steps {
                 deleteDir()
@@ -48,7 +48,7 @@ pipeline {
                     env.NODE_STAGE = "Checkout"
                 }
             }
-        }
+        }*/
         stage('Build'){
             agent any
             steps {
