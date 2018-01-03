@@ -105,9 +105,7 @@ pipeline {
        stage('Deploy') {
             steps {
 		      //bundleApp()
-               sh """
 		  copyToHBaseNode()  	 
-               """
             }
         }
 
