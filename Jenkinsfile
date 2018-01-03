@@ -67,7 +67,7 @@ pipeline {
                 sh """
                     $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
                     $SBT clean compile assembly
-                    sh 'ls ${WORKSPACE}/target/*'
+                    sh 'ls ${WORKSPACE}/*'
                     sh 'ls target/*'
                 """
                 script {
