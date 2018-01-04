@@ -1,5 +1,6 @@
 
 pipeline {
+    agent any
     environment {
        DEPLOY_DEV = "dev"
        HBASE_CONNECTOR_DIR = "$DEPLOY_DEV/sbr-hbase-connector"
@@ -10,7 +11,6 @@ pipeline {
         timeout(time: 30, unit: 'MINUTES')
         timestamps()
     }
-    agent any
     stages {
         stage('Build'){
             steps {
