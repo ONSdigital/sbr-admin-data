@@ -77,7 +77,9 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
-) ++ hadoopDeps.map(_ % "provided")
+) ++ hadoopDeps
+
+  //.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
@@ -104,3 +106,8 @@ mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
 crossPaths := false
 testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
 logBuffered in Test := false
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
