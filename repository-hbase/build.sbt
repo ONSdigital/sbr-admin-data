@@ -1,5 +1,16 @@
 import sbt.ExclusionRule
 
+/**
+  * PROJECT DEF
+  */
+moduleName := "sbr-admin-data-hbase-repository"
+description := "<description>"
+libraryDependencies ++=  devDependencies
+resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
+mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
+
+
+crossPaths := false
 
 /**
   * VALUES
@@ -19,7 +30,7 @@ lazy val Constants = new {
 /**
   * DEPENDENCIES LISTINGS
   */
-lazy val hadoopDeps: Seq[ModuleID] = Seq(
+lazy val hadoopDependencies: Seq[ModuleID] = Seq(
   // HBase
   Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase,
   Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase   classifier "tests",
@@ -41,7 +52,7 @@ lazy val hadoopDeps: Seq[ModuleID] = Seq(
 ).map(_.excludeAll ( ExclusionRule("log4j", "log4j"), ExclusionRule ("org.slf4j", "slf4j-log4j12")))
 
 
-lazy val DevDeps: Seq[ModuleID] = Seq(
+lazy val devDependencies: Seq[ModuleID] = Seq(
   ws,
 
   //@NOTE - patch for unresolved dependency
@@ -77,31 +88,9 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
-) ++ hadoopDeps
-//  .map(_ % "provided")
+) ++ hadoopDependencies
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
 
 coverageMinimum := 27
-
-lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
-  ExclusionRule("commons-logging", "commons-logging"),
-  ExclusionRule("log4j", "log4j"),
-  ExclusionRule ("org.slf4j", "slf4j-log4j12")
-)
-
-/**
-  * PROJECT DEF
-  */
-moduleName := "sbr-admin-data-hbase-repository"
-description := "<description>"
-libraryDependencies ++=  DevDeps
-//excludeDependencies ++= exTransiviveDeps
-resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
-mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
-
-
-crossPaths := false
-testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
-logBuffered in Test := false

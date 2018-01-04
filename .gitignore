@@ -2,6 +2,7 @@
 logs
 project/project
 project/target
+project/scalastyle-config.xml
 target
 tmp
 .history

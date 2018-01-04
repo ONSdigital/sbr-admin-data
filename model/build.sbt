@@ -1,6 +1,5 @@
 moduleName := "sbr-admin-data-hbase.model"
 
-logBuffered in Test := false
 crossPaths := false
 
 
