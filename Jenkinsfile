@@ -21,18 +21,19 @@ pipeline {
 		    $SBT clean compile assembly
                
                   """
+		  copyToHBaseNode()
 		    // scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-dev-ci@cdhdn-p01-01:dev/sbr-hbase-connector/lib
 			//  echo "Successfully copied jar file to sbr-hbase-connector/lib directory on cdhdn-p01-01"
             }
           
         }
         
-        stage('Deploy') {
+        /*stage('Deploy') {
             steps {
 		      //bundleApp()
 		  copyToHBaseNode()  	 
             }
-        }
+        }*/
     }
 }
 
