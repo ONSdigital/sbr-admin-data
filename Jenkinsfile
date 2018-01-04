@@ -28,12 +28,13 @@ pipeline {
           
         }
         
-        /*stage('Deploy') {
+        stage('Deploy') {
             steps {
 		      //bundleApp()
-		  copyToHBaseNode()  	 
+		   sh "echo deploy workspace ${WORKSPACE}"
+		  //copyToHBaseNode()  	 
             }
-        }*/
+        }
     }
 }
 
