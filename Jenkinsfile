@@ -1,8 +1,8 @@
 
 pipeline {
     environment {
-       ENV = "dev"
-       HBASE_CONNECTOR_DIR = "$ENV/sbr-hbase-connector"
+       DEPLOY_DEV = "dev"
+       HBASE_CONNECTOR_DIR = "$DEPLOY_DEV/sbr-hbase-connector"
     }
     options {
         skipDefaultCheckout()
