@@ -13,7 +13,6 @@ pipeline {
     agent any
     stages {
         stage('Build'){
-            agent any
             steps {
 		 // $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
                   sh """
