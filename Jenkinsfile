@@ -1,32 +1,8 @@
-#!groovy
-// @Library('jenkins-pipeline-shared@feature/hbase-connect') _
-@Library('jenkins-pipeline-shared@feature/new-cf') _
 
 pipeline {
     environment {
-        RELEASE_TYPE = "PATCH"
-
-        BRANCH_DEV = "develop"
-        BRANCH_TEST = "release"
-        BRANCH_PROD = "master"
-
-        DEPLOY_DEV = "dev"
-        DEPLOY_TEST = "test"
-        DEPLOY_PROD = "prod"
-
-        CF_CREDS = "sbr-api-dev-secret-key"
-
-        GIT_TYPE = "Github"
-        GIT_CREDS = "github-sbr-user"
-        GITLAB_CREDS = "sbr-gitlab-id"
-
-        ORGANIZATION = "ons"
-        TEAM = "sbr"
-        MODULE_NAME = "sbr-admin-data"
-
-        // hbase config
-        TABLE_NAME = "enterprise"
-        NAMESPACE = "sbr_dev_db"
+       ENV = "dev"
+       HBASE_CONNECTOR_DIR = "$ENV/sbr-hbase-connector"
     }
     options {
         skipDefaultCheckout()
@@ -36,193 +12,25 @@ pipeline {
     }
     agent any
     stages {
-       /* stage('Checkout') {
-            agent any
-            steps {
-                deleteDir()
-                checkout scm
-                stash name: 'app'
-                sh "$SBT version"
-                script {
-                    version = '1.0.' + env.BUILD_NUMBER
-                    currentBuild.displayName = version
-                    env.NODE_STAGE = "Checkout"
-                }
-            }
-        }*/
         stage('Build'){
             agent any
             steps {
-                colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
-                dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
-                }
-                // Replace fake VAT/PAYE data with real data
-                sh 'rm -rf conf/sample/201706/vat_data.csv'
-                sh 'rm -rf conf/sample/201706/paye_data.csv'
-                sh 'cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv'
-                sh 'cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv'
-                sh 'cp gitlab/dev/conf/* conf'
-
 		 // $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
-                sh """
+                  sh """
 		    $SBT clean compile assembly
                
-                """
+                  """
 		    // scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-dev-ci@cdhdn-p01-01:dev/sbr-hbase-connector/lib
 			//  echo "Successfully copied jar file to sbr-hbase-connector/lib directory on cdhdn-p01-01"
-                script {
-                    if (BRANCH_NAME == BRANCH_DEV) {
-                        env.DEPLOY_NAME = DEPLOY_DEV
-                    }
-                    else if  (BRANCH_NAME == BRANCH_TEST) {
-                        env.DEPLOY_NAME = DEPLOY_TEST
-                    }
-                    else if (BRANCH_NAME == BRANCH_PROD) {
-                        env.DEPLOY_NAME = DEPLOY_PROD
-                    }
-                    else {
-                       env.DEPLOY_NAME = DEPLOY_DEV
-                    }
-                }
             }
-           /* post {
-                always {
-                    script {
-                        env.NODE_STAGE = "Build"
-                    }
-                }
-                success {
-                    colourText("info","Successful Build!")
-                    sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip"
-                }
-                failure {
-                    colourText("warn","Something went wrong!")
-                }
-            } */
+          
         }
         
-       stage('Deploy') {
+        stage('Deploy') {
             steps {
 		      //bundleApp()
 		  copyToHBaseNode()  	 
             }
-        }
-
-        stage ('Bundle') {
-            agent any
-            when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
-                }
-            }
-            steps {
-                script {
-                    env.NODE_STAGE = "Bundle"
-                }
-                colourText("info", "Bundling....")
-//                stash name: "zip"
-            }
-        }
-
-        stage("Releases"){
-            agent any
-            when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
-                }
-            }
-            steps {
-                script {
-                    env.NODE_STAGE = "Releases"
-                    currentTag = getLatestGitTag()
-                    colourText("info", "Found latest tag: ${currentTag}")
-                    newTag =  IncrementTag( currentTag, RELEASE_TYPE )
-                    colourText("info", "Generated new tag: ${newTag}")
-                    //push(newTag, currentTag)
-                }
-            }
-        }
-
-        stage ('Package and Push Artifact') {
-            agent any
-            when {
-                branch DEPLOY_PROD
-            }
-            steps {
-                script {
-                    env.NODE_STAGE = "Package and Push Artifact"
-                }
-                sh """
-                    $SBT clean compile package
-                    $SBT clean compile assembly
-                """
-                colourText("success", 'Package.')
-            }
-        }
-
-        /*stage('Deploy'){
-            agent any
-             when {
-                 anyOf {
-                     branch DEPLOY_DEV
-                     branch DEPLOY_TEST
-                     branch DEPLOY_PROD
-                 }
-             }
-            steps {
-                script {
-                    env.NODE_STAGE = "Deploy"
-                }
-                milestone(1)
-                lock('Deployment Initiated') {
-                    colourText("info", 'deployment in progress')
-                    deploy()
-                    colourText("success", 'Deploy.')
-                }
-            }
-        }*/
-
-        stage('Integration Tests') {
-            agent any
-            when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                }
-            }
-            steps {
-                script {
-                    env.NODE_STAGE = "Integration Tests"
-                }
-                unstash 'compiled'
-                sh "$SBT it:test"
-                colourText("success", 'Integration Tests - For Release or Dev environment.')
-            }
-        }
-    }
-    post {
-        always {
-            script {
-                colourText("info", 'Post steps initiated')
-                deleteDir()
-            }
-        }
-        success {
-            colourText("success", "All stages complete. Build was successful.")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST"
-        }
-        unstable {
-            colourText("warn", "Something went wrong, build finished with result ${currentResult}. This may be caused by failed tests, code violation or in some cases unexpected interrupt.")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.NODE_STAGE}"
-        }
-        failure {
-            colourText("warn","Process failed at: ${env.NODE_STAGE}")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.NODE_STAGE}"
         }
     }
 }
@@ -244,7 +52,7 @@ def copyToHBaseNode() {
     sshagent(credentials: ["sbr-$DEPLOY_DEV-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
             sh '''
-                scp target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$DEPLOY_DEV-ci@cdhdn-p01-01:$DEPLOY_DEV/sbr-hbase-connector/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$DEPLOY_DEV-ci@cdhdn-p01-01:$DEPLOY_DEV/sbr-hbase-connector/lib
 		echo "Successfully copied jar file to sbr-hbase-connector/lib directory on cdhdn-p01-01"
 	    '''
         }
