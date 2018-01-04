@@ -244,7 +244,7 @@ def copyToHBaseNode() {
     sshagent(credentials: ["sbr-$DEPLOY_DEV-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
             sh '''
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$DEPLOY_DEV-ci@cdhdn-p01-01:$DEPLOY_DEV/sbr-hbase-connector/lib
+                scp target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$DEPLOY_DEV-ci@cdhdn-p01-01:$DEPLOY_DEV/sbr-hbase-connector/lib
 		echo "Successfully copied jar file to sbr-hbase-connector/lib directory on cdhdn-p01-01"
 	    '''
         }
