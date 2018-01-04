@@ -17,6 +17,7 @@ pipeline {
             steps {
 		 // $SBT clean compile coverage test coverageReport coverageAggregate "project $MODULE_NAME" universal:packageBin
                   sh """
+		    echo "${WORKSPACE}"
 		    $SBT clean compile assembly
                
                   """
