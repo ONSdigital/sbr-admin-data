@@ -24,9 +24,9 @@ pipeline {
         MODULE_NAME = "sbr-admin-data"
 
         // hbase config
-        CH_TABLE = "CH"
-        VAT_TABLE = "VAY"
-        PAYE_TABLE = "PAYE"
+        CH_TABLE = "ch"
+        VAT_TABLE = "vat"
+        PAYE_TABLE = "paye"
         NAMESPACE = "sbr_dev_db"
     }
     options {
