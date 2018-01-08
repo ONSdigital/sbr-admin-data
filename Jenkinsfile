@@ -24,7 +24,9 @@ pipeline {
         MODULE_NAME = "sbr-admin-data"
 
         // hbase config
-        TABLE_NAME = "enterprise"
+        CH_TABLE = "CH"
+        VAT_TABLE = "VAY"
+        PAYE_TABLE = "PAYE"
         NAMESPACE = "sbr_dev_db"
     }
     options {
@@ -277,7 +279,9 @@ def push (String newTag, String currentTag) {
 
 def deploy () {
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
-    withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBase("cloud-foundry-$TEAM-${env.DEPLOY_NAME}-user", TEAM, "${env.DEPLOY_NAME}", "${env.DEPLOY_NAME}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", TABLE_NAME, NAMESPACE)
-    }
+    //withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
+        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_PROJECT}", "${cf_env}", "${env.DEPLOY_NAME}-${CH_TABLE}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", CH_TABLE, NAMESPACE)
+        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_PROJECT}", "${cf_env}", "${env.DEPLOY_NAME}-${VAT_TABLE}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", VAT_TABLE, NAMESPACE)
+        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_PROJECT}", "${cf_env}", "${env.DEPLOY_NAME}-${PAYE_TABLE}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", PAYE_TABLE, NAMESPACE)
+    //}
 }
