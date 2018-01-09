@@ -1,5 +1,5 @@
 #!groovy
-@Library('jenkins-pipeline-shared@feature/hbase-connect') _
+@Library('jenkins-pipeline-shared@new-cf') _
 
 pipeline {
     environment {
