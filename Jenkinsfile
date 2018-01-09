@@ -204,6 +204,7 @@ pipeline {
                     $SBT clean compile package
                     $SBT clean compile assembly
                 """
+                copyToHBaseNode()
                 colourText("success", 'Package.')
             }
         }
@@ -279,5 +280,17 @@ def deploy () {
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
         deployToCloudFoundryHBase("cloud-foundry-$TEAM-${env.DEPLOY_NAME}-user", TEAM, "${env.DEPLOY_NAME}", "${env.DEPLOY_NAME}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", TABLE_NAME, NAMESPACE)
+    }
+}
+
+def copyToHBaseNode() {
+    echo "Deploying to $DEPLOY_DEV"
+    sshagent(credentials: ["sbr-$DEPLOY_DEV-ci-ssh-key"]) {
+        withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
+            sh '''
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-assembly-0.1.0-SNAPSHOT.jar sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$DEPLOY_DEV/sbr-hbase-connector/lib
+		        echo "Successfully copied jar file to sbr-hbase-connector/lib directory on $HBASE_NODE"
+	    '''
+        }
     }
 }
