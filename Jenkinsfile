@@ -193,9 +193,9 @@ pipeline {
 
         stage ('Package and Push Artifact') {
             agent any
-            when {
+         /*   when {
                 branch DEPLOY_PROD
-            }
+            } */
             steps {
                 script {
                     env.NODE_STAGE = "Package and Push Artifact"
