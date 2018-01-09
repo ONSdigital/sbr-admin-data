@@ -12,6 +12,20 @@ pipeline {
         timestamps()
     }
     stages {
+	stage('Checkout') {
+            agent any
+            steps {
+                deleteDir()
+                checkout scm
+                stash name: 'app'
+                sh "$SBT version"
+                script {
+                    version = '1.0.' + env.BUILD_NUMBER
+                    currentBuild.displayName = version
+                    env.NODE_STAGE = "Checkout"
+                }
+            }
+        }
         stage('Build'){
 	    agent any
             steps {
