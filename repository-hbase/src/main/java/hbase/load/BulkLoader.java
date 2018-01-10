@@ -2,6 +2,7 @@ package hbase.load;
 
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
+import hbase.connector.HBaseInstanceConnector;
 import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -134,6 +135,7 @@ public class BulkLoader extends Configured implements Tool {
                             // Auto configure partitioner and reducer
                             HFileOutputFormat2.configureIncrementalLoad(job, table, regionLocator);
                             Path hfilePath = new Path(String.format("%s%s%s_%s_%d", outputFilePath, Path.SEPARATOR, tableNameStr, referencePeriod, start.getEpochSecond()));
+                            FileOutputFormat.setOutputPath(job, hfilePath);
 
                             if (job.waitForCompletion(true)) {
                                 try (Admin admin = connection.getAdmin()) {
@@ -170,7 +172,8 @@ public class BulkLoader extends Configured implements Tool {
 
     public static void main(String[] args) {
         try {
-            HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
+            //HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
+            HBaseConnector connector = new HBaseInstanceConnector();
             int result = ToolRunner.run(connector.getConfiguration(), new BulkLoader(connector), args);
             System.exit(result);
         } catch (Exception e) {
