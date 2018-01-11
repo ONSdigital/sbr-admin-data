@@ -2,8 +2,29 @@
 pipeline {
     agent any
     environment {
-       DEPLOY_DEV = "dev"
-       HBASE_CONNECTOR_DIR = "$DEPLOY_DEV/sbr-hbase-connector"
+       RELEASE_TYPE = "PATCH"
+
+        BRANCH_DEV = "develop"
+        BRANCH_TEST = "release"
+        BRANCH_PROD = "master"
+
+        DEPLOY_DEV = "dev"
+        DEPLOY_TEST = "test"
+        DEPLOY_PROD = "prod"
+
+        CF_CREDS = "sbr-api-dev-secret-key"
+
+        GIT_TYPE = "Github"
+        GIT_CREDS = "github-sbr-user"
+        GITLAB_CREDS = "sbr-gitlab-id"
+
+        ORGANIZATION = "ons"
+        TEAM = "sbr"
+        MODULE_NAME = "sbr-admin-data"
+
+        // hbase config
+        TABLE_NAME = "enterprise"
+        NAMESPACE = "sbr_dev_db"
     }
     options {
         skipDefaultCheckout()
