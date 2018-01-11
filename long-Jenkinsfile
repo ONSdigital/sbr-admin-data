@@ -290,7 +290,7 @@ def copyToHBaseNode() {
             sh '''
                 scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$DEPLOY_DEV/$MODULE_NAME/lib
 		        echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
-	       ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f ~/$DEPLOY_DEV/$MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
+	       ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f $DEPLOY_DEV/$MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
 		echo "Successfully copied jar file to HDFS"
 	    '''
         }
