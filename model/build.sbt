@@ -5,7 +5,7 @@ crossPaths := false
 
 libraryDependencies ++= Seq (
   filters,
-  ws,
+  json,
   // scala-date
   "com.github.nscala-time"          %%  "nscala-time"              %  "2.16.0",
 
