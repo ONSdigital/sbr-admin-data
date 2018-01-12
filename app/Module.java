@@ -1,20 +1,19 @@
-
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
-import hbase.connector.HBaseInstanceConnector;
+import hbase.load.AdminDataLoad;
 import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
-import hbase.repository.HBaseAdminDataRepository;
-import hbase.load.AdminDataLoad;
+import hbase.repository.AdminDataRepository;
+import hbase.repository.InMemoryAdminDataRepository;
+import hbase.repository.RestAdminDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Configuration;
 import play.Environment;
-import hbase.repository.AdminDataRepository;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -45,10 +44,12 @@ public class Module extends AbstractModule {
             System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
             bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("database.table")));
             bind(RepositoryInitializer.class).asEagerSingleton();
+            bind(AdminDataRepository.class).to(InMemoryAdminDataRepository.class).asEagerSingleton();
         } else {
-            bind(HBaseConnector.class).to(HBaseInstanceConnector.class).asEagerSingleton();
+//            bind(HBaseConnector.class).to(HBaseInstanceConnector.class).asEagerSingleton();
+            bind(AdminDataRepository.class).to(RestAdminDataRepository.class).asEagerSingleton();
         }
-        bind(AdminDataRepository.class).to(HBaseAdminDataRepository.class).asEagerSingleton();
+//        bind(AdminDataRepository.class).to(HBaseAdminDataRepository.class).asEagerSingleton();
         bind(AdminDataLoad.class).to(HBaseAdminDataLoader.class).asEagerSingleton();
         if (configuration.getBoolean("api.metrics")) {
             bind(MetricRegistry.class).toProvider(MetricRegistryProvider.class).asEagerSingleton();

@@ -20,7 +20,6 @@ import com.github.nscala_time.time.Imports.YearMonth
 
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
-import hbase.repository.HBaseAdminDataRepository
 import hbase.util.RowKeyUtils
 import services.websocket.RequestGenerator
 

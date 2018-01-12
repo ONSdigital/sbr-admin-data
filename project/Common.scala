@@ -5,6 +5,7 @@ import sbtassembly.PathList
 import sbtbuildinfo.BuildInfoPlugin.autoImport.{buildInfoKeys, buildInfoOptions, buildInfoPackage}
 import sbtbuildinfo.{BuildInfoKey, BuildInfoOption}
 import sbtrelease.ReleasePlugin.autoImport.{releaseCommitMessage, releaseIgnoreUntrackedFiles, releaseTagComment}
+
 import play.sbt.PlayImport.PlayKeys
 import org.scalastyle.sbt.ScalastylePlugin.autoImport.{scalastyleFailOnError, scalastyleTarget}
 import com.sksamuel.scapegoat.sbt.ScapegoatSbtPlugin.autoImport.{scapegoatConsoleOutput, scapegoatOutputPath}
@@ -27,7 +28,6 @@ object Common {
     * APP CONFIG
     */
   lazy val applicationConfig: SettingKey[Map[String, String]] = settingKey[Map[String, String]]("config values")
-//  lazy val testScalaStyle = Scoped.AnyInitTask]("config values")
 
 
   /**
@@ -50,8 +50,8 @@ object Common {
     val team = "sbr"
     val local = "mac"
     val repoName = "admin-data"
+    val startYear = 2017
   }
-
 
   /**
     * SETTINGS AND CONFIGURATION
@@ -88,10 +88,11 @@ object Common {
 //    publishArtifact in Compile := false,
 //    publishArtifact in (Compile, assembly) := true,
     publishTo := {
-      if (System.getProperty("os.name").toLowerCase.startsWith(Constant.local) )
+      if (System.getProperty("os.name").toLowerCase.startsWith(Constant.local) ) {
         Some(Resolver.file("file", new File(s"${System.getProperty("user.home").toLowerCase}/Desktop/")))
-      else
+      } else {
         Some("Artifactory Realm" at applicationConfig.value("artifactoryAddress"))
+      }
     },
     artifact in (Compile, assembly) ~= { art =>
       art.copy(`type` = "jar", `classifier` = Some("assembly"))
@@ -124,7 +125,8 @@ object Common {
       startYear,
       homepage,
       BuildInfoKey.action("gitVersion") {
-        git.formattedShaVersion.?.value.getOrElse(Some("Unknown")).getOrElse("Unknown") +"@"+ git.formattedDateVersion.?.value.getOrElse("")
+        git.formattedShaVersion.?.value.getOrElse(Some("Unknown")).getOrElse("Unknown") + "@" +
+          git.formattedDateVersion.?.value.getOrElse("")
       },
       BuildInfoKey.action("codeLicenses"){ licenses.value },
       BuildInfoKey.action("projectTeam"){ Constant.team },
@@ -142,7 +144,7 @@ object Common {
     developers := List(Developer("Adrian Harris (Tech Lead)", "SBR", "ons-sbr-team@ons.gov.uk", new java.net.URL(s"https:///v1/home"))),
     version := (version in ThisBuild).value,
     licenses := Seq("MIT-License" -> url("https://github.com/ONSdigital/sbr-control-api/blob/master/LICENSE")),
-    startYear := Some(2017),
+    startYear := Some(Constant.startYear),
     homepage := Some(url("https://SBR-UI-HOMEPAGE.gov.uk")),
     scalaVersion := Versions.scala,
     name := s"${organizationName.value}-${Constant.team}-${Constant.repoName}",
