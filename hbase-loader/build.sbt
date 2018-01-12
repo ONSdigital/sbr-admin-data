@@ -6,12 +6,11 @@ moduleName := "sbr-admin-data-hbase-loader"
 description := "<description>"
 libraryDependencies ++= HBaseModuleSettings.hadoopDependencies
 resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
-mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
+mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoaderApp")
 
 crossPaths := false
 
-// Metrics
-dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
+dependencyOverrides += "com.google.guava" % "guava" % "14.0.1"
 
 coverageMinimum := 27
 
