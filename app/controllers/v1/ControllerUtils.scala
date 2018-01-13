@@ -3,19 +3,21 @@ package controllers.v1
 import java.time.format.DateTimeParseException
 import javax.naming.ServiceUnavailableException
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Future, TimeoutException }
-
-import akka.actor.{ ActorRef, ActorSystem, Props }
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.CircuitBreaker
 import akka.util.Timeout
-import play.api.Configuration
-import play.api.libs.json.{ JsObject, Json }
-import play.api.mvc.{ Controller, Result }
+import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.scalalogging.LazyLogging
-
 import config.Properties
+import hbase.model.AdminData
+import play.api.Configuration
+import play.api.i18n.{I18nSupport, Messages}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Controller, Result}
 import utils.CircuitBreakerActor
+
+import scala.concurrent.duration._
+import scala.concurrent.{Future, TimeoutException}
 
 /**
  * AdminDataControllerUtils
@@ -24,7 +26,7 @@ import utils.CircuitBreakerActor
  * Date: 22 November 2017 - 14:19
  * Copyright (c) 2017  Office for National Statistics
  */
-trait ControllerUtils extends Controller with LazyLogging with Properties {
+trait ControllerUtils extends Controller with LazyLogging with Properties with I18nSupport {
 
   val system = ActorSystem("sbr-admin-data-circuit-breaker")
   implicit val ec = system.dispatcher
@@ -76,6 +78,19 @@ trait ControllerUtils extends Controller with LazyLogging with Properties {
       "code" -> code,
       "route_with_cause" -> cause,
       "message_en" -> msg)
+  }
+
+  protected def lookupRequest(
+                               lookup: (Option[YearMonth], String, Long) => Future[Option[Seq[AdminData]]],
+                               period: Option[YearMonth], id: String, max: Long): Future[Result] = {
+    lookup(period, id, max).map {
+      case Some(res: Seq[AdminData]) => Ok(Json.toJson(res))
+      case None => if (period.isEmpty) {
+        NotFound(Messages("controller.not.found", id))
+      } else {
+        NotFound(Messages("controller.not.found.with.period", id, period.getOrElse("").toString))
+      }
+    } recover responseException
   }
 
 }

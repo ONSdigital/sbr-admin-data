@@ -15,7 +15,6 @@ import com.typesafe.config.ConfigFactory
 
 import hbase.AbstractHBaseIT
 import hbase.model.AdminData
-import hbase.repository.HBaseAdminDataRepository
 
 import services.websocket.RequestGenerator
 

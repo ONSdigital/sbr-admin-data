@@ -1,9 +1,9 @@
 package controllers
 
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{Action, AnyContent, Controller}
 import org.joda.time.DateTime
-import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
+import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 
 @Api("Health")
 class HealthController extends Controller {
@@ -15,7 +15,7 @@ class HealthController extends Controller {
     httpMethod = "GET")
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Success - Displays API health")))
-  def health = Action {
+  def health: Action[AnyContent] = Action {
     val uptimeInMillis = uptime()
     val dateTime = new DateTime(startTime)
     Ok(Json.obj(
