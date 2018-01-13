@@ -3,9 +3,9 @@ package hbase.respository
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{ BeforeAndAfterEach, FlatSpec, Matchers }
 
-class HBaseRestAdminDataTest extends FlatSpec with Matchers with BeforeAndAfterEach{
+class HBaseRestAdminDataTest extends FlatSpec with Matchers with BeforeAndAfterEach {
 
   private val PORT = 8080
   private val HOST = "localhost"
@@ -20,7 +20,6 @@ class HBaseRestAdminDataTest extends FlatSpec with Matchers with BeforeAndAfterE
   override def afterEach {
     WIRE_MOCK_SERVER.stop()
   }
-
 
   "" should "" in {
     ???

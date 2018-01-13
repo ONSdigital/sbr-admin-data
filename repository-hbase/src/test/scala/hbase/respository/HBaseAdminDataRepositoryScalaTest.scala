@@ -2,29 +2,28 @@ package hbase.respository
 
 import java.io.IOException
 
-import scala.collection.JavaConverters._
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
-import play.api.Configuration
-import org.apache.hadoop.hbase.{ CellUtil, HConstants, KeyValue }
+import com.github.nscala_time.time.Imports.YearMonth
+import com.typesafe.config.ConfigFactory
+import hbase.connector.HBaseConnector
+import hbase.model.AdminData
+import hbase.repository.InMemoryAdminDataRepository
+import hbase.util.RowKeyUtils
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.util.Bytes.toBytes
+import org.apache.hadoop.hbase.{ CellUtil, HConstants, KeyValue }
 import org.joda.time.format.DateTimeFormat
 import org.junit.Assert.assertEquals
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ FlatSpec, Matchers }
-import com.github.nscala_time.time.Imports.YearMonth
-import com.typesafe.config.ConfigFactory
-
-import hbase.connector.HBaseConnector
-import hbase.model.AdminData
-import hbase.util.RowKeyUtils
-
+import play.api.Configuration
 import services.websocket.RequestGenerator
+
+import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
@@ -41,7 +40,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
 
   def setup =
     new {
-      val repository = new HBaseAdminDataRepository(connector, ws, Configuration(ConfigFactory.load()))
+      val repository = new InMemoryAdminDataRepository(connector, Configuration(ConfigFactory.load()))
       when(connector.getConnection) thenReturn connection
       when(connection.getTable(any())) thenReturn table
       when(table.get(any[Get])) thenReturn result
@@ -68,17 +67,21 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
 
     // Create cells for each column
     val rowKey = RowKeyUtils.createRowKey(testPeriod, testId)
-    val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
+    val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"),
+      9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
     val cells = List(nameCell).asJava
 
     when(result.isEmpty) thenReturn false
     when(result.listCells()) thenReturn cells
     when(result.getRow) thenReturn Bytes.toBytes(rowKey)
 
-    val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId), 1 second).getOrElse(throw new Exception("Unable to do repository lookup"))
-    assertEquals(lookup.id, testId)
-    assertEquals(lookup.referencePeriod, testPeriod)
-    assertEquals(lookup.variables.getOrElse("name", throw new Exception("Unable to get company name")), companyName)
+    val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId), 1 second)
+      .getOrElse(throw new Exception("Unable to do repository lookup"))
+    assertEquals(lookup.head.id, testId)
+    assertEquals(lookup.head.referencePeriod, testPeriod)
+    assertEquals(
+      lookup.head.variables.getOrElse("name", throw new Exception("Unable to get company name")),
+      companyName)
   }
 
   //  "repository.lookupOvertime()" should "return all the results relating to a particular id" in {
