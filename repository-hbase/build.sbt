@@ -19,29 +19,8 @@ lazy val Constants = new {
 /**
   * DEPENDENCIES LISTINGS
   */
-lazy val hadoopDeps: Seq[ModuleID] = Seq(
-  // HBase
-  Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase   classifier "tests",
-  Constants.apacheHBase   % "hbase-client"                      % Versions.clouderaHBase   exclude ("org.slf4j", "slf4j-api"),
-  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.clouderaHBase   classifier "tests",
-  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.clouderaHBase   classifier "tests",
-  Constants.apacheHBase   % "hbase-server"                      % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-server"                      % Versions.clouderaHBase   classifier "tests",
 
-  // Hadoop
-  Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop,
-  Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  exclude ("commons-daemon", "commons-daemon"),
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-mapreduce-client-core"      % Versions.clouderaHadoop,
-  Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.clouderaHadoop
-).map(_.excludeAll ( ExclusionRule("log4j", "log4j"), ExclusionRule ("org.slf4j", "slf4j-log4j12")))
-
-
-lazy val DevDeps: Seq[ModuleID] = Seq(
+lazy val dependencies: Seq[ModuleID] = Seq(
   ws,
 
   //@NOTE - patch for unresolved dependency
@@ -77,8 +56,15 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
-) ++ hadoopDeps
-//  .map(_ % "provided")
+) ++
+  HBaseModuleSettings.hadoopDependencies.map(moduleId =>
+    sys.env.get("DB_IN_MEMORY") match {
+      case Some(value) if value.equals("true") =>
+        moduleId
+      case _ =>
+        moduleId % "provided"
+    }
+)
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
@@ -96,11 +82,9 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   */
 moduleName := "sbr-admin-data-hbase-repository"
 description := "<description>"
-libraryDependencies ++=  DevDeps
-//excludeDependencies ++= exTransiviveDeps
+libraryDependencies ++= dependencies
 resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
 mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
-
 
 crossPaths := false
 testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))

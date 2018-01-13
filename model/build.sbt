@@ -2,7 +2,6 @@ moduleName := "sbr-admin-data-hbase.model"
 
 crossPaths := false
 
-
 libraryDependencies ++= Seq (
   filters,
   json,
