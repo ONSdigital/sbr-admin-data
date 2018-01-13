@@ -3,25 +3,25 @@ package hbase.repository
 import javax.inject.Inject
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
+import scala.util.{ Failure, Success, Try }
 import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.client.{Get, Result, Scan, Table}
+import org.apache.hadoop.hbase.client.{ Get, Result, Scan, Table }
 import org.apache.hadoop.hbase.util.Bytes
 import com.github.nscala_time.time.Imports.YearMonth
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository._
-import hbase.util.{HBaseConfig, RowKeyUtils}
+import hbase.util.{ HBaseConfig, RowKeyUtils }
 import play.api.Configuration
 
 /**
-  * InMemoryAdminDataRepository
-  * ----------------
-  * Author: haqa
-  * Date: 11 January 2018 - 11:46
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * InMemoryAdminDataRepository
+ * ----------------
+ * Author: haqa
+ * Date: 11 January 2018 - 11:46
+ * Copyright (c) 2017  Office for National Statistics
+ */
 class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration) extends AdminDataRepository with HBaseConfig {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global

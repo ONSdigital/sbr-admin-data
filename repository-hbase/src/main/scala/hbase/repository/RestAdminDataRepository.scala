@@ -2,27 +2,27 @@ package hbase.repository
 
 import javax.inject.Inject
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
-import scala.util.{Failure, Success, Try}
-import play.api.http.{ContentTypes, Status}
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
+import scala.util.{ Failure, Success, Try }
+import play.api.http.{ ContentTypes, Status }
 import play.api.libs.json.JsValue
 import play.api.mvc.Results
 import com.github.nscala_time.time.Imports.YearMonth
 import com.netaporter.uri.dsl._
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository._
-import hbase.util.{HBaseConfig, RowKeyUtils}
+import hbase.util.{ HBaseConfig, RowKeyUtils }
 import play.api.Configuration
-import services.util.EncodingUtil.{decodeBase64, encodeBase64}
+import services.util.EncodingUtil.{ decodeBase64, encodeBase64 }
 import services.websocket.RequestGenerator
 
 /**
-  * RestAdminDataRepository
-  * ----------------
-  * Author: haqa
-  * Date: 11 January 2018 - 11:45
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * RestAdminDataRepository
+ * ----------------
+ * Author: haqa
+ * Date: 11 January 2018 - 11:45
+ * Copyright (c) 2017  Office for National Statistics
+ */
 class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration: Configuration) extends AdminDataRepository with HBaseConfig
   with Status with Results with ContentTypes {
 
@@ -39,10 +39,12 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+        println(uri)
         ws.singleGETRequest(uri.toString, headers)
       case None =>
         val params = Seq("reversed" -> "true", "limit" -> max.toString)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + "*"
+        println(uri)
         ws.singleGETRequest(uri.toString, headers, params)
     }
     request.map {

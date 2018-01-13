@@ -10,28 +10,29 @@ import org.slf4j.LoggerFactory
 import play.{ Configuration, Environment }
 
 /**
-  * This class is a Guice module that tells Guice how to bind several
-  * different types. This Guice module is created when the Play
-  * application starts.
-  * <p>
-  * Play will automatically use any class called `Module` that is in
-  * the root package. You can create modules in other locations by
-  * adding `play.modules.enabled` settings to the `application.conf`
-  * configuration file.
-  */
+ * This class is a Guice module that tells Guice how to bind several
+ * different types. This Guice module is created when the Play
+ * application starts.
+ * <p>
+ * Play will automatically use any class called `Module` that is in
+ * the root package. You can create modules in other locations by
+ * adding `play.modules.enabled` settings to the `application.conf`
+ * configuration file.
+ */
 class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule {
   override def configure(): Unit = {
-    if (configuration.getBoolean("database.in.memory")) {
+    if (configuration.getBoolean("hbase.in.memory")) {
       System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"))
-      bind(classOf[HBaseConnector]).toInstance(new HBaseInMemoryConnector(configuration.getString("database.table")))
+      bind(classOf[HBaseConnector]).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")))
       bind(classOf[RepositoryInitializer]).asEagerSingleton()
       bind(classOf[AdminDataRepository]).to(classOf[InMemoryAdminDataRepository]).asEagerSingleton()
       bind(classOf[AdminDataLoad]).to(classOf[HBaseAdminDataLoader]).asEagerSingleton()
-    } else bind(classOf[AdminDataRepository]).to(classOf[RestAdminDataRepository]).asEagerSingleton()
-    if (configuration.getBoolean("api.metrics"))
+    } else { bind(classOf[AdminDataRepository]).to(classOf[RestAdminDataRepository]).asEagerSingleton() }
+    if (configuration.getBoolean("api.metrics")) {
       bind(classOf[MetricRegistry])
         .toProvider(classOf[MetricRegistryProvider])
         .asEagerSingleton()
+    }
   }
 }
 
@@ -39,7 +40,7 @@ class RepositoryInitializer {
   @Inject
   @throws[Exception]
   def RepositoryInitializer(configuration: Configuration, dataLoader: AdminDataLoad) {
-    dataLoader.load(configuration.getString("database.table"), "201706", configuration.getString("csv.file"))
+    dataLoader.load(configuration.getString("hbase.table.name"), "201706", configuration.getString("csv.file"))
   }
 }
 
