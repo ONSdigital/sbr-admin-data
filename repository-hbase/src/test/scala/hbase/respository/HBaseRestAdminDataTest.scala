@@ -10,15 +10,15 @@ class HBaseRestAdminDataTest extends FlatSpec with Matchers with BeforeAndAfterE
   private val PORT = 8080
   private val HOST = "localhost"
 
-  private val wireMockServer = new WireMockServer(wireMockConfig().port(PORT))
+  private val WIRE_MOCK_SERVER = new WireMockServer(wireMockConfig().port(PORT))
 
   override def beforeEach {
-    wireMockServer.start()
+    WIRE_MOCK_SERVER.start()
     WireMock.configureFor(HOST, PORT)
   }
 
   override def afterEach {
-    wireMockServer.stop()
+    WIRE_MOCK_SERVER.stop()
   }
 
 

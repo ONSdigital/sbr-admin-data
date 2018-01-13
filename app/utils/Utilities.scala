@@ -24,7 +24,7 @@ trait Utilities extends Properties {
   /**
    * Convert a Java Optional to a Scala Option
    */
-  protected def toOption[X](o: Optional[X]) = if (o.isPresent) Some(o.get) else None
+  protected def toOption[X](o: Optional[X]): Option[X] = if (o.isPresent) Some(o.get) else None
 
   def createCacheKey(v: ValidLookup): String = List(v.id, v.period.getOrElse(None)).mkString(cacheDelimiter)
 }

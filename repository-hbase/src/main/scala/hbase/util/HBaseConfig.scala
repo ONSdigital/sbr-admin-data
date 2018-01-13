@@ -14,12 +14,13 @@ import com.typesafe.config.Config
 trait HBaseConfig {
 
   implicit val configuration: Configuration
-  protected val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
+  private val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
 
-  // When running HBase in memory, the namespace has to be ""
-  val nameSpace = if (hBaseConfig.getBoolean("in.memory")) "" else hBaseConfig.getString("namespace")
+  private val nameSpace: String = if (hBaseConfig.getBoolean("in.memory.init")) {
+    hBaseConfig.getString("in.memory.namespace")
+  } else { hBaseConfig.getString("rest.namespace") }
 
-  lazy final val tableName: TableName = TableName.valueOf(
+  lazy val tableName: TableName = TableName.valueOf(
     nameSpace,
     hBaseConfig.getString("table.name"))
 

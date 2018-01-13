@@ -95,14 +95,14 @@ hbase shell
 get 'sbr_local_db:admin_data', '03007252~201706'
 ```
 
-### Physical HBase Instance(database.in.memory = false)
+### Physical HBase Instance(hbase.in.memory.init = false)
 
 To load data into a physical HBase instance
 
 
 | Environment Variable | Default Value                  | Valid Values                                         |
 |----------------------|--------------------------------|------------------------------------------------------|
-| database.in.memory   | true                           | false                                                |
+| hbase.in.memory.init | true                           | false                                                |
 | hbase.conf.dir       |                                | path to dir containing hbase-site.xml                |
 | csv.header.string    |                                | string to be found in the header row of the csv file |
 
@@ -119,7 +119,7 @@ sbt repository-hbase/"run-main hbase.load.BulkLoader {tablename} {period} {file}
 
 Example
 ```shell
-sbt -Ddatabase.in.memory=false
+sbt -Dhbase.in.memory.init=false
     -Dcsv.header.string=companyname
     -Dhbase.conf.dir=/Users/myuser/hbase/conf
     repository-hbase/"run-main hbase.load.BulkLoader mytable 201706 /Users/myuser/data/ch-data.csv"

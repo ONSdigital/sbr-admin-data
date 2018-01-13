@@ -21,7 +21,7 @@ import play.{ Configuration, Environment }
  */
 class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule {
   override def configure(): Unit = {
-    if (configuration.getBoolean("hbase.in.memory")) {
+    if (configuration.getBoolean("hbase.in.memory.init")) {
       System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"))
       bind(classOf[HBaseConnector]).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")))
       bind(classOf[RepositoryInitializer]).asEagerSingleton()
@@ -44,18 +44,13 @@ class RepositoryInitializer {
   }
 }
 
-object MetricRegistryProvider {
-  private val logger = LoggerFactory.getLogger("application.Metrics")
-  private val registry = new MetricRegistry
-}
-
 class MetricRegistryProvider() extends Provider[MetricRegistry] {
   consoleReporter()
   slf4jReporter()
 
   private def consoleReporter(): Unit = {
     val reporter = ConsoleReporter
-      .forRegistry(MetricRegistryProvider.registry)
+      .forRegistry(MetricRegistryProvider.REGISTRY)
       .convertRatesTo(TimeUnit.SECONDS)
       .convertDurationsTo(TimeUnit.MILLISECONDS)
       .build
@@ -64,13 +59,18 @@ class MetricRegistryProvider() extends Provider[MetricRegistry] {
 
   private def slf4jReporter(): Unit = {
     val reporter = Slf4jReporter
-      .forRegistry(MetricRegistryProvider.registry)
-      .outputTo(MetricRegistryProvider.logger)
+      .forRegistry(MetricRegistryProvider.REGISTRY)
+      .outputTo(MetricRegistryProvider.LOGGER)
       .convertRatesTo(TimeUnit.SECONDS)
       .convertDurationsTo(TimeUnit.MILLISECONDS)
       .build
     reporter.start(1, TimeUnit.MINUTES)
   }
 
-  override def get: MetricRegistry = MetricRegistryProvider.registry
+  override def get: MetricRegistry = MetricRegistryProvider.REGISTRY
+}
+
+object MetricRegistryProvider {
+  private val LOGGER = LoggerFactory.getLogger("application.Metrics")
+  private val REGISTRY = new MetricRegistry
 }
