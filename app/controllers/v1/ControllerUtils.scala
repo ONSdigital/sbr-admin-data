@@ -79,10 +79,10 @@ trait ControllerUtils extends Controller with LazyLogging with I18nSupport {
       "message_en" -> msg)
   }
 
-  protected def searchResponse(
+  protected def lookupRequest(
     lookup: (Option[YearMonth], String, Long) => Future[Option[Seq[AdminData]]],
     period: Option[YearMonth], id: String, max: Long): Future[Result] = {
-    lookup(None, id, max).map {
+    lookup(period, id, max).map {
       case Some(res: Seq[AdminData]) => Ok(Json.toJson(res))
       case None => if (period.isEmpty) {
         NotFound(Messages("controller.not.found", id))

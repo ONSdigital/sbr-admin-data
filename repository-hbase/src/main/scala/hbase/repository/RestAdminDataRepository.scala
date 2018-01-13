@@ -25,7 +25,8 @@ import services.websocket.RequestGenerator
  * Date: 11 January 2018 - 11:45
  * Copyright (c) 2017  Office for National Statistics
  */
-class RestAdminDataRepository @Inject() (ws: RequestGenerator) extends AdminDataRepository with Status with Results with ContentTypes {
+class RestAdminDataRepository @Inject() (ws: RequestGenerator) extends AdminDataRepository
+  with Status with Results with ContentTypes {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
   private val auth = encodeBase64(Seq(username, password))

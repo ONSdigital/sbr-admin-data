@@ -51,19 +51,20 @@ class AdminDataController @Inject() (repository: AdminDataRepository, cache: Cac
   //
   //    def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 
-  def lookup(period: Option[String], id: String, max: Long = AdminDataRepository.MAX_RESULT_SIZE): Action[AnyContent] = {
+  def lookup(period: Option[String], max: Option[Long], id: String): Action[AnyContent] = {
+    val maxRespSize = max.getOrElse(AdminDataRepository.MAX_RESULT_SIZE)
     Action.async {
       period match {
         case Some(p) =>
           Try(YearMonth.parse(p, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
             case Success(date: YearMonth) =>
-              searchResponse(repository.lookup, Some(date), id, max)
+              lookupRequest(repository.lookup, Some(date), id, maxRespSize)
             case Failure(ex: IllegalArgumentException) =>
               BadRequest(Messages("controller.invalid.period", p, REFERENCE_PERIOD_FORMAT, ex.toString)).future
             case Failure(ex) => BadRequest(s"$ex").future
           }
         case None =>
-          searchResponse(repository.lookup, None, id, max)
+          lookupRequest(repository.lookup, None, id, maxRespSize)
       }
     }
   }
