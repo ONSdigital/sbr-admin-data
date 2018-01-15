@@ -170,7 +170,7 @@ public class BulkLoader extends Configured implements Tool {
 
     }
 
-    /*public static void main(String[] args) {
+    public static void main(String[] args) {
         try {
             //HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
             HBaseConnector connector = new HBaseInstanceConnector();
@@ -180,6 +180,6 @@ public class BulkLoader extends Configured implements Tool {
             e.printStackTrace();
             System.exit(ERROR);
         }
-    }*/
+    }
 }
 
