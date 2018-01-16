@@ -102,3 +102,7 @@ lazy val `repository-hbase` = project
   .settings(Common.commonSettings: _*)
 //  .settings(Common.assemblySettings:_*)
   .dependsOn(model)
+
+dockerBaseImage := "openjdk:8-jre"
+
+dockerExposedPorts := Seq(9000)
