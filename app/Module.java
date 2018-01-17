@@ -6,18 +6,23 @@ import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
+import hbase.load.BulkLoader;
 import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
 import hbase.repository.HBaseAdminDataRepository;
 import hbase.load.AdminDataLoad;
+import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Configuration;
 import play.Environment;
 import hbase.repository.AdminDataRepository;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Provider;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 
@@ -60,10 +65,65 @@ public class Module extends AbstractModule {
 
 class RepositoryInitializer {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RepositoryInitializer.class);
+
+    private final HBaseConnector connector;
+
+    private final Configuration configuration;
+
     @Inject
-    public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) {
-        final String tableName = configuration.getString("hbase.namespace") + ":" + configuration.getString("hbase.table.name");
-        dataLoader.load(tableName, "201706", configuration.getString("csv.file"));
+    public RepositoryInitializer(HBaseConnector connector, Configuration configuration, AdminDataLoad dataLoader) throws IOException {
+        this.connector = connector;
+        this.configuration = configuration;
+
+        LOG.info("Started repository initialization. Will create namespace and table if necessary.");
+        final String namespace = configuration.getString("hbase.namespace");
+        if (!namespaceExists(namespace)) createNamespace(namespace);
+        final TableName tableName = TableName.valueOf(namespace, configuration.getString("hbase.table.name"));
+        if (!tableExists(tableName)) createTable(tableName);
+
+        LOG.info("Invoking load of admin data.");
+        dataLoader.load(tableName.getNameWithNamespaceInclAsString(), "201706", configuration.getString("csv.file"));
+    }
+
+    private void createTable(TableName tableName) throws IOException {
+        try(Connection connection = connector.getConnection()) {
+            HTableDescriptor htable = new HTableDescriptor(tableName);
+            htable.addFamily( new HColumnDescriptor(configuration.getString("hbase.column.family")));
+            connection.getAdmin().createTable(htable);
+            LOG.info("Created table %s", tableName);
+
+        } catch (IOException e) {
+            LOG.error("Failed to create table " + tableName, e);
+            throw e;
+        }
+    }
+
+    private boolean tableExists(TableName tableName) throws IOException {
+        try(Connection connection = connector.getConnection()) {
+            return connection.getAdmin().tableExists(tableName);
+        }
+    }
+
+    private void createNamespace(String namespace) throws IOException {
+        try(Connection connection = connector.getConnection()) {
+            connection.getAdmin().createNamespace(NamespaceDescriptor.create(namespace).build());
+            LOG.info("Created namespace %s", namespace);
+
+        } catch (IOException e) {
+            LOG.error("Failed to create namespace " + namespace, e);
+            throw e;
+        }
+    }
+
+    private boolean namespaceExists(String namespace) throws IOException {
+        try(Connection connection = connector.getConnection()) {
+            connection.getAdmin().getNamespaceDescriptor(namespace);
+            return true;
+
+        } catch (NamespaceNotFoundException e) {
+            return false;
+        }
     }
 }
 
