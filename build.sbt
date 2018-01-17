@@ -21,6 +21,8 @@ lazy val model = project
 /**
 * SETTINGS AND CONFIGURATION
 */
+routesImport += "extensions.Binders._"
+
 buildInfoPackage := "controllers"
 
 coverageMinimum := 55
