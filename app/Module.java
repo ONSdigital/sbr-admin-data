@@ -47,6 +47,8 @@ public class Module extends AbstractModule {
             bind(RepositoryInitializer.class).asEagerSingleton();
         } else {
             bind(HBaseConnector.class).to(HBaseInstanceConnector.class).asEagerSingleton();
+            System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
+            bind(RepositoryInitializer.class).asEagerSingleton();
         }
         bind(AdminDataRepository.class).to(HBaseAdminDataRepository.class).asEagerSingleton();
         bind(AdminDataLoad.class).to(HBaseAdminDataLoader.class).asEagerSingleton();
@@ -60,7 +62,8 @@ class RepositoryInitializer {
 
     @Inject
     public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) {
-        dataLoader.load(configuration.getString("hbase.table.name"), "201706", configuration.getString("csv.file"));
+        final String tableName = configuration.getString("hbase.namespace") + ":" + configuration.getString("hbase.table.name");
+        dataLoader.load(tableName, "201706", configuration.getString("csv.file"));
     }
 }
 
