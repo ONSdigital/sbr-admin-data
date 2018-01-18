@@ -1,25 +1,22 @@
-
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
-import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
-import hbase.load.BulkLoader;
+import hbase.load.AdminDataLoad;
 import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
+import hbase.repository.AdminDataRepository;
 import hbase.repository.HBaseAdminDataRepository;
-import hbase.load.AdminDataLoad;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Configuration;
 import play.Environment;
-import hbase.repository.AdminDataRepository;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.IOException;
@@ -46,19 +43,15 @@ public class Module extends AbstractModule {
 
     @Override
     public void configure() {
-        if (configuration.getBoolean("hbase.in.memory")) {
-            System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
-            bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")));
-            bind(RepositoryInitializer.class).asEagerSingleton();
-        } else {
-            bind(HBaseConnector.class).to(HBaseInstanceConnector.class).asEagerSingleton();
+        if (configuration.getBoolean("hbase.initialize")) {
             System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
             bind(RepositoryInitializer.class).asEagerSingleton();
         }
-        bind(AdminDataRepository.class).to(HBaseAdminDataRepository.class).asEagerSingleton();
-        bind(AdminDataLoad.class).to(HBaseAdminDataLoader.class).asEagerSingleton();
+        bind(HBaseConnector.class).to(HBaseInstanceConnector.class);
+        bind(AdminDataRepository.class).to(HBaseAdminDataRepository.class);
+        bind(AdminDataLoad.class).to(HBaseAdminDataLoader.class);
         if (configuration.getBoolean("api.metrics")) {
-            bind(MetricRegistry.class).toProvider(MetricRegistryProvider.class).asEagerSingleton();
+            bind(MetricRegistry.class).toProvider(MetricRegistryProvider.class);
         }
     }
 }
@@ -78,7 +71,7 @@ class RepositoryInitializer {
 
         LOG.info("Started repository initialization. Will create namespace and table if necessary.");
         final String namespace = configuration.getString("hbase.namespace");
-        if (!namespaceExists(namespace)) createNamespace(namespace);
+        if (StringUtils.isNotBlank(namespace) && (!namespaceExists(namespace))) createNamespace(namespace);
         final TableName tableName = TableName.valueOf(namespace, configuration.getString("hbase.table.name"));
         if (!tableExists(tableName)) createTable(tableName);
 
