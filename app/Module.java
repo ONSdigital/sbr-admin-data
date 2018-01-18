@@ -84,7 +84,7 @@ class RepositoryInitializer {
             HTableDescriptor htable = new HTableDescriptor(tableName);
             htable.addFamily( new HColumnDescriptor(configuration.getString("hbase.column.family")));
             connection.getAdmin().createTable(htable);
-            LOG.info("Created table %s", tableName);
+            LOG.info("Created table {}", tableName);
 
         } catch (IOException e) {
             LOG.error("Failed to create table " + tableName, e);
@@ -101,7 +101,7 @@ class RepositoryInitializer {
     private void createNamespace(String namespace) throws IOException {
         try(Connection connection = connector.getConnection()) {
             connection.getAdmin().createNamespace(NamespaceDescriptor.create(namespace).build());
-            LOG.info("Created namespace %s", namespace);
+            LOG.info("Created namespace {}", namespace);
 
         } catch (IOException e) {
             LOG.error("Failed to create namespace " + namespace, e);
