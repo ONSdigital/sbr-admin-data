@@ -42,14 +42,20 @@ import java.time.format.DateTimeFormatter;
 public class BulkLoader extends Configured implements Tool {
 
     static final String REFERENCE_PERIOD = "hbase.load.period";
+    static final String COLUMN_HEADINGS = "csv.column.headings";
+    static final String ROWKEY_POSITION = "csv.id.position";
+    static final String HEADER_STRING = "csv.header.string";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
-    private static final int MIN_ARGS = 3;
-    private static final int MAX_ARGS = 4;
+    private static final int MIN_ARGS = 6;
+    private static final int MAX_ARGS = 7;
     private static final int ARG_TABLE_NAME = 0;
     private static final int ARG_REFERENCE_PERIOD = 1;
     private static final int ARG_CSV_FILE = 2;
-    private static final int ARG_HFILE_OUT_DIR = 3;
+    private static final int ARG_CSV_ROWKEY_POSITION = 3;
+    private static final int ARG_CSV_HEADER_STRING = 4;
+    private static final int ARG_CSV_COLUMN_HEADINGS = 5;
+    private static final int ARG_HFILE_OUT_DIR = 6;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
 
     private HBaseConnector connector;
@@ -67,19 +73,21 @@ public class BulkLoader extends Configured implements Tool {
         }
         try {
             YearMonth.parse(strings[ARG_REFERENCE_PERIOD], DateTimeFormatter.ofPattern(AdminData.REFERENCE_PERIOD_FORMAT()));
-            System.setProperty(REFERENCE_PERIOD, strings[ARG_REFERENCE_PERIOD]);
+            getConf().set(REFERENCE_PERIOD, strings[ARG_REFERENCE_PERIOD]);
         } catch (Exception e) {
             LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], AdminData.REFERENCE_PERIOD_FORMAT());
             System.exit(ERROR);
         }
-        // Parse table name
-        String tableName = strings[ARG_TABLE_NAME];
         // Check input file exists
         File f = new File(strings[ARG_CSV_FILE]);
         if (!f.exists() || f.isDirectory()) {
             LOG.error("CSV file does not exist or is a directory");
             System.exit(ERROR);
         }
+        // Populate map reduce
+        getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
+        getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+        getConf().set(COLUMN_HEADINGS, strings[ARG_CSV_COLUMN_HEADINGS]);
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
         } else {
@@ -105,7 +113,7 @@ public class BulkLoader extends Configured implements Tool {
             TableName tableName = TableName.valueOf(tableNameStr);
             Class<? extends Mapper> mapper;
             mapper = CSVDataKVMapper.class;
-            job = Job.getInstance(conf, String.format("SBR %s Admin Data Import", tableName));
+            job = Job.getInstance(conf, String.format("%s Admin Data Import", tableName));
             job.setJarByClass(mapper);
             job.setMapperClass(mapper);
             job.setMapOutputKeyClass(ImmutableBytesWritable.class);
@@ -124,13 +132,13 @@ public class BulkLoader extends Configured implements Tool {
 
                             // Auto configure partitioner and reducer
                             HFileOutputFormat2.configureIncrementalLoad(job, table, regionLocator);
-                            FileOutputFormat.setOutputPath(job, new Path(String.format("%s%s%s_%s_%s", outputFilePath, File.pathSeparator, tableNameStr, referencePeriod, start.toString())));
+                            Path hfilePath = new Path(String.format("%s%s%s_%s_%d", outputFilePath, Path.SEPARATOR, tableNameStr, referencePeriod, start.getEpochSecond()));
 
                             if (job.waitForCompletion(true)) {
                                 try (Admin admin = connection.getAdmin()) {
                                     // Load generated HFiles into table
                                     LoadIncrementalHFiles loader = new LoadIncrementalHFiles(conf);
-                                    loader.doBulkLoad(new Path(outputFilePath), admin, table, regionLocator);
+                                    loader.doBulkLoad(hfilePath, admin, table, regionLocator);
                                 }
                             } else {
                                 LOG.error("Loading of data failed.");
