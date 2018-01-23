@@ -111,7 +111,7 @@ pipeline {
             agent any
             steps {
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: '${BRANCH_DEV}')
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'develop')
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh 'rm -rf conf/sample/201706/vat_data.csv'
