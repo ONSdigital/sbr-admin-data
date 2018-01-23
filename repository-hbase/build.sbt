@@ -78,7 +78,7 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
 ) ++ hadoopDeps
-//  .map(_ % "provided")
+  //.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
