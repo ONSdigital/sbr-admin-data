@@ -47,7 +47,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
           case None =>
             val scan = new Scan()
               .setReversed(true)
-              .setRowPrefixFilter(Bytes.toBytes(key))
+              .setRowPrefixFilter(Bytes.toBytes(key + RowKeyUtils.DELIMITER))
             scan.setMaxResultSize(max)
             Option(table.getScanner(scan).next) match {
               case Some(_) =>

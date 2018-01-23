@@ -4,15 +4,17 @@ import javax.inject.Inject
 
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
 import scala.util.{ Failure, Success, Try }
+
+import play.api.Configuration
 import play.api.http.{ ContentTypes, Status }
 import play.api.libs.json.JsValue
 import play.api.mvc.Results
 import com.github.nscala_time.time.Imports.YearMonth
 import com.netaporter.uri.dsl._
+
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository._
 import hbase.util.{ HBaseConfig, RowKeyUtils }
-import play.api.Configuration
 import services.util.EncodingUtil.{ decodeBase64, encodeBase64 }
 import services.websocket.RequestGenerator
 
@@ -39,12 +41,12 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-        println(uri)
+        LOGGER.debug("Making restful GET request to HBase with '{}'", uri.toString)
         ws.singleGETRequest(uri.toString, headers)
       case None =>
         val params = Seq("reversed" -> "true", "limit" -> max.toString)
-        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + "*"
-        println(uri)
+        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + RowKeyUtils.DELIMITER + "*"
+        LOGGER.debug("Making restful SCAN request to HBase with '{}'", uri.toString)
         ws.singleGETRequest(uri.toString, headers, params)
     }
     request.map {
@@ -52,13 +54,16 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
         val resp = (response.json \ "Row").as[Seq[JsValue]]
         Try(resp.map(v => convertToAdminData(v))) match {
           case Success(adminData: Seq[AdminData]) =>
+            LOGGER.debug("Found data for prefix row key '{}'", key)
             Some(adminData)
           case Failure(e: Throwable) =>
             LOGGER.error(s"Error getting data for row key $key", e)
             throw e
         }
       }
-      case response if response.status == NOT_FOUND => None
+      case response if response.status == NOT_FOUND =>
+        LOGGER.debug("No data found for prefix row key '{}'", key)
+        None
     }
   }
 

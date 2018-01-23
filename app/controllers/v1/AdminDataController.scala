@@ -67,8 +67,7 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   //
   //  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 
-
-//@TODO - check id size
+  //@TODO - check id size
   def lookup(id: String, period: Option[String], max: Option[Long]): Action[AnyContent] = {
     val maxRespSize = max.getOrElse(MAX_RESULT_SIZE)
     Action.async {
