@@ -11,7 +11,7 @@ import scala.util.{ Failure, Success, Try }
 // Pass in noResults in case we want to turn the cache off - i.e. for circuit breaker testing
 class TestCache(noResults: Boolean) extends CacheApi {
   lazy val cache: Cache = {
-    val manager = CacheManager.create("ehcache.xml")
+    val manager = CacheManager.getInstance()
     manager.addCacheIfAbsent("play")
     manager.getCache("play")
   }
