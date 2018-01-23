@@ -6,7 +6,6 @@ import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
-import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
 import hbase.repository.HBaseAdminDataRepository;
 import hbase.load.AdminDataLoad;
@@ -41,8 +40,8 @@ public class Module extends AbstractModule {
 
     @Override
     public void configure() {
-        if (configuration.getBoolean("database.in.memory")) {
-            bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("database.table")));
+        if (configuration.getBoolean("hbase.in.memory")) {
+            bind(HBaseConnector.class).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")));
             bind(RepositoryInitializer.class).asEagerSingleton();
         } else {
             bind(HBaseConnector.class).to(HBaseInstanceConnector.class).asEagerSingleton();
@@ -58,8 +57,8 @@ public class Module extends AbstractModule {
 class RepositoryInitializer {
 
     @Inject
-    public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) throws Exception {
-        dataLoader.load(configuration.getString("database.table"), "201706", configuration.getString("csv.file"));
+    public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) {
+        dataLoader.load(configuration.getString("hbase.table.name"), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString("csv.header.string"));
     }
 }
 

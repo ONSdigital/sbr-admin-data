@@ -1,5 +1,4 @@
 #!groovy
-@Library('jenkins-pipeline-shared@feature/new-cf') _
 
 pipeline {
     environment {
@@ -49,6 +48,7 @@ pipeline {
                 }
             }
         }
+
         stage('Test'){
             agent any
             steps {
@@ -110,7 +110,7 @@ pipeline {
         stage('Package'){
             agent any
             steps {
-                colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
+               // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
                     git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
                 }
@@ -225,7 +225,7 @@ pipeline {
                 milestone(1)
                 lock('Deployment Initiated') {
                     colourText("info", 'deployment in progress')
-                    // deploy()
+                    deploy()
                     colourText("success", 'Deploy.')
                 }
             }
