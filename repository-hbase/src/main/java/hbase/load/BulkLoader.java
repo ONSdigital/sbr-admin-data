@@ -172,8 +172,8 @@ public class BulkLoader extends Configured implements Tool {
 
     public static void main(String[] args) {
         try {
-            //HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
-            HBaseConnector connector = new HBaseInstanceConnector();
+            HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
+            //HBaseConnector connector = new HBaseInstanceConnector();
             int result = ToolRunner.run(connector.getConfiguration(), new BulkLoader(connector), args);
             System.exit(result);
         } catch (Exception e) {
