@@ -79,7 +79,7 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   "junit"                   % "junit"                           % "4.12"                   % Test,
   "com.github.tomakehurst"  % "wiremock"                        % "1.33"                   % "test"
 ) ++ hadoopDeps
-//  .map(_ % "provided")
+  //.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"

@@ -22,4 +22,5 @@ trait Properties {
 
   // Validation
   lazy val idRegex: String = config.getString("validation.id.regex")
+
 }

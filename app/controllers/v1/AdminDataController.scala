@@ -3,6 +3,7 @@ package controllers.v1
 import javax.inject.Inject
 
 import com.typesafe.scalalogging.LazyLogging
+
 import config.Properties
 import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
 import hbase.repository.AdminDataRepository
@@ -13,13 +14,15 @@ import play.api.Configuration
 import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
-import utils.Utilities
 
+import utils.Utilities
 import scala.util.{ Failure, Success, Try }
+
+import hbase.util.ModelProperties
 
 @Api("Lookup")
 class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi, val configuration: Configuration)
-  extends ControllerUtils with I18nSupport with LazyLogging with Utilities with Properties {
+  extends ControllerUtils with I18nSupport with LazyLogging with Utilities with Properties with ModelProperties {
 
   //  val validator = new LookupValidator(messagesApi, configuration)
   //  val cb = getCircuitBreaker(getRecordById)
@@ -64,8 +67,10 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   //
   //  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 
-  def lookup(period: Option[String], max: Option[Long], id: String): Action[AnyContent] = {
-    val maxRespSize = max.getOrElse(AdminDataRepository.MAX_RESULT_SIZE)
+
+//@TODO - check id size
+  def lookup(id: String, period: Option[String], max: Option[Long]): Action[AnyContent] = {
+    val maxRespSize = max.getOrElse(MAX_RESULT_SIZE)
     Action.async {
       period match {
         case Some(p) =>
@@ -81,4 +86,5 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
       }
     }
   }
+
 }

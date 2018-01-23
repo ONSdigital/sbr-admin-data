@@ -170,7 +170,7 @@ object Common {
       "-Ywarn-unused-import", //  Warn when imports are unused (don't want IntelliJ to do it automatically)
       "-Ywarn-numeric-widen" // Warn when numerics are widened
     ),
-    logLevel := Level.Warn,
+//    logLevel := Level.Warn,
     resolvers ++= Resolvers,
     coverageExcludedPackages := ".*Routes.*;.*ReverseRoutes.*;.*javascript.*;controllers\\..*Reverse.*",
     coverageMinimum := 80,

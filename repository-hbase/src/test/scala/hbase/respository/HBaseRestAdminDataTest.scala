@@ -21,8 +21,8 @@ class HBaseRestAdminDataTest extends FlatSpec with Matchers with BeforeAndAfterE
     WIRE_MOCK_SERVER.stop()
   }
 
-  "" should "" in {
-    ???
-  }
+  //  "" should "" in {
+  //    ???
+  //  }
 
 }

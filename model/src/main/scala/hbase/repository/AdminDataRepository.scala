@@ -6,6 +6,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import com.github.nscala_time.time.Imports.YearMonth
 
 import hbase.model.AdminData
+import hbase.util.ModelProperties
 
 /**
  * AdminDataRepository
@@ -15,9 +16,9 @@ import hbase.model.AdminData
  * Copyright (c) 2017  Office for National Statistics
  */
 
-trait AdminDataRepository {
+trait AdminDataRepository extends ModelProperties {
 
-  def lookup(referencePeriod: Option[YearMonth], key: String, max: Long = AdminDataRepository.MAX_RESULT_SIZE): Future[Option[Seq[AdminData]]]
+  def lookup(referencePeriod: Option[YearMonth], key: String, max: Long = MAX_RESULT_SIZE): Future[Option[Seq[AdminData]]]
 }
 
 object AdminDataRepository {
@@ -27,5 +28,4 @@ object AdminDataRepository {
   val CLOSED_ALERT = "----- circuit breaker closed! -----"
   val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
 
-  val MAX_RESULT_SIZE: Long = 12L
 }
