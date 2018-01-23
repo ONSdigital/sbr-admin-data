@@ -112,7 +112,7 @@ public class BulkLoader extends Configured implements Tool {
             Connection connection = connector.getConnection();
             Configuration conf = this.getConf();
             //TableName tableName = TableName.valueOf(tableNameStr);
-            TableName tableName = TableName.valueOf(System.getProperty("sbr.hbase.namespace", "sbr_local_db"), tableNameStr);
+            TableName tableName = TableName.valueOf(System.getProperty("sbr.hbase.namespace", ""), tableNameStr);
             Class<? extends Mapper> mapper;
             mapper = CSVDataKVMapper.class;
             job = Job.getInstance(conf, String.format("%s Admin Data Import", tableName));
