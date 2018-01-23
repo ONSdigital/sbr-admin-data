@@ -1,5 +1,4 @@
 #!groovy
-@Library('jenkins-pipeline-shared@develop') _
 
 pipeline {
     environment {
