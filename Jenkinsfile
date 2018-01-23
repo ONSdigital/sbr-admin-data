@@ -103,16 +103,15 @@ pipeline {
                 }
                 failure {
                     colourText("warn","Failed to retrieve reports.")
-                }
+                }ß
             }
         }
 
         stage('Package'){
             agent any
             steps {
-                colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: '${BRANCH_DEV}')
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh 'rm -rf conf/sample/201706/vat_data.csv'
