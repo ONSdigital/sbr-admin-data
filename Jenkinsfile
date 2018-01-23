@@ -103,13 +103,14 @@ pipeline {
                 }
                 failure {
                     colourText("warn","Failed to retrieve reports.")
-                }ß
+                }
             }
         }
 
         stage('Package'){
             agent any
             steps {
+                // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
                     git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'develop')
                 }
