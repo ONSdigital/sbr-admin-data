@@ -6,7 +6,6 @@ import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
-import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
 import hbase.repository.HBaseAdminDataRepository;
 import hbase.load.AdminDataLoad;
@@ -59,7 +58,7 @@ class RepositoryInitializer {
 
     @Inject
     public RepositoryInitializer(Configuration configuration, AdminDataLoad dataLoader) {
-        dataLoader.load(configuration.getString("hbase.table.name"), "201706", configuration.getString("csv.file"));
+        dataLoader.load(configuration.getString("hbase.table.name"), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString("csv.header.string"));
     }
 }
 

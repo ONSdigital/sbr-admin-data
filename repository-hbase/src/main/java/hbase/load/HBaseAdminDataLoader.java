@@ -22,13 +22,12 @@ public class HBaseAdminDataLoader implements AdminDataLoad {
     private BulkLoader bulkLoader;
 
     @Override
-    public int load(String tableName, String referencePeriod, String inputFile) {
+    public int load(String tableName, String referencePeriod, String inputFile, int rowKeyColumn, String fileHeaderKey) {
         try {
-            return run(connector.getConfiguration(), bulkLoader, new String[]{tableName, referencePeriod, inputFile});
+            return run(connector.getConfiguration(), bulkLoader, new String[]{tableName, referencePeriod, inputFile, String.valueOf(rowKeyColumn), fileHeaderKey});
         } catch (Exception e) {
             LOG.error("Load failed", e);
             return -1;
         }
     }
-
 }

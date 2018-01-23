@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 /**
  * HBase bulk import example<br>
@@ -47,15 +48,14 @@ public class BulkLoader extends Configured implements Tool {
     static final String HEADER_STRING = "csv.header.string";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
-    private static final int MIN_ARGS = 6;
-    private static final int MAX_ARGS = 7;
+    private static final int MIN_ARGS = 5;
+    private static final int MAX_ARGS = 6;
     private static final int ARG_TABLE_NAME = 0;
     private static final int ARG_REFERENCE_PERIOD = 1;
     private static final int ARG_CSV_FILE = 2;
     private static final int ARG_CSV_ROWKEY_POSITION = 3;
     private static final int ARG_CSV_HEADER_STRING = 4;
-    private static final int ARG_CSV_COLUMN_HEADINGS = 5;
-    private static final int ARG_HFILE_OUT_DIR = 6;
+    private static final int ARG_HFILE_OUT_DIR = 5;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
 
     private HBaseConnector connector;
@@ -68,7 +68,7 @@ public class BulkLoader extends Configured implements Tool {
     @Override
     public int run(String[] strings) throws Exception {
         if (strings == null || strings.length < MIN_ARGS || strings.length > MAX_ARGS) {
-            System.out.println("INVALID ARGS, expected: table name, period, csv input file path, hfile output path (optional)");
+            System.out.println("INVALID ARGS, expected: table name, period, csv input file path, csv rowkey position, csv header string, hfile output path (optional)");
             System.exit(ERROR);
         }
         try {
@@ -87,7 +87,6 @@ public class BulkLoader extends Configured implements Tool {
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
         getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
-        getConf().set(COLUMN_HEADINGS, strings[ARG_CSV_COLUMN_HEADINGS]);
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
         } else {
