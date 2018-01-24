@@ -87,7 +87,8 @@ class RepositoryInitializer {
             LOG.info("Created table {}", tableName);
 
         } catch (TableExistsException e) {
-            LOG.warn("Failed to create table " + tableName, e);
+            LOG.warn("Failed to create table {} since it already exists", tableName);
+            LOG.debug("Failed to create table " + tableName, e);
 
         } catch (IOException e) {
             LOG.error("Failed to create table " + tableName, e);
@@ -107,7 +108,8 @@ class RepositoryInitializer {
             LOG.info("Created namespace {}", namespace);
 
         } catch (NamespaceExistException e) {
-            LOG.warn("Failed to create namespace " + namespace, e);
+            LOG.warn("Failed to create namespace {} since it already exists", namespace);
+            LOG.debug("Failed to create namespace " + namespace, e);
 
         } catch (IOException e) {
             LOG.error("Failed to create namespace " + namespace, e);
