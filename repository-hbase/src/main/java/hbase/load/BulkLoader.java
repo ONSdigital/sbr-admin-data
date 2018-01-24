@@ -55,7 +55,6 @@ public class BulkLoader extends Configured implements Tool {
     private static final int ARG_CSV_FILE = 2;
     private static final int ARG_CSV_ROWKEY_POSITION = 3;
     private static final int ARG_CSV_HEADER_STRING = 4;
-   // private static final int ARG_CSV_COLUMN_HEADINGS = 5;
     private static final int ARG_HFILE_OUT_DIR = 5;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
 
@@ -69,7 +68,7 @@ public class BulkLoader extends Configured implements Tool {
     @Override
     public int run(String[] strings) throws Exception {
         if (strings == null || strings.length < MIN_ARGS || strings.length > MAX_ARGS) {
-            System.out.println("INVALID ARGS, expected: table name, period, csv input file path, hfile output path (optional)");
+            System.out.println("INVALID ARGS, expected: table name, period, csv input file path, csv rowkey position, csv header string, hfile output path (optional)");
             System.exit(ERROR);
         }
         try {
@@ -79,16 +78,11 @@ public class BulkLoader extends Configured implements Tool {
             LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], AdminData.REFERENCE_PERIOD_FORMAT());
             System.exit(ERROR);
         }
-        // Check input file exists
-        /*File f = new File(strings[ARG_CSV_FILE]);
-        if (!f.exists() || f.isDirectory()) {
-            LOG.error("CSV file does not exist or is a directory");
-            System.exit(ERROR);
-        }*/
+
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
         getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
-        //getConf().set(COLUMN_HEADINGS, strings[ARG_CSV_COLUMN_HEADINGS]);
+
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
         } else {
@@ -111,7 +105,6 @@ public class BulkLoader extends Configured implements Tool {
         try {
             Connection connection = connector.getConnection();
             Configuration conf = this.getConf();
-            //TableName tableName = TableName.valueOf(tableNameStr);
             TableName tableName = TableName.valueOf(System.getProperty("sbr.hbase.namespace", ""), tableNameStr);
             Class<? extends Mapper> mapper;
             mapper = CSVDataKVMapper.class;
@@ -172,7 +165,6 @@ public class BulkLoader extends Configured implements Tool {
 
     public static void main(String[] args) {
         try {
-            //HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
             HBaseConnector connector = new HBaseInstanceConnector();
             int result = ToolRunner.run(connector.getConfiguration(), new BulkLoader(connector), args);
             System.exit(result);

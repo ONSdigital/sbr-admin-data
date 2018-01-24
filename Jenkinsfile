@@ -193,9 +193,6 @@ pipeline {
 
         stage ('Package and Push Artifact') {
             agent any
-         /*   when {
-                branch DEPLOY_PROD
-            } */
             steps {
                 script {
                     env.NODE_STAGE = "Package and Push Artifact"
@@ -289,10 +286,10 @@ def copyToHBaseNode() {
             sh '''
                 ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE mkdir -p $MODULE_NAME/lib
                 scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$MODULE_NAME/lib/
-		        echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
-	       ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f $MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
-		echo "Successfully copied jar file to HDFS"
-	    '''
+                echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
+                ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f $MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
+                echo "Successfully copied jar file to HDFS"
+	        '''
         }
     }
 }
