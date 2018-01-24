@@ -201,8 +201,7 @@ pipeline {
                     env.NODE_STAGE = "Package and Push Artifact"
                 }
                 sh """
-                    $SBT clean compile package
-                    $SBT clean compile assembly
+                    $SBT 'set test in assembly := {}' clean compile assembly
                 """
                 copyToHBaseNode()
                 colourText("success", 'Package.')
