@@ -86,6 +86,9 @@ class RepositoryInitializer {
             connection.getAdmin().createTable(htable);
             LOG.info("Created table {}", tableName);
 
+        } catch (TableExistsException e) {
+            LOG.warn("Failed to create table " + tableName, e);
+
         } catch (IOException e) {
             LOG.error("Failed to create table " + tableName, e);
             throw e;
@@ -102,6 +105,9 @@ class RepositoryInitializer {
         try(Connection connection = connector.getConnection()) {
             connection.getAdmin().createNamespace(NamespaceDescriptor.create(namespace).build());
             LOG.info("Created namespace {}", namespace);
+
+        } catch (NamespaceExistException e) {
+            LOG.warn("Failed to create namespace " + namespace, e);
 
         } catch (IOException e) {
             LOG.error("Failed to create namespace " + namespace, e);
