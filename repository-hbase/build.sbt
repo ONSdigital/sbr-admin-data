@@ -105,3 +105,8 @@ mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
 crossPaths := false
 testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
 logBuffered in Test := false
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}

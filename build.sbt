@@ -105,3 +105,8 @@ lazy val `repository-hbase` = project
   .settings(Common.commonSettings: _*)
   .settings(Common.assemblySettings:_*)
   .dependsOn(model)
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}

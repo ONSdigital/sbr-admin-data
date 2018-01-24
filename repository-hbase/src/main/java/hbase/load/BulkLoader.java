@@ -2,6 +2,7 @@ package hbase.load;
 
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInMemoryConnector;
+import hbase.connector.HBaseInstanceConnector;
 import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -27,7 +28,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 
 /**
  * HBase bulk import example<br>
@@ -78,15 +78,11 @@ public class BulkLoader extends Configured implements Tool {
             LOG.error("Cannot parse reference period with value '{}'. Format should be '{}'", strings[ARG_REFERENCE_PERIOD], AdminData.REFERENCE_PERIOD_FORMAT());
             System.exit(ERROR);
         }
-        // Check input file exists
-        File f = new File(strings[ARG_CSV_FILE]);
-        if (!f.exists() || f.isDirectory()) {
-            LOG.error("CSV file does not exist or is a directory");
-            System.exit(ERROR);
-        }
+
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
         getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
         } else {
@@ -109,7 +105,7 @@ public class BulkLoader extends Configured implements Tool {
         try {
             Connection connection = connector.getConnection();
             Configuration conf = this.getConf();
-            TableName tableName = TableName.valueOf(tableNameStr);
+            TableName tableName = TableName.valueOf(System.getProperty("sbr.hbase.namespace", ""), tableNameStr);
             Class<? extends Mapper> mapper;
             mapper = CSVDataKVMapper.class;
             job = Job.getInstance(conf, String.format("%s Admin Data Import", tableName));
@@ -132,6 +128,7 @@ public class BulkLoader extends Configured implements Tool {
                             // Auto configure partitioner and reducer
                             HFileOutputFormat2.configureIncrementalLoad(job, table, regionLocator);
                             Path hfilePath = new Path(String.format("%s%s%s_%s_%d", outputFilePath, Path.SEPARATOR, tableNameStr, referencePeriod, start.getEpochSecond()));
+                            FileOutputFormat.setOutputPath(job, hfilePath);
 
                             if (job.waitForCompletion(true)) {
                                 try (Admin admin = connection.getAdmin()) {
@@ -168,7 +165,7 @@ public class BulkLoader extends Configured implements Tool {
 
     public static void main(String[] args) {
         try {
-            HBaseConnector connector = new HBaseInMemoryConnector(args[1]);
+            HBaseConnector connector = new HBaseInstanceConnector();
             int result = ToolRunner.run(connector.getConfiguration(), new BulkLoader(connector), args);
             System.exit(result);
         } catch (Exception e) {
