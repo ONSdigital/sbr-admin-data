@@ -11,6 +11,7 @@ import com.typesafe.config.Config
  * Date: 06 December 2017 - 16:43
  * Copyright (c) 2017  Office for National Statistics
  */
+
 trait HBaseConfig {
 
   implicit val configuration: Configuration

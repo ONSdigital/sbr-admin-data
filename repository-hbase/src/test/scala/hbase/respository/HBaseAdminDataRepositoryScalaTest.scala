@@ -27,6 +27,7 @@ import scala.concurrent.duration._
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
+  private val MAX_RESULT_SIZE = 12
   private val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
 
   private val connector = mock[HBaseConnector]
@@ -75,7 +76,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     when(result.listCells()) thenReturn cells
     when(result.getRow) thenReturn Bytes.toBytes(rowKey)
 
-    val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId), 1 second)
+    val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId, Some(MAX_RESULT_SIZE)), 1 second)
       .getOrElse(throw new Exception("Unable to do repository lookup"))
     assertEquals(lookup.head.id, testId)
     assertEquals(lookup.head.referencePeriod, testPeriod)
@@ -122,7 +123,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val s = setup
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
     when(result.isEmpty) thenReturn true
-    val lookup = Await.result(s.repository.lookup(Some(testPeriod), "12345"), 1 second)
+    val lookup = Await.result(s.repository.lookup(Some(testPeriod), "12345", None), 1 second)
     assertEquals(lookup, None)
   }
 
@@ -131,7 +132,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
     when(connection.getTable(any())) thenThrow new IOException("Failed to retrieve data")
     assertThrows[IOException] {
-      Await.result(s.repository.lookup(Some(testPeriod), "12345"), 1 second)
+      Await.result(s.repository.lookup(Some(testPeriod), "12345", None), 1 second)
     }
   }
 }

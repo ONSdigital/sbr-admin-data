@@ -31,7 +31,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
   private val auth = encodeBase64(Seq(username, password))
 
-  // TODO - add Circuitbreaker
+  // TODO - add Circuit breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] =
     getAdminData(referencePeriod, key, max)
 
@@ -42,15 +42,17 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-        LOGGER.debug("Making restful GET request to HBase with '{}'", uri.toString)
+        LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} and headers ${headers.mkString}")
         ws.singleGETRequest(uri.toString, headers)
       case None =>
-        val params = max match {
-          case Some(m) => Seq("reversed" -> "true", "limit" -> m.toString)
-          case None => Seq("reversed" -> "true")
+        val params = if (max.isDefined) {
+          Seq("reversed" -> "true", "limit" -> max.get.toString)
+        } else {
+          Seq("reversed" -> "true")
         }
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + RowKeyUtils.DELIMITER + "*"
-        LOGGER.debug("Making restful SCAN request to HBase with '{}'", uri.toString)
+        LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, headers ${headers.mkString} " +
+          s"and parameters ${params.mkString}")
         ws.singleGETRequest(uri.toString, headers, params)
     }).map {
       case response if response.status == OK => {

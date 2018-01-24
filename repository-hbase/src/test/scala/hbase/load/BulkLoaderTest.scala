@@ -26,8 +26,10 @@ import scala.concurrent.Future
  */
 
 // @TODO - REMOVE NULLEXCEPTION methods
-class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT with Matchers with MockitoSugar with BeforeAndAfterAll {
+class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT with Matchers with MockitoSugar
+  with BeforeAndAfterAll {
 
+  private val MAX_RESULT_SIZE = 12
   private val TEST_CSV_ID_COLUMN = "1"
   private val TEST_PERIOD: YearMonth = new YearMonth(2017, 6)
   private val TEST_PERIOD_STR = TEST_PERIOD.toString(AdminData.REFERENCE_PERIOD_FORMAT)
@@ -40,7 +42,9 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
   @throws(classOf[Exception])
   private def setup = new {
     val bc = beforeClass
-    val repository: InMemoryAdminDataRepository = new InMemoryAdminDataRepository(bc.HBASE_CONNECTOR, Configuration(ConfigFactory.load()))
+    val repository: InMemoryAdminDataRepository = new InMemoryAdminDataRepository(
+      bc.HBASE_CONNECTOR,
+      Configuration(ConfigFactory.load))
     val bulkLoader: BulkLoader = new BulkLoader(bc.HBASE_CONNECTOR)
   }
 
@@ -58,8 +62,11 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
     val result = loadData(Array[String](TABLE_NAME, TEST_PERIOD_STR, TEST_CH_CSV))
     result should equal(0)
 
-    val company: Future[Option[Seq[AdminData]]] = testSetup.repository.lookup(Some(TEST_PERIOD), "04375380")
+    val company: Future[Option[Seq[AdminData]]] = testSetup.repository.lookup(
+      Some(TEST_PERIOD),
+      "04375380", Some(MAX_RESULT_SIZE))
 
+    // TODO - Remove toJava
     toJava(company).toCompletableFuture.get.isDefined should equal(true)
     toJava(company).toCompletableFuture.get.getOrElse(throw new Exception("Null object found")).head.id should equal("04375380")
   }
@@ -71,14 +78,14 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
   it must "loadPAYEData" in {
     val testSetup = setup
 
-    System.setProperty(CSVDataKVMapper.HEADER_STRING, "entref");
-    val file = new File(TEST_PAYE_CSV);
+    System.setProperty(CSVDataKVMapper.HEADER_STRING, "entref")
+    val file = new File(TEST_PAYE_CSV)
     file should be('file)
 
     val result = loadData(Array[String](TABLE_NAME, TEST_PERIOD_STR, TEST_PAYE_CSV))
     result should equal(0)
 
-    val payeReturn: Future[Option[Seq[AdminData]]] = testSetup.repository.lookup(Some(TEST_PERIOD), "8878574")
+    val payeReturn: Future[Option[Seq[AdminData]]] = testSetup.repository.lookup(Some(TEST_PERIOD), "8878574", Some(MAX_RESULT_SIZE))
 
     toJava(payeReturn).toCompletableFuture.get.isDefined should equal(true)
     toJava(payeReturn).toCompletableFuture.get.getOrElse(throw new Exception("Null object found")).head.id should equal("8878574")
@@ -97,7 +104,7 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
     val result = loadData(Array[String](TABLE_NAME, TEST_PERIOD_STR, TEST_VAT_CSV))
     result should equal(0)
 
-    val vatReturn = testSetup.repository.lookup(Some(TEST_PERIOD), "808281648666")
+    val vatReturn = testSetup.repository.lookup(Some(TEST_PERIOD), "808281648666", None)
 
     toJava(vatReturn).toCompletableFuture.get.isDefined should equal(true)
     toJava(vatReturn).toCompletableFuture.get.getOrElse(throw new Exception("Null object found")).head.id should equal("808281648666")
