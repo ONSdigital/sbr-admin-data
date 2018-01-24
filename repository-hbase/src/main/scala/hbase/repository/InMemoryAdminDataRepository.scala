@@ -5,15 +5,17 @@ import javax.inject.Inject
 import scala.collection.JavaConversions._
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
 import scala.util.{ Failure, Success, Try }
+
+import play.api.Configuration
 import org.apache.hadoop.hbase.CellUtil
 import org.apache.hadoop.hbase.client.{ Get, Result, Scan, Table }
 import org.apache.hadoop.hbase.util.Bytes
 import com.github.nscala_time.time.Imports.YearMonth
+
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
-import hbase.repository.AdminDataRepository._
+import hbase.repository.AdminDataRepository.LOGGER
 import hbase.util.{ HBaseConfig, RowKeyUtils }
-import play.api.Configuration
 
 /**
  * InMemoryAdminDataRepository
@@ -22,15 +24,18 @@ import play.api.Configuration
  * Date: 11 January 2018 - 11:46
  * Copyright (c) 2017  Office for National Statistics
  */
-class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration) extends AdminDataRepository with HBaseConfig {
+
+class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration)
+  extends AdminDataRepository with HBaseConfig {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
-  override def lookup(referencePeriod: Option[YearMonth], key: String, max: Long = MAX_RESULT_SIZE): Future[Option[Seq[AdminData]]] =
+  // TODO - add Circuitbreaker
+  override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] =
     Future.successful(getAdminData(referencePeriod, key, max))
 
   @throws(classOf[Throwable])
-  private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Long): Option[Seq[AdminData]] = {
+  private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Option[Seq[AdminData]] = {
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
         referencePeriod match {
@@ -48,7 +53,9 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
             val scan = new Scan()
               .setReversed(true)
               .setRowPrefixFilter(Bytes.toBytes(key + RowKeyUtils.DELIMITER))
-            scan.setMaxResultSize(max)
+            if (max.isDefined) {
+              scan.setMaxResultSize(max.get)
+            }
             Option(table.getScanner(scan).next) match {
               case Some(_) =>
                 LOGGER.debug("Found data for prefix row key '{}'", key)

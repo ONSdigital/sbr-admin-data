@@ -31,25 +31,28 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
   private val auth = encodeBase64(Seq(username, password))
 
-  override def lookup(referencePeriod: Option[YearMonth], key: String, max: Long = MAX_RESULT_SIZE): Future[Option[Seq[AdminData]]] =
+  // TODO - add Circuitbreaker
+  override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] =
     getAdminData(referencePeriod, key, max)
 
   @throws(classOf[Throwable])
-  private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Long): Future[Option[Seq[AdminData]]] = {
+  private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] = {
     val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
-    val request = referencePeriod match {
+    (referencePeriod match {
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
         LOGGER.debug("Making restful GET request to HBase with '{}'", uri.toString)
         ws.singleGETRequest(uri.toString, headers)
       case None =>
-        val params = Seq("reversed" -> "true", "limit" -> max.toString)
+        val params = max match {
+          case Some(m) => Seq("reversed" -> "true", "limit" -> m.toString)
+          case None => Seq("reversed" -> "true")
+        }
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + RowKeyUtils.DELIMITER + "*"
         LOGGER.debug("Making restful SCAN request to HBase with '{}'", uri.toString)
         ws.singleGETRequest(uri.toString, headers, params)
-    }
-    request.map {
+    }).map {
       case response if response.status == OK => {
         val resp = (response.json \ "Row").as[Seq[JsValue]]
         Try(resp.map(v => convertToAdminData(v))) match {

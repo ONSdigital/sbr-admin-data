@@ -2,28 +2,28 @@ package controllers.v1
 
 import javax.inject.Inject
 
-import com.typesafe.scalalogging.LazyLogging
+import scala.util.{ Failure, Success, Try }
 
-import config.Properties
-import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
-import hbase.repository.AdminDataRepository
-import io.swagger.annotations._
-import org.joda.time.YearMonth
-import org.joda.time.format.DateTimeFormat
 import play.api.Configuration
 import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ Action, AnyContent }
+import org.joda.time.YearMonth
+import org.joda.time.format.DateTimeFormat
+import com.typesafe.scalalogging.LazyLogging
+import io.swagger.annotations._
 
+import config.Properties
+import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
+import hbase.repository.AdminDataRepository
 import utils.Utilities
-import scala.util.{ Failure, Success, Try }
-
-import hbase.util.ModelProperties
 
 @Api("Lookup")
-class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi, val configuration: Configuration)
-  extends ControllerUtils with I18nSupport with LazyLogging with Utilities with Properties with ModelProperties {
+class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi,
+  val configuration: Configuration) extends ControllerUtils with I18nSupport
+  with LazyLogging with Utilities with Properties {
 
+  // TODO - return caching and circuitbreaker on controller side
   //  val validator = new LookupValidator(messagesApi, configuration)
   //  val cb = getCircuitBreaker(getRecordById)
   //
@@ -69,19 +69,18 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
 
   //@TODO - check id size
   def lookup(id: String, period: Option[String], max: Option[Long]): Action[AnyContent] = {
-    val maxRespSize = max.getOrElse(MAX_RESULT_SIZE)
     Action.async {
       period match {
         case Some(p) =>
           Try(YearMonth.parse(p, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))) match {
             case Success(date: YearMonth) =>
-              lookupRequest(repository.lookup, Some(date), id, maxRespSize)
+              lookupRequest(repository.lookup, Some(date), id, max)
             case Failure(ex: IllegalArgumentException) =>
               BadRequest(Messages("controller.invalid.period", p, REFERENCE_PERIOD_FORMAT, ex.toString)).future
             case Failure(ex) => BadRequest(s"$ex").future
           }
         case None =>
-          lookupRequest(repository.lookup, None, id, maxRespSize)
+          lookupRequest(repository.lookup, None, id, max)
       }
     }
   }
