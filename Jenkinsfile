@@ -1,5 +1,4 @@
 #!groovy
-@Library('jenkins-pipeline-shared@feature/hbase-connect') _
 
 pipeline {
     environment {
@@ -49,6 +48,7 @@ pipeline {
                 }
             }
         }
+
         stage('Test'){
             agent any
             steps {
@@ -110,9 +110,9 @@ pipeline {
         stage('Package'){
             agent any
             steps {
-                colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
+               // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'feature/hbase-rest')
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'develop')
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh 'rm -rf conf/sample/201706/vat_data.csv'
@@ -193,17 +193,14 @@ pipeline {
 
         stage ('Package and Push Artifact') {
             agent any
-            when {
-                branch DEPLOY_PROD
-            }
             steps {
                 script {
                     env.NODE_STAGE = "Package and Push Artifact"
                 }
                 sh """
-                    $SBT clean compile package
-                    $SBT clean compile assembly
+                    $SBT 'set test in assembly := {}' clean compile assembly
                 """
+                copyToHBaseNode()
                 colourText("success", 'Package.')
             }
         }
@@ -279,5 +276,20 @@ def deploy () {
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
         deployToCloudFoundryHBase("cloud-foundry-$TEAM-${env.DEPLOY_NAME}-user", TEAM, "${env.DEPLOY_NAME}", "${env.DEPLOY_NAME}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", TABLE_NAME, NAMESPACE)
+    }
+}
+
+def copyToHBaseNode() {
+    echo "Deploying to $DEPLOY_DEV"
+    sshagent(credentials: ["sbr-$DEPLOY_DEV-ci-ssh-key"]) {
+        withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
+            sh '''
+                ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE mkdir -p $MODULE_NAME/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$MODULE_NAME/lib/
+                echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
+                ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f $MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
+                echo "Successfully copied jar file to HDFS"
+	        '''
+        }
     }
 }

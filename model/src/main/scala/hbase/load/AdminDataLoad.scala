@@ -14,7 +14,7 @@ package hbase.load
 //@ImplementedBy(classOf[HBaseAdminDataLoader])
 trait AdminDataLoad {
 
-  def load(tableName: String, referencePeriod: String, inputFile: String): Int
+  def load(tableName: String, referencePeriod: String, inputFile: String, rowKeyColumn: Int, fileHeaderKey: String): Int
 
 }
 

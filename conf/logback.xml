@@ -29,6 +29,10 @@
         <appender-ref ref="ASYNCFILE"/>
         <appender-ref ref="ASYNCSTDOUT"/>
     </logger>
+    <logger name="RepositoryInitializer" level="INFO" additivity="false">
+        <appender-ref ref="ASYNCFILE"/>
+        <appender-ref ref="ASYNCSTDOUT"/>
+    </logger>
 
     <logger name="akka" level="INFO"/>
     <logger name="akka" level="INFO"/>

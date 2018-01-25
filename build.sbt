@@ -6,9 +6,12 @@ lazy val `sbr-admin-data` = (project in file("."))
   .enablePlugins(BuildInfoPlugin, PlayScala)
   .disablePlugins(AssemblyPlugin)
   .dependsOn(`repository-hbase`)
-  .aggregate(model, `repository-hbase`, `hbase-loader`)
+  .aggregate(model, `repository-hbase`, `hbase-loader-thin`, `hbase-loader-fat`)
 
-lazy val `hbase-loader` = project
+lazy val `hbase-loader-thin` = project
+  .dependsOn(`repository-hbase`)
+
+lazy val `hbase-loader-fat` = project
   .dependsOn(`repository-hbase`)
 
 lazy val `repository-hbase` = project
@@ -27,3 +30,6 @@ buildInfoPackage := "controllers"
 
 coverageMinimum := 55
 
+dockerBaseImage := "openjdk:8-jre"
+
+dockerExposedPorts := Seq(9000)

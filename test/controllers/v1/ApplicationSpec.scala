@@ -1,21 +1,27 @@
 package controllers.v1
 
 import play.api.cache.CacheApi
+import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.{ contentAsString, _ }
 import play.api.test._
 import play.api.{ Application, Configuration }
-import play.api.inject.bind
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import com.typesafe.config.ConfigFactory
 
+import hbase.connector.{ HBaseConnector, HBaseInMemoryConnector }
+
 class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite {
+
+  private val appConfig = ConfigFactory.load("application.test.conf");
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
-      .loadConfig(Configuration(ConfigFactory.load("application.test.conf")))
-      .overrides(bind[CacheApi].toInstance(new TestCache(false)))
+      .loadConfig(Configuration(appConfig))
+      .overrides(
+        bind[CacheApi].toInstance(new TestCache(false)),
+        bind[HBaseConnector].toInstance(new HBaseInMemoryConnector(appConfig.getString("hbase.table.name"))))
       .build()
 
   "Routes" should {
