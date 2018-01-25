@@ -3,6 +3,7 @@ package hbase.load;
 import au.com.bytecode.opencsv.CSVParser;
 import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
@@ -12,14 +13,13 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import org.joda.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static hbase.load.BulkLoader.REFERENCE_PERIOD;
+import static hbase.load.BulkLoader.*;
 import static org.apache.hadoop.hbase.util.Bytes.toBytes;
 
 /**
@@ -30,9 +30,6 @@ import static org.apache.hadoop.hbase.util.Bytes.toBytes;
 public class CSVDataKVMapper extends
         Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
 
-    private static final String COLUMN_HEADINGS = "csv.column.headings";
-    static final String ROWKEY_POSITION = "csv.id.position";
-    public static final String HEADER_STRING = "csv.header.string";
     private static final Logger LOG = LoggerFactory.getLogger(CSVDataKVMapper.class.getName());
     private static final byte[] LAST_UPDATED_BY_COLUMN = toBytes("updatedBy");
     private static final byte[] LAST_UPDATED_BY_VALUE = toBytes("Data Load");
@@ -44,20 +41,20 @@ public class CSVDataKVMapper extends
     private final byte[] columnFamily = toBytes("d");
     private int rowKeyFieldPosition;
 
-    private String getHeaderString() {
-        return System.getProperty(HEADER_STRING, "");
+    private String getHeaderString(Configuration conf) {
+        return conf.get(HEADER_STRING, "");
     }
 
-    private int getRowKeyFieldPosition() {
-        return Integer.valueOf(System.getProperty(ROWKEY_POSITION, "1"));
+    private int getRowKeyFieldPosition(Configuration conf) {
+        return conf.getInt(ROWKEY_POSITION, 1);
     }
 
-    private boolean useCsvHeaderAsColumnNames() {
-        return System.getProperty(COLUMN_HEADINGS, "").isEmpty();
+    private boolean useCsvHeaderAsColumnNames(Configuration conf) {
+        return conf.get(COLUMN_HEADINGS, "").isEmpty();
     }
 
-    private byte[][] getColumnNames() {
-        String[] headings = System.getProperty(COLUMN_HEADINGS).split(COMMA);
+    private byte[][] getColumnNames(Configuration conf) {
+        String[] headings = conf.get(COLUMN_HEADINGS).split(COMMA);
         byte[][] columnNames = new byte[headings.length][];
         int i = 0;
         for (String heading : headings) {
@@ -68,22 +65,23 @@ public class CSVDataKVMapper extends
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
-        rowKeyFieldPosition = getRowKeyFieldPosition();
+        Configuration conf = context.getConfiguration();
+        rowKeyFieldPosition = getRowKeyFieldPosition(conf);
         LOG.debug("Id field is a position {} in CSV file", rowKeyFieldPosition);
-        if (!useCsvHeaderAsColumnNames()) {
+        if (!useCsvHeaderAsColumnNames(conf)) {
             LOG.debug("Using supplied column headers for file not those in the csv file");
-            columnNames = getColumnNames();
+            columnNames = getColumnNames(conf);
         }
-        String periodStr = System.getProperty(REFERENCE_PERIOD);
+        String periodStr = conf.get(REFERENCE_PERIOD);
         try {
             referencePeriod = YearMonth.parse(periodStr, DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT()));
         } catch (Exception e) {
-            LOG.error("Cannot parse '{}' system property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, AdminData.REFERENCE_PERIOD_FORMAT());
+            LOG.error("Cannot parse '{}' property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, AdminData.REFERENCE_PERIOD_FORMAT());
             throw e;
         }
-        if (getHeaderString().isEmpty() && useCsvHeaderAsColumnNames()){
+        if (getHeaderString(conf).isEmpty() && useCsvHeaderAsColumnNames(conf)){
             LOG.error("If no header row identifying string is specified then column heading must be supplied");
-            throw new IllegalArgumentException("System property not set " + HEADER_STRING);
+            throw new IllegalArgumentException("Property not set " + HEADER_STRING);
         }
         csvParser = new CSVParser();
     }
@@ -94,7 +92,7 @@ public class CSVDataKVMapper extends
         if (value == null || value.getLength() == 0) return;
 
         // Skip header
-        if (isHeaderRow(value)) return;
+        if (isHeaderRow(value, context.getConfiguration())) return;
 
         String[] fields = parseLine(value, context);
         if (fields == null) return;
@@ -104,11 +102,11 @@ public class CSVDataKVMapper extends
         writeRow(context, rowKeyStr, fields);
     }
 
-    private boolean isHeaderRow(Text value) throws IOException {
-        String headerString = getHeaderString();
+    private boolean isHeaderRow(Text value, Configuration conf) throws IOException {
+        String headerString = getHeaderString(conf);
         if (!headerString.isEmpty()) {
             if (value.find(headerString) > -1) {
-                if (useCsvHeaderAsColumnNames()) {
+                if (useCsvHeaderAsColumnNames(conf)) {
                     LOG.debug("Found csv header row: {}", value.toString());
                     LOG.debug("Using header row as table column names");
                     try {

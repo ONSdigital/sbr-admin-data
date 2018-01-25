@@ -76,7 +76,7 @@ class RepositoryInitializer {
         if (!tableExists(tableName)) createTable(tableName);
 
         LOG.info("Invoking load of admin data.");
-        dataLoader.load(tableName.getNameWithNamespaceInclAsString(), "201706", configuration.getString("csv.file"));
+        dataLoader.load(tableName.getNameWithNamespaceInclAsString(), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString("csv.header.string"));
     }
 
     private void createTable(TableName tableName) throws IOException {
