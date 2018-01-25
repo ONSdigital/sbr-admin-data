@@ -5,7 +5,6 @@ import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
 import hbase.connector.HBaseInstanceConnector;
 import hbase.load.AdminDataLoad;
-import hbase.load.CSVDataKVMapper;
 import hbase.load.HBaseAdminDataLoader;
 import hbase.repository.AdminDataRepository;
 import hbase.repository.HBaseAdminDataRepository;
@@ -44,7 +43,7 @@ public class Module extends AbstractModule {
     @Override
     public void configure() {
         if (configuration.getBoolean("hbase.initialize")) {
-            System.setProperty(CSVDataKVMapper.HEADER_STRING, configuration.getString("csv.header.string"));
+            System.setProperty(RepositoryInitializer.HEADER_KEY, configuration.getString(RepositoryInitializer.HEADER_KEY));
             bind(RepositoryInitializer.class).asEagerSingleton();
         }
         bind(HBaseConnector.class).to(HBaseInstanceConnector.class);
@@ -57,6 +56,8 @@ public class Module extends AbstractModule {
 }
 
 class RepositoryInitializer {
+
+    public static final String HEADER_KEY = "csv.header.string";
 
     private static final Logger LOG = LoggerFactory.getLogger(RepositoryInitializer.class);
 
@@ -76,7 +77,7 @@ class RepositoryInitializer {
         if (!tableExists(tableName)) createTable(tableName);
 
         LOG.info("Invoking load of admin data.");
-        dataLoader.load(tableName.getNameWithNamespaceInclAsString(), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString("csv.header.string"));
+        dataLoader.load(tableName.getNameWithNamespaceInclAsString(), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString(HEADER_KEY));
     }
 
     private void createTable(TableName tableName) throws IOException {
