@@ -1,7 +1,6 @@
 package hbase.load;
 
 import hbase.connector.HBaseConnector;
-import hbase.load.AdminDataLoad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +19,7 @@ public class HBaseAdminDataLoader implements AdminDataLoad {
 
     @Inject
     private BulkLoader bulkLoader;
+
 
     @Override
     public int load(String tableName, String referencePeriod, String inputFile, int rowKeyColumn, String fileHeaderKey) {

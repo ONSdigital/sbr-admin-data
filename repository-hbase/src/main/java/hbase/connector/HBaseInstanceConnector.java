@@ -1,8 +1,8 @@
 package hbase.connector;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,7 +149,6 @@ public class HBaseInstanceConnector extends AbstractHBaseConnector {
     private void logSystemPropertyNotFound(String key) {
         LOG.warn("No system property found for '{}'", key);
     }
-
 
     public static void main(String[] args) throws Exception {
         new HBaseInstanceConnector().validateSchema();

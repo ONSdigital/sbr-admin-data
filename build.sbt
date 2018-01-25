@@ -106,6 +106,10 @@ lazy val `repository-hbase` = project
   .settings(Common.assemblySettings:_*)
   .dependsOn(model)
 
+dockerBaseImage := "openjdk:8-jre"
+
+dockerExposedPorts := Seq(9000)
+
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case x => MergeStrategy.first
