@@ -59,6 +59,8 @@ class RepositoryInitializer {
 
     public static final String HEADER_KEY = "csv.header.string";
 
+    private static final String TABLE_NAME_KEY = "hbase.table.name";
+
     private static final Logger LOG = LoggerFactory.getLogger(RepositoryInitializer.class);
 
     private final HBaseConnector connector;
@@ -72,12 +74,13 @@ class RepositoryInitializer {
 
         LOG.info("Started repository initialization. Will create namespace and table if necessary.");
         final String namespace = configuration.getString("hbase.namespace");
+        System.setProperty("sbr.hbase.namespace", namespace);
         if (StringUtils.isNotBlank(namespace) && (!namespaceExists(namespace))) createNamespace(namespace);
-        final TableName tableName = TableName.valueOf(namespace, configuration.getString("hbase.table.name"));
+        final TableName tableName = TableName.valueOf(namespace, configuration.getString(TABLE_NAME_KEY));
         if (!tableExists(tableName)) createTable(tableName);
 
         LOG.info("Invoking load of admin data.");
-        dataLoader.load(tableName.getNameWithNamespaceInclAsString(), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString(HEADER_KEY));
+        dataLoader.load(configuration.getString(TABLE_NAME_KEY), "201706", configuration.getString("csv.file"), configuration.getInt("csv.id.position"), configuration.getString(HEADER_KEY));
     }
 
     private void createTable(TableName tableName) throws IOException {
