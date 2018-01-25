@@ -57,7 +57,7 @@ lazy val dependencies: Seq[ModuleID] = Seq(
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
 ) ++
-  HBaseModuleSettings.hadoopDependencies.map(_ % "provided")
+  HBaseProject.hadoopDependencies.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"

@@ -1,12 +1,34 @@
+import sbt.Keys.{crossPaths, dependencyOverrides, mainClass, packageBin, resolvers}
 import sbt.{ExclusionRule, ModuleID, _}
+import sbtassembly.AssemblyPlugin.autoImport.{assembly, MergeStrategy, assemblyMergeStrategy}
 
-object HBaseModuleSettings {
+import scoverage.ScoverageKeys.coverageMinimum
 
-  lazy val hadoopDependencies: Seq[ModuleID] = Seq(
+object HBaseProject {
+
+  lazy val settings = Seq(
+    resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/",
+    mainClass in (Compile, packageBin) := Some("hbase.load.BulkLoader"),
+    crossPaths := false,
+    dependencyOverrides += "com.google.guava" % "guava" % "14.0.1",
+  //  coverageMinimum := 27
+    assemblyMergeStrategy in assembly := {
+      case "mrapp-generated-classpath" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    }
+  )
+
+  lazy val hbaseClientDependencies = Seq(
+    hbase.groupId  % "hbase-common" % hbase.version,
+    hbase.groupId  % "hbase-client" % hbase.version exclude ("org.slf4j", "slf4j-api"),
+    hadoop.groupId % "hadoop-common" % hadoop.version
+  )
+
+  lazy val hadoopDependencies: Seq[ModuleID] = hbaseClientDependencies ++ Seq(
     // HBase
-    hbase.groupId   % "hbase-common"                      % hbase.version,
     hbase.groupId   % "hbase-common"                      % hbase.version   classifier "tests",
-    hbase.groupId   % "hbase-client"                      % hbase.version   exclude ("org.slf4j", "slf4j-api"),
     hbase.groupId   % "hbase-hadoop-compat"               % hbase.version,
     hbase.groupId   % "hbase-hadoop-compat"               % hbase.version   classifier "tests",
     hbase.groupId   % "hbase-hadoop2-compat"              % hbase.version,
@@ -15,7 +37,6 @@ object HBaseModuleSettings {
     hbase.groupId   % "hbase-server"                      % hbase.version   classifier "tests",
 
     // Hadoop
-    hadoop.groupId  % "hadoop-common"                     % hadoop.version,
     hadoop.groupId  % "hadoop-common"                     % hadoop.version  classifier "tests",
     hadoop.groupId  % "hadoop-hdfs"                       % hadoop.version  exclude ("commons-daemon", "commons-daemon"),
     hadoop.groupId  % "hadoop-hdfs"                       % hadoop.version  classifier "tests",

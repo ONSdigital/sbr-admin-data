@@ -6,12 +6,14 @@ lazy val `sbr-admin-data` = (project in file("."))
   .enablePlugins(BuildInfoPlugin, PlayScala)
   .disablePlugins(AssemblyPlugin)
   .dependsOn(`repository-hbase`)
-  .aggregate(model, `repository-hbase`, `hbase-loader-thin`, `hbase-loader-fat`)
+  .aggregate(model, `repository-hbase`, `hbase-loader`, `hbase-loader-with-hadoop`)
 
-lazy val `hbase-loader-thin` = project
+lazy val `hbase-loader-with-hadoop` = project
+  .settings(HBaseProject.settings)
   .dependsOn(`repository-hbase`)
 
-lazy val `hbase-loader-fat` = project
+lazy val `hbase-loader` = project
+  .settings(HBaseProject.settings)
   .dependsOn(`repository-hbase`)
 
 lazy val `repository-hbase` = project
@@ -33,3 +35,7 @@ coverageMinimum := 55
 dockerBaseImage := "openjdk:8-jre"
 
 dockerExposedPorts := Seq(9000)
+
+libraryDependencies ++= HBaseProject.hbaseClientDependencies
+
+resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
