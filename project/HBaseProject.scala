@@ -24,7 +24,7 @@ object HBaseProject {
     hbase.groupId  % "hbase-common" % hbase.version,
     hbase.groupId  % "hbase-client" % hbase.version exclude ("org.slf4j", "slf4j-api"),
     hadoop.groupId % "hadoop-common" % hadoop.version
-  )
+  ).map(_.excludeAll(exclusionRules :_*))
 
   lazy val hadoopDependencies: Seq[ModuleID] = hbaseClientDependencies ++ Seq(
     // HBase
@@ -42,19 +42,21 @@ object HBaseProject {
     hadoop.groupId  % "hadoop-hdfs"                       % hadoop.version  classifier "tests",
     hadoop.groupId  % "hadoop-mapreduce-client-core"      % hadoop.version,
     hadoop.groupId  % "hadoop-mapreduce-client-jobclient" % hadoop.version
-  ).map(_.excludeAll(
-    ExclusionRule("log4j", "log4j"),
-    ExclusionRule ("org.slf4j", "slf4j-log4j12"),
-    ExclusionRule("javax.xml.stream", "stax-api"),
-    ExclusionRule("org.mortbay.jetty", "servlet-api-2.5"),
-    ExclusionRule("org.mortbay.jetty", "jsp-api-2.1"),
-    ExclusionRule("io.netty", "netty-all")
-  ))
+  ).map(_.excludeAll(exclusionRules :_*))
 
   private[this] lazy val hbase = BasicModuleDetail("org.apache.hbase", "1.2.0-cdh5.10.1")
 
   private[this] lazy val hadoop = BasicModuleDetail("org.apache.hadoop", "2.6.0-cdh5.10.1")
 
   case class BasicModuleDetail(groupId: String, version: String)
+
+  private[this] lazy val exclusionRules = Seq(
+    ExclusionRule("log4j", "log4j"),
+    ExclusionRule ("org.slf4j", "slf4j-log4j12"),
+    ExclusionRule("javax.xml.stream", "stax-api"),
+    ExclusionRule("org.mortbay.jetty", "servlet-api-2.5"),
+    ExclusionRule("org.mortbay.jetty", "jsp-api-2.1"),
+    ExclusionRule("io.netty", "netty-all")
+  )
 
 }
