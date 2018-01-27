@@ -1,6 +1,6 @@
 import sbt.Keys.{crossPaths, dependencyOverrides, mainClass, packageBin, resolvers}
 import sbt.{ExclusionRule, ModuleID, _}
-import sbtassembly.AssemblyPlugin.autoImport.{assembly, MergeStrategy, assemblyMergeStrategy}
+import sbtassembly.AssemblyPlugin.autoImport.{MergeStrategy, assembly, assemblyMergeStrategy}
 
 import scoverage.ScoverageKeys.coverageMinimum
 
@@ -21,34 +21,38 @@ object HBaseProject {
   )
 
   lazy val hbaseClientDependencies = Seq(
-    hbase.groupId  % "hbase-common" % hbase.version,
-    hbase.groupId  % "hbase-client" % hbase.version exclude ("org.slf4j", "slf4j-api"),
-    hadoop.groupId % "hadoop-common" % hadoop.version
+    hbaseModule("hbase-client") exclude ("org.slf4j", "slf4j-api"),
+    hbaseModule("hbase-common"),
+    hadoopModule("hadoop-common")
   ).map(_.excludeAll(exclusionRules :_*))
 
-  lazy val hadoopDependencies: Seq[ModuleID] = hbaseClientDependencies ++ Seq(
+  lazy val hbaseDependencies = Seq(
     // HBase
-    hbase.groupId   % "hbase-common"                      % hbase.version   classifier "tests",
-    hbase.groupId   % "hbase-hadoop-compat"               % hbase.version,
-    hbase.groupId   % "hbase-hadoop-compat"               % hbase.version   classifier "tests",
-    hbase.groupId   % "hbase-hadoop2-compat"              % hbase.version,
-    hbase.groupId   % "hbase-hadoop2-compat"              % hbase.version   classifier "tests",
-    hbase.groupId   % "hbase-server"                      % hbase.version,
-    hbase.groupId   % "hbase-server"                      % hbase.version   classifier "tests",
+    hbaseModule("hbase-common") classifier "tests",
+    hbaseModule("hbase-hadoop-compat"),
+    hbaseModule("hbase-hadoop-compat") classifier "tests",
+    hbaseModule("hbase-hadoop2-compat"),
+    hbaseModule("hbase-hadoop2-compat") classifier "tests",
+    hbaseModule("hbase-server"),
+    hbaseModule("hbase-server") classifier "tests",
 
     // Hadoop
-    hadoop.groupId  % "hadoop-common"                     % hadoop.version  classifier "tests",
-    hadoop.groupId  % "hadoop-hdfs"                       % hadoop.version  exclude ("commons-daemon", "commons-daemon"),
-    hadoop.groupId  % "hadoop-hdfs"                       % hadoop.version  classifier "tests",
-    hadoop.groupId  % "hadoop-mapreduce-client-core"      % hadoop.version,
-    hadoop.groupId  % "hadoop-mapreduce-client-jobclient" % hadoop.version
+    hadoopModule("hadoop-common") classifier "tests",
+    hadoopModule("hadoop-hdfs") exclude ("commons-daemon", "commons-daemon"),
+    hadoopModule("hadoop-hdfs") classifier "tests",
+    hadoopModule("hadoop-mapreduce-client-core"),
+    hadoopModule("hadoop-mapreduce-client-jobclient")
   ).map(_.excludeAll(exclusionRules :_*))
 
-  private[this] lazy val hbase = BasicModuleDetail("org.apache.hbase", "1.2.0-cdh5.10.1")
+  lazy val hbaseAllDependencies = hbaseClientDependencies ++ hbaseDependencies
 
-  private[this] lazy val hadoop = BasicModuleDetail("org.apache.hadoop", "2.6.0-cdh5.10.1")
+  private def hbaseModule(artifactName: String): ModuleID = {
+    "org.apache.hbase"  % artifactName % "1.2.0-cdh5.10.1"
+  }
 
-  case class BasicModuleDetail(groupId: String, version: String)
+  private def hadoopModule(artifactName: String): ModuleID = {
+    "org.apache.hadoop" % artifactName % "2.6.0-cdh5.10.1"
+  }
 
   private[this] lazy val exclusionRules = Seq(
     ExclusionRule("log4j", "log4j"),

@@ -200,8 +200,8 @@ pipeline {
                 sh """
                     $SBT 'set test in assembly := {}' clean compile assembly
                 """
-                copyToHBaseNode("hbase-loader/target/hbase-loader-assembly-0.1.0-SNAPSHOT.jar")
-                copyToHBaseNode("hbase-loader-with-hadoop/target/hbase-loader-with-hadoop-assembly-0.1.0-SNAPSHOT.jar")
+                copyToHBaseNode("hbase-loader/target/hbase-loader-assembly-*.jar")
+                copyToHBaseNode("hbase-loader-with-hadoop/target/hbase-loader-with-hadoop-assembly-*.jar")
                 colourText("success", 'Package.')
             }
         }
