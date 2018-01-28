@@ -20,31 +20,23 @@ object HBaseProject {
     }
   )
 
-  lazy val hbaseClientDependencies = Seq(
+  lazy val hbaseDependencies = Seq(
     hbaseModule("hbase-client") exclude ("org.slf4j", "slf4j-api"),
     hbaseModule("hbase-common"),
-    hadoopModule("hadoop-common")
-  ).map(_.excludeAll(exclusionRules :_*))
-
-  lazy val hbaseDependencies = Seq(
-    // HBase
     hbaseModule("hbase-common") classifier "tests",
-    hbaseModule("hbase-hadoop-compat"),
-    hbaseModule("hbase-hadoop-compat") classifier "tests",
-    hbaseModule("hbase-hadoop2-compat"),
-    hbaseModule("hbase-hadoop2-compat") classifier "tests",
     hbaseModule("hbase-server"),
     hbaseModule("hbase-server") classifier "tests",
-
-    // Hadoop
+    hbaseModule("hbase-hadoop2-compat"),
+    hbaseModule("hbase-hadoop2-compat") classifier "tests",
+    hbaseModule("hbase-hadoop-compat"),
+    hbaseModule("hbase-hadoop-compat") classifier "tests",
+    hadoopModule("hadoop-common"),
     hadoopModule("hadoop-common") classifier "tests",
-    hadoopModule("hadoop-hdfs") exclude ("commons-daemon", "commons-daemon"),
-    hadoopModule("hadoop-hdfs") classifier "tests",
     hadoopModule("hadoop-mapreduce-client-core"),
-    hadoopModule("hadoop-mapreduce-client-jobclient")
+    hadoopModule("hadoop-mapreduce-client-jobclient"),
+    hadoopModule("hadoop-hdfs") exclude ("commons-daemon", "commons-daemon"),
+    hadoopModule("hadoop-hdfs") classifier "tests"
   ).map(_.excludeAll(exclusionRules :_*))
-
-  lazy val hbaseAllDependencies = hbaseClientDependencies ++ hbaseDependencies
 
   private def hbaseModule(artifactName: String): ModuleID = {
     "org.apache.hbase"  % artifactName % "1.2.0-cdh5.10.1"

@@ -36,7 +36,6 @@ dockerBaseImage := "openjdk:8-jre"
 
 dockerExposedPorts := Seq(9000)
 
-libraryDependencies ++= HBaseProject.hbaseClientDependencies ++
-  HBaseProject.hbaseDependencies.map(m => m.copy(configurations = Some(Test.name)))
+libraryDependencies ++= HBaseProject.hbaseDependencies
 
 resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"

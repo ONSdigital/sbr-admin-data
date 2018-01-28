@@ -1,19 +1,17 @@
 import sbt.ExclusionRule
 
-
 /**
-  * VALUES
+  * PROJECT DEF
   */
-lazy val Versions = new {
-  val clouderaHBase = "1.2.0-cdh5.10.1"
-  val clouderaHadoop = "2.6.0-cdh5.10.1"
-}
+moduleName := "sbr-admin-data-hbase-repository"
+description := "<description>"
+libraryDependencies ++= dependencies
+resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
+mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
 
-lazy val Constants = new {
-  //orgs
-  val apacheHBase = "org.apache.hbase"
-  val apacheHadoop = "org.apache.hadoop"
-}
+crossPaths := false
+testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
+logBuffered in Test := false
 
 
 /**
@@ -57,7 +55,7 @@ lazy val dependencies: Seq[ModuleID] = Seq(
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
 ) ++
-  HBaseProject.hbaseAllDependencies.map(_ % "provided")
+  HBaseProject.hbaseDependencies.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
@@ -69,16 +67,3 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule("log4j", "log4j"),
   ExclusionRule ("org.slf4j", "slf4j-log4j12")
 )
-
-/**
-  * PROJECT DEF
-  */
-moduleName := "sbr-admin-data-hbase-repository"
-description := "<description>"
-libraryDependencies ++= dependencies
-resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
-mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
-
-crossPaths := false
-testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
-logBuffered in Test := false
