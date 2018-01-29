@@ -29,7 +29,8 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   with Status with Results with ContentTypes {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-  private val auth = encodeBase64(Seq(username, password))
+  private val AUTH = encodeBase64(Seq(username, password))
+  private val HEADERS = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $AUTH")
 
   // TODO - add Circuit breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] =
@@ -37,30 +38,32 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
 
   @throws(classOf[Throwable])
   private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] = {
-    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $auth")
+    val headers = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $AUTH")
+    val default: Int = 1
     (referencePeriod match {
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
-        LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} and headers ${headers.mkString}")
+        LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} and headers ${headers.head.toString}")
         ws.singleGETRequest(uri.toString, headers)
       case None =>
-        val params = if (max.isDefined) {
-          Seq("reversed" -> "true", "limit" -> max.get.toString)
-        } else {
-          Seq("reversed" -> "true")
-        }
+        //        val params = if (max.isDefined) {
+        //          Seq("reversed" -> "true", "limit" -> max.get.toString)
+        //        } else {
+        //          Seq("reversed" -> "true")
+        //        }
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + RowKeyUtils.DELIMITER + "*"
-        LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, headers ${headers.mkString} " +
-          s"and parameters ${params.mkString}")
-        ws.singleGETRequest(uri.toString, headers, params)
+        LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, headers ${headers.head.toString} ")
+        ws.singleGETRequest(uri.toString, headers)
     }).map {
       case response if response.status == OK => {
         val resp = (response.json \ "Row").as[Seq[JsValue]]
         Try(resp.map(v => convertToAdminData(v))) match {
           case Success(adminData: Seq[AdminData]) =>
             LOGGER.debug("Found data for prefix row key '{}'", key)
-            Some(adminData)
+            //            Some(adminData)
+            // @NOTE - all responses need to be in DESC and capped - GET is LIMIT 1 thus result to no effect
+            Some(adminData.reverse.take(max.getOrElse(default).toString.toInt))
           case Failure(e: Throwable) =>
             LOGGER.error(s"Error getting data for row key $key", e)
             throw e
@@ -73,11 +76,12 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   }
 
   private def convertToAdminData(result: JsValue): AdminData = {
+    val columnFamilyAndValueSubstring = 2
     val key = (result \ "key").as[String]
     LOGGER.debug(s"Found record $key")
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(decodeBase64(key))
     val varMap = (result \ "Cell").as[Seq[JsValue]].map { cell =>
-      val column = decodeBase64((cell \ "column").as[String])
+      val column = decodeBase64((cell \ "column").as[String]).split(":", columnFamilyAndValueSubstring).last
       val value = decodeBase64((cell \ "$").as[String])
       column -> value
     }.toMap
