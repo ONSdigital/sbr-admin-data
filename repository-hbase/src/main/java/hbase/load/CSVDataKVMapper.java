@@ -79,6 +79,7 @@ public class CSVDataKVMapper extends
             LOG.error("Cannot parse '{}' property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, AdminData.REFERENCE_PERIOD_FORMAT());
             throw e;
         }
+        LOG.debug("Header string: {}", getHeaderString(conf));
         if (getHeaderString(conf).isEmpty() && useCsvHeaderAsColumnNames(conf)){
             LOG.error("If no header row identifying string is specified then column heading must be supplied");
             throw new IllegalArgumentException("Property not set " + HEADER_STRING);

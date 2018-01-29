@@ -200,7 +200,8 @@ pipeline {
                 sh """
                     $SBT 'set test in assembly := {}' clean compile assembly
                 """
-                copyToHBaseNode()
+                copyToHBaseNode("hbase-loader/target/hbase-loader-assembly-*.jar")
+                copyToHBaseNode("hbase-loader-with-hadoop/target/hbase-loader-with-hadoop-assembly-*.jar")
                 colourText("success", 'Package.')
             }
         }
@@ -279,13 +280,13 @@ def deploy () {
     }
 }
 
-def copyToHBaseNode() {
+def copyToHBaseNode(String jarPath) {
     echo "Deploying to $DEPLOY_DEV"
     sshagent(credentials: ["sbr-$DEPLOY_DEV-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
             sh '''
                 ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE mkdir -p $MODULE_NAME/lib
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$MODULE_NAME/lib/
+                scp ${jarPath} sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$MODULE_NAME/lib/
                 echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
                 ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f $MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
                 echo "Successfully copied jar file to HDFS"

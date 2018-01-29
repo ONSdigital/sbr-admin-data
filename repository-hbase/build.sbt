@@ -1,47 +1,24 @@
 import sbt.ExclusionRule
 
-
 /**
-  * VALUES
+  * PROJECT DEF
   */
-lazy val Versions = new {
-  val clouderaHBase = "1.2.0-cdh5.10.1"
-  val clouderaHadoop = "2.6.0-cdh5.10.1"
-}
+moduleName := "sbr-admin-data-hbase-repository"
+description := "<description>"
+libraryDependencies ++= dependencies
+resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
+mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
 
-lazy val Constants = new {
-  //orgs
-  val apacheHBase = "org.apache.hbase"
-  val apacheHadoop = "org.apache.hadoop"
-}
+crossPaths := false
+testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
+logBuffered in Test := false
 
 
 /**
   * DEPENDENCIES LISTINGS
   */
-lazy val hadoopDeps: Seq[ModuleID] = Seq(
-  // HBase
-  Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-common"                      % Versions.clouderaHBase   classifier "tests",
-  Constants.apacheHBase   % "hbase-client"                      % Versions.clouderaHBase   exclude ("org.slf4j", "slf4j-api"),
-  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-hadoop-compat"               % Versions.clouderaHBase   classifier "tests",
-  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-hadoop2-compat"              % Versions.clouderaHBase   classifier "tests",
-  Constants.apacheHBase   % "hbase-server"                      % Versions.clouderaHBase,
-  Constants.apacheHBase   % "hbase-server"                      % Versions.clouderaHBase   classifier "tests",
 
-  // Hadoop
-  Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop,
-  Constants.apacheHadoop  % "hadoop-common"                     % Versions.clouderaHadoop  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  exclude ("commons-daemon", "commons-daemon"),
-  Constants.apacheHadoop  % "hadoop-hdfs"                       % Versions.clouderaHadoop  classifier "tests",
-  Constants.apacheHadoop  % "hadoop-mapreduce-client-core"      % Versions.clouderaHadoop,
-  Constants.apacheHadoop  % "hadoop-mapreduce-client-jobclient" % Versions.clouderaHadoop
-).map(_.excludeAll ( ExclusionRule("log4j", "log4j"), ExclusionRule ("org.slf4j", "slf4j-log4j12")))
-
-
-lazy val DevDeps: Seq[ModuleID] = Seq(
+lazy val dependencies: Seq[ModuleID] = Seq(
   ws,
 
   //@NOTE - patch for unresolved dependency
@@ -77,8 +54,8 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
   "junit"                   % "junit"                           % "4.12"                   % Test
-) ++ hadoopDeps
-  //.map(_ % "provided")
+) ++
+  HBaseProject.hbaseDependencies.map(_ % "provided")
 
 // Metrics
 dependencyOverrides += "com.google.guava"        % "guava"                           % "14.0.1"
@@ -90,23 +67,3 @@ lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule("log4j", "log4j"),
   ExclusionRule ("org.slf4j", "slf4j-log4j12")
 )
-
-/**
-  * PROJECT DEF
-  */
-moduleName := "sbr-admin-data-hbase-repository"
-description := "<description>"
-libraryDependencies ++=  DevDeps
-//excludeDependencies ++= exTransiviveDeps
-resolvers += "cloudera" at "https://repository.cloudera.com/cloudera/cloudera-repos/"
-mainClass in (Compile, packageBin) := Some("hbase.hbase.load.BulkLoader")
-
-
-crossPaths := false
-testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
-logBuffered in Test := false
-
-assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x => MergeStrategy.first
-}

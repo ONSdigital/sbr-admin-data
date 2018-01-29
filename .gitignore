@@ -2,6 +2,9 @@
 logs
 project/project
 project/target
+project/scalastyle-config.xml
+model/project
+repository-hbase/project
 target
 tmp
 .history
