@@ -51,7 +51,7 @@ brew install sbt
 To run the `sbr-admin-data`, run the following command:
 
 ``` shell
-sbt run
+sbt "sbr-admin-data/run"
 ```
 
 By default, `sbr-admin-data` will look try to access data using HBase REST, which means you will have to have some data loaded into a local HBase table for this to work. You can find instructions for loading data into HBase in the [Loading Data section](#loading-data).
