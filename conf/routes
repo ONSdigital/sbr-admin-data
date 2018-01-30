@@ -8,7 +8,7 @@ GET        /v1/records/:id                     controllers.v1.AdminDataControlle
 
 GET        /v1/records/:id/history             controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] ?= None)
 
-GET        /v1/records/:id/periods/:period     controllers.v1.AdminDataController.lookup(id: String, period: Option[String], max: Option[Long] ?= None)
+GET        /v1/periods/:period/records/:id     controllers.v1.AdminDataController.lookup(id: String, period: Option[String], max: Option[Long] ?= None)
 
 # Route for health check information (in JSON).
 GET        /health                                      controllers.HealthController.health

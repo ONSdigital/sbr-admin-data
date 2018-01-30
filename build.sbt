@@ -21,7 +21,7 @@ Common.applicationConfig := {
 
 // TODO - CHANGE covergMinimum back
 //coverageMinimum := 55
-coverageMinimum := 0
+coverageMinimum := 43
 
 lazy val initExec: Seq[Def.Setting[_]] = Seq(
   crossPaths := false,
