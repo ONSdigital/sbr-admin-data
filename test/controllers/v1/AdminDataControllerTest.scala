@@ -24,7 +24,7 @@ import utils.Utilities
 
 class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results with Utilities {
 
-  private val MAX_RESULT_SIZE = 12
+  private val MAX_RESULT_SIZE: Long = 12L
 
   // TODO:
   // - test cache duration
