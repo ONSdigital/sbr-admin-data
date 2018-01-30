@@ -224,10 +224,20 @@ pipeline {
                     env.NODE_STAGE = "Deploy"
                 }
                 milestone(1)
-                lock('Deployment Initiated') {
-                    colourText("info", 'deployment in progress')
-                    deploy()
-                    colourText("success", 'Deploy.')
+                lock('${CH_TABLE} Deployment Initiated') {
+                    colourText("info", '${env.DEPLOY_NAME}-${CH_TABLE}-$MODULE_NAME deployment in progress')
+                    deploy(CH_TABLE)
+                    colourText("success", '${env.DEPLOY_NAME}-${CH_TABLE}-$MODULE_NAME Deployed.')
+                }
+                lock('${VAT_TABLE} Deployment Initiated') {
+                    colourText("info", '${env.DEPLOY_NAME}-${VAT_TABLE}-$MODULE_NAME deployment in progress')
+                    deploy(VAT_TABLE)
+                    colourText("success", '${env.DEPLOY_NAME}-${VAT_TABLE}-$MODULE_NAME Deployed.')
+                }
+                lock('${PAYE_TABLE} Deployment Initiated') {
+                    colourText("info", '${env.DEPLOY_NAME}-${PAYE_TABLE}-$MODULE_NAME deployment in progress')
+                    deploy(PAYE_TABLE)
+                    colourText("success", '${env.DEPLOY_NAME}-${PAYE_TABLE}-$MODULE_NAME Deployed.')
                 }
             }
         }
@@ -277,12 +287,11 @@ def push (String newTag, String currentTag) {
     GitRelease( GIT_CREDS, newTag, currentTag, "${env.BUILD_ID}", "${env.BRANCH_NAME}", GIT_TYPE)
 }
 
-def deploy () {
-    CF_ENV = "${env.DEPLOY_NAME}".capitalize()
+def deploy (String dataSource) {
+    CF_SPACE = "${env.DEPLOY_NAME}".capitalize()
+    CF_ORG = "${TEAM}".toUpperCase()
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_PROJECT}", "${CF_ENV}", "${env.DEPLOY_NAME}-${CH_TABLE}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", CH_TABLE, NAMESPACE)
-        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_PROJECT}", "${CF_ENV}", "${env.DEPLOY_NAME}-${VAT_TABLE}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", VAT_TABLE, NAMESPACE)
-        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_PROJECT}", "${CF_ENV}", "${env.DEPLOY_NAME}-${PAYE_TABLE}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", PAYE_TABLE, NAMESPACE)
+        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${dataSource}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", ${dataSource}, NAMESPACE)
     }
 }
