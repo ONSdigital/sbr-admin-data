@@ -27,7 +27,7 @@ import scala.concurrent.duration._
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
-  private val MAX_RESULT_SIZE = 12
+  private val MAX_RESULT_SIZE: Long = 12L
   private val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
 
   private val connector = mock[HBaseConnector]

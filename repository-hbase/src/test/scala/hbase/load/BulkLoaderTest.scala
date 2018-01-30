@@ -29,7 +29,7 @@ import scala.concurrent.Future
 class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT with Matchers with MockitoSugar
   with BeforeAndAfterAll {
 
-  private val MAX_RESULT_SIZE = 12
+  private val MAX_RESULT_SIZE: Long = 12L
   private val TEST_CSV_ID_COLUMN = "1"
   private val TEST_PERIOD: YearMonth = new YearMonth(2017, 6)
   private val TEST_PERIOD_STR = TEST_PERIOD.toString(AdminData.REFERENCE_PERIOD_FORMAT)
