@@ -12,10 +12,10 @@ sbt "api/run -Dhttp.port=9002 -Denvironment=local"
 sbt "api/run -Dsbr.hbase.inmemory=true -Dhttp.port=9001"
 ```
 
-* [sbr-admin-data-api](https://github.com/ONSdigital/sbr-admin-data-api):
+* [sbr-admin-data](https://github.com/ONSdigital/sbr-admin-data):
 
 ```shell
-sbt "api/run -Dsource=hbaseInMemory -Dsbr.hbase.inmemory=true -Dhttp.port=9003"
+sbt "sbr-admin-data/run"
 ```
 
 * [business-index-api](https://github.com/ONSdigital/business-index-api):
