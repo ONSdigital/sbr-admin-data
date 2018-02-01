@@ -1,4 +1,5 @@
 #!groovy
+@Library('jenkins-pipeline-shared@develop') _
 
 pipeline {
     environment {
@@ -23,7 +24,9 @@ pipeline {
         MODULE_NAME = "sbr-admin-data"
 
         // hbase config
-        TABLE_NAME = "enterprise"
+        CH_TABLE = "ch"
+        VAT_TABLE = "vat"
+        PAYE_TABLE = "paye"
         NAMESPACE = "sbr_dev_db"
     }
     options {
@@ -77,14 +80,14 @@ pipeline {
             agent any
             steps {
                 parallel (
-                        "Scalastyle" : {
-                            colourText("info","Running scalastyle analysis")
-                            sh "$SBT scalastyle"
-                        },
-                        "Scapegoat" : {
-                            colourText("info","Running scapegoat analysis")
-                            sh "$SBT scapegoat"
-                        }
+                    "Scalastyle" : {
+                        colourText("info","Running scalastyle analysis")
+                        sh "$SBT scalastyle"
+                    },
+                    "Scapegoat" : {
+                        colourText("info","Running scapegoat analysis")
+                        sh "$SBT scapegoat"
+                    }
                 )
             }
             post {
@@ -107,12 +110,12 @@ pipeline {
             }
         }
 
-        stage('Package'){
+        stage('Build'){
             agent any
             steps {
                // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: 'develop')
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: "${BRANCH_DEV}")
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh 'rm -rf conf/sample/201706/vat_data.csv'
@@ -139,7 +142,7 @@ pipeline {
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Package"
+                        env.NODE_STAGE = "Build"
                     }
                 }
                 success {
@@ -207,22 +210,32 @@ pipeline {
 
         stage('Deploy'){
             agent any
-             when {
+            when {
                  anyOf {
                      branch DEPLOY_DEV
                      branch DEPLOY_TEST
                      branch DEPLOY_PROD
                  }
-             }
+            }
             steps {
                 script {
                     env.NODE_STAGE = "Deploy"
                 }
                 milestone(1)
-                lock('Deployment Initiated') {
-                    colourText("info", 'deployment in progress')
-                    deploy()
-                    colourText("success", 'Deploy.')
+                lock('CH Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(CH_TABLE)
+                    colourText("success", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} Deployed.")
+                }
+                lock('VAT Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(VAT_TABLE)
+                    colourText("success", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
+                }
+                lock('PAYE Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(PAYE_TABLE)
+                    colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
                 }
             }
         }
@@ -272,10 +285,12 @@ def push (String newTag, String currentTag) {
     GitRelease( GIT_CREDS, newTag, currentTag, "${env.BUILD_ID}", "${env.BRANCH_NAME}", GIT_TYPE)
 }
 
-def deploy () {
+def deploy (String dataSource) {
+    CF_SPACE = "${env.DEPLOY_NAME}".capitalize()
+    CF_ORG = "${TEAM}".toUpperCase()
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBase("cloud-foundry-$TEAM-${env.DEPLOY_NAME}-user", TEAM, "${env.DEPLOY_NAME}", "${env.DEPLOY_NAME}-$MODULE_NAME", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", TABLE_NAME, NAMESPACE)
+        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${dataSource}-${MODULE_NAME}", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", "${dataSource}", NAMESPACE)
     }
 }
 
