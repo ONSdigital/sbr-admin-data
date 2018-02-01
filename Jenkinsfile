@@ -196,6 +196,12 @@ pipeline {
 
         stage ('Package and Push Artifact') {
             agent any
+            when {
+                anyOf {
+                    branch DEPLOY_DEV
+                    branch DEPLOY_TEST
+                }
+            }
             steps {
                 script {
                     env.NODE_STAGE = "Package and Push Artifact"

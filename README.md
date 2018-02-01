@@ -12,7 +12,7 @@ If you do not specify a period, the record for the most recent period will be re
 
 | method | endpoint                       | example                    |
 |--------|--------------------------------|----------------------------|
-| GET    | /v1/records/${id}              | GET /v1/companies/AB123456 |
+| GET    | /v1/records/${id}              | GET /v1/records/AB123456   |
 
 
 If you want to specify a particular period, use the format below.
