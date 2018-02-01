@@ -76,7 +76,8 @@ lazy val DevDeps: Seq[ModuleID] = Seq(
 
   //junit
   "com.novocode"            % "junit-interface"                 % "0.11"                   % Test,
-  "junit"                   % "junit"                           % "4.12"                   % Test
+  "junit"                   % "junit"                           % "4.12"                   % Test,
+  "com.github.tomakehurst"  % "wiremock"                        % "1.33"                   % "test"
 ) ++ hadoopDeps
   //.map(_ % "provided")
 
