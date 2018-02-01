@@ -3,19 +3,15 @@
 # ~~~~
 
 # Searching for the default period
-GET        /v1/records/:id                              controllers.v1.AdminDataController.lookup(period: Option[String], id)
+#GET        /v1/records/$id<[0-9]{4}>                    controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] ?= None)
+GET        /v1/records/:id                     controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] = Some(1))
 
-# Searching for a specific period
-GET        /v1/periods/:period/records/:id              controllers.v1.AdminDataController.lookup(period: Option[String], id)
+GET        /v1/records/:id/history             controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] ?= None)
 
-GET        /v1/records/:id/periods                      controllers.v1.AdminDataController.lookupRest(period: Option[String] ?= None, id)
+GET        /v1/records/:id/periods/:period     controllers.v1.AdminDataController.lookup(id: String, period: Option[String], max: Option[Long] ?= None)
 
 # Route for health check information (in JSON).
-GET        /health                                             controllers.HealthController.health
-
-# Swagger
-GET        /swagger.json                                 controllers.ApiHelpController.getResources
-GET        /docs                                         controllers.HomeController.swagger
+GET        /health                                      controllers.HealthController.health
 
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file                                       controllers.Assets.at(path="/public", file)
+GET        /assets/*file                                controllers.Assets.at(path="/public", file)

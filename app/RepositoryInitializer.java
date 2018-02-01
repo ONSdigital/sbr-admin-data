@@ -1,60 +1,22 @@
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Slf4jReporter;
-import com.google.inject.AbstractModule;
 import hbase.connector.HBaseConnector;
-import hbase.connector.HBaseInstanceConnector;
 import hbase.load.AdminDataLoad;
-import hbase.load.HBaseAdminDataLoader;
-import hbase.repository.AdminDataRepository;
-import hbase.repository.HBaseAdminDataRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Configuration;
-import play.Environment;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
 
 /**
- * This class is a Guice module that tells Guice how to bind several
- * different types. This Guice module is created when the Play
- * application starts.
- * <p>
- * Play will automatically use any class called `Module` that is in
- * the root package. You can create modules in other locations by
- * adding `play.modules.enabled` settings to the `application.conf`
- * configuration file.
+ * RepositoryInitializer
+ * ----------------
+ * Author: haqa
+ * Date: 01 February 2018 - 12:45
+ * Copyright (c) 2017  Office for National Statistics
  */
-public class Module extends AbstractModule {
-
-    private final Configuration configuration;
-
-    public Module(Environment environment, Configuration configuration) {
-        this.configuration = configuration;
-    }
-
-    @Override
-    public void configure() {
-        if (configuration.getBoolean("hbase.initialize")) {
-            System.setProperty(RepositoryInitializer.HEADER_KEY, configuration.getString(RepositoryInitializer.HEADER_KEY));
-            bind(RepositoryInitializer.class).asEagerSingleton();
-        }
-        bind(HBaseConnector.class).to(HBaseInstanceConnector.class);
-        bind(AdminDataRepository.class).to(HBaseAdminDataRepository.class);
-        bind(AdminDataLoad.class).to(HBaseAdminDataLoader.class);
-        if (configuration.getBoolean("api.metrics")) {
-            bind(MetricRegistry.class).toProvider(MetricRegistryProvider.class);
-        }
-    }
-}
-
 class RepositoryInitializer {
 
     public static final String HEADER_KEY = "csv.header.string";
@@ -129,39 +91,5 @@ class RepositoryInitializer {
         } catch (NamespaceNotFoundException e) {
             return false;
         }
-    }
-}
-
-
-class MetricRegistryProvider implements Provider<MetricRegistry> {
-    private static final Logger logger = LoggerFactory.getLogger("application.Metrics");
-
-    private static final MetricRegistry registry = new MetricRegistry();
-
-    private void consoleReporter() {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(registry)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build();
-        reporter.start(1, TimeUnit.SECONDS);
-    }
-
-    private void slf4jReporter() {
-        final Slf4jReporter reporter = Slf4jReporter.forRegistry(registry)
-                .outputTo(logger)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build();
-        reporter.start(1, TimeUnit.MINUTES);
-    }
-
-    public MetricRegistryProvider() {
-        consoleReporter();
-        slf4jReporter();
-    }
-
-    @Override
-    public MetricRegistry get() {
-        return registry;
     }
 }
