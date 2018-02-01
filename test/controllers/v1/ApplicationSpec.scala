@@ -2,15 +2,15 @@ package controllers.v1
 
 import play.api.cache.CacheApi
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.Helpers.{contentAsString, _}
+import play.api.test.Helpers.{ contentAsString, _ }
 import play.api.test._
-import play.api.{Application, Configuration}
+import play.api.{ Application, Configuration }
 import play.api.inject.bind
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import com.typesafe.config.ConfigFactory
 
-import hbase.connector.{HBaseConnector, HBaseInMemoryConnector}
+import hbase.connector.{ HBaseConnector, HBaseInMemoryConnector }
 
 class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite {
 

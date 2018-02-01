@@ -21,12 +21,12 @@ import hbase.model.AdminData
 import utils.CircuitBreakerActor
 
 /**
-  * AdminDataControllerUtils
-  * ----------------
-  * Author: haqa
-  * Date: 22 November 2017 - 14:19
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * AdminDataControllerUtils
+ * ----------------
+ * Author: haqa
+ * Date: 22 November 2017 - 14:19
+ * Copyright (c) 2017  Office for National Statistics
+ */
 trait ControllerUtils extends Controller with LazyLogging with Properties with I18nSupport {
 
   val system = ActorSystem("sbr-admin-data-circuit-breaker")
@@ -48,9 +48,9 @@ trait ControllerUtils extends Controller with LazyLogging with Properties with I
   def getCircuitBreaker[T, Z](f: T => Future[Option[Z]]): ActorRef = system.actorOf(Props(new CircuitBreakerActor(f)))
 
   /**
-    * On a result, use .future, e.g. Ok().future
-    * Method source: https://github.com/outworkers/hbase.util/blob/develop/hbase.util-play/src/main/scala/com/outworkers/hbase.util/play/package.scala#L98
-    */
+   * On a result, use .future, e.g. Ok().future
+   * Method source: https://github.com/outworkers/hbase.util/blob/develop/hbase.util-play/src/main/scala/com/outworkers/hbase.util/play/package.scala#L98
+   */
   implicit class ResultAugmenter(val res: Result) {
     def future: Future[Result] = Future.successful(res)
   }
@@ -82,8 +82,8 @@ trait ControllerUtils extends Controller with LazyLogging with Properties with I
   }
 
   protected def lookupRequest(
-                               lookup: (Option[YearMonth], String, Option[Long]) => Future[Option[Seq[AdminData]]],
-                               period: Option[YearMonth], id: String, max: Option[Long]): Future[Result] = {
+    lookup: (Option[YearMonth], String, Option[Long]) => Future[Option[Seq[AdminData]]],
+    period: Option[YearMonth], id: String, max: Option[Long]): Future[Result] = {
     lookup(period, id, max).map {
       case Some(res: Seq[AdminData]) => Ok(Json.toJson(res))
       case None => if (period.isEmpty) {

@@ -1,11 +1,11 @@
 package controllers
 
-import play.api.mvc.{Action, AnyContent, Controller}
-import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
+import play.api.mvc.{ Action, AnyContent, Controller }
+import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
 
 /**
-  * Created by coolit on 01/12/2017.
-  */
+ * Created by coolit on 01/12/2017.
+ */
 
 @Api("Utils")
 class HomeController extends Controller {

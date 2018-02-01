@@ -11,13 +11,18 @@ import com.typesafe.config.Config
  * Date: 06 December 2017 - 16:43
  * Copyright (c) 2017  Office for National Statistics
  */
+
 trait HBaseConfig {
 
   implicit val configuration: Configuration
-  protected val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
+  private val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
 
-  lazy final val tableName: TableName = TableName.valueOf(
-    hBaseConfig.getString("namespace"),
+  private val nameSpace: String = if (hBaseConfig.getBoolean("initialize")) {
+    hBaseConfig.getString("in.memory.namespace")
+  } else { hBaseConfig.getString("rest.namespace") }
+
+  lazy val tableName: TableName = TableName.valueOf(
+    nameSpace,
     hBaseConfig.getString("table.name"))
 
   lazy val username: String = hBaseConfig.getString("authentication.username")

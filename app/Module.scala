@@ -1,21 +1,21 @@
 import java.util.concurrent.TimeUnit
 import javax.inject.Provider
 
-import play.{Configuration, Environment}
+import play.{ Configuration, Environment }
 import org.slf4j.LoggerFactory
-import com.codahale.metrics.{ConsoleReporter, MetricRegistry, Slf4jReporter}
+import com.codahale.metrics.{ ConsoleReporter, MetricRegistry, Slf4jReporter }
 import com.google.inject.AbstractModule
 
-import hbase.connector.{HBaseConnector, HBaseInMemoryConnector}
-import hbase.load.{AdminDataLoad, BulkLoader, HBaseAdminDataLoader}
-import hbase.repository.{AdminDataRepository, InMemoryAdminDataRepository, RestAdminDataRepository}
+import hbase.connector.{ HBaseConnector, HBaseInMemoryConnector }
+import hbase.load.{ AdminDataLoad, BulkLoader, HBaseAdminDataLoader }
+import hbase.repository.{ AdminDataRepository, InMemoryAdminDataRepository, RestAdminDataRepository }
 
 /**
-  * Module
-  * ----------------
-  * Date: 01 February 2018 - 12:22
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * Module
+ * ----------------
+ * Date: 01 February 2018 - 12:22
+ * Copyright (c) 2017  Office for National Statistics
+ */
 class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule {
   override def configure(): Unit = {
     if (configuration.getBoolean("hbase.initialize")) {
@@ -32,7 +32,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     }
   }
 }
-
 
 class MetricRegistryProvider() extends Provider[MetricRegistry] {
   consoleReporter()

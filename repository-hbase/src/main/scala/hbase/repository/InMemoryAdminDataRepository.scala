@@ -34,6 +34,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] =
     Future.successful(getAdminData(referencePeriod, key, max))
 
+  //@ TODO - reduce complexity -> sub method inner cases
   @throws(classOf[Throwable])
   private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Option[Seq[AdminData]] = {
     Try(connector.getConnection.getTable(tableName)) match {

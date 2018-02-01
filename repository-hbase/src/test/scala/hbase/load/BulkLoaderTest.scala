@@ -18,12 +18,12 @@ import scala.compat.java8.FutureConverters.toJava
 import scala.concurrent.Future
 
 /**
-  * BulkLoaderTest
-  * ----------------
-  * Author: haqa
-  * Date: 30 November 2017 - 09:44
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * BulkLoaderTest
+ * ----------------
+ * Author: haqa
+ * Date: 30 November 2017 - 09:44
+ * Copyright (c) 2017  Office for National Statistics
+ */
 
 // @TODO - REMOVE NULLEXCEPTION methods
 class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT with Matchers with MockitoSugar
@@ -49,9 +49,9 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
   }
 
   /**
-    * @throws NullPointerException
-    * @throws Exception
-    */
+   * @throws NullPointerException
+   * @throws Exception
+   */
   it must "loadCompaniesData" in {
     val testSetup = setup
 
@@ -72,9 +72,9 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
   }
 
   /**
-    * @throws NullPointerException
-    * @throws Exception
-    */
+   * @throws NullPointerException
+   * @throws Exception
+   */
   it must "loadPAYEData" in {
     val testSetup = setup
 
@@ -92,9 +92,9 @@ class BulkLoaderTest @Inject() (ws: RequestGenerator) extends AbstractHBaseIT wi
   }
 
   /**
-    * @throws NullPointerException
-    * @throws Exception
-    */
+   * @throws NullPointerException
+   * @throws Exception
+   */
   it must "loadVATData" in {
     val testSetup = setup
     System.setProperty(BulkLoader.HEADER_STRING, "entref")

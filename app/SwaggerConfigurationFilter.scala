@@ -6,12 +6,12 @@ import io.swagger.models.parameters.Parameter
 import io.swagger.models.{ Model, Operation }
 import io.swagger.models.properties.Property
 /**
-  * SwaggerConfigurationFilter
-  * ----------------
-  * Author: haqa
-  * Date: 01 February 2018 - 12:19
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * SwaggerConfigurationFilter
+ * ----------------
+ * Author: haqa
+ * Date: 01 February 2018 - 12:19
+ * Copyright (c) 2017  Office for National Statistics
+ */
 class SwaggerConfigurationFilter extends SwaggerSpecFilter {
 
   private val parametersNotAllowed: List[String] = List()
@@ -19,27 +19,27 @@ class SwaggerConfigurationFilter extends SwaggerSpecFilter {
   private val opertaionsNotAllowed: List[String] = List()
 
   def isParamAllowed(
-                      parameter: Parameter,
-                      operation: Operation,
-                      api: ApiDescription,
-                      params: util.Map[String, util.List[String]],
-                      cookies: util.Map[String, String],
-                      headers: util.Map[String, util.List[String]]): Boolean = filter(parametersNotAllowed, parameter.getName)
+    parameter: Parameter,
+    operation: Operation,
+    api: ApiDescription,
+    params: util.Map[String, util.List[String]],
+    cookies: util.Map[String, String],
+    headers: util.Map[String, util.List[String]]): Boolean = filter(parametersNotAllowed, parameter.getName)
 
   def isPropertyAllowed(
-                         model: Model,
-                         property: Property,
-                         propertyName: String,
-                         params: util.Map[String, util.List[String]],
-                         cookies: util.Map[String, String],
-                         headers: util.Map[String, util.List[String]]): Boolean = filter(propertiesNotAllowed, property.getName)
+    model: Model,
+    property: Property,
+    propertyName: String,
+    params: util.Map[String, util.List[String]],
+    cookies: util.Map[String, String],
+    headers: util.Map[String, util.List[String]]): Boolean = filter(propertiesNotAllowed, property.getName)
 
   def isOperationAllowed(
-                          operation: Operation,
-                          api: ApiDescription,
-                          params: util.Map[String, util.List[String]],
-                          cookies: util.Map[String, String],
-                          headers: util.Map[String, util.List[String]]): Boolean = true
+    operation: Operation,
+    api: ApiDescription,
+    params: util.Map[String, util.List[String]],
+    cookies: util.Map[String, String],
+    headers: util.Map[String, util.List[String]]): Boolean = true
 
   def filter(terms: List[String], f: => String): Boolean =
     !terms.contains(f)

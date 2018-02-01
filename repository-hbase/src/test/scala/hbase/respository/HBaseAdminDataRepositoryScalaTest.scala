@@ -2,12 +2,11 @@ package hbase.respository
 
 import java.io.IOException
 
-import com.github.nscala_time.time.Imports.YearMonth
-import com.typesafe.config.ConfigFactory
-import hbase.connector.HBaseConnector
-import hbase.model.AdminData
-import hbase.repository.InMemoryAdminDataRepository
-import hbase.util.RowKeyUtils
+import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
+import play.api.Configuration
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.util.Bytes.toBytes
@@ -18,12 +17,13 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ FlatSpec, Matchers }
-import play.api.Configuration
-import services.websocket.RequestGenerator
+import com.github.nscala_time.time.Imports.YearMonth
+import com.typesafe.config.ConfigFactory
 
-import scala.collection.JavaConverters._
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import hbase.connector.HBaseConnector
+import hbase.model.AdminData
+import hbase.repository.InMemoryAdminDataRepository
+import hbase.util.RowKeyUtils
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
@@ -35,9 +35,6 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   private val table = mock[Table]
   private val result = mock[Result]
   private val resultScanner = mock[ResultScanner]
-  private val ws = mock[RequestGenerator]
-
-  private def createRowKey(period: YearMonth, id: String) = RowKeyUtils.createRowKey(period, id)
 
   def setup =
     new {

@@ -20,7 +20,7 @@ import utils.Utilities
 
 @Api("Lookup")
 class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi,
-                                     val configuration: Configuration) extends ControllerUtils with I18nSupport
+  val configuration: Configuration) extends ControllerUtils with I18nSupport
   with LazyLogging with Utilities with Properties {
 
   // TODO - return caching and circuitbreaker on controller side
