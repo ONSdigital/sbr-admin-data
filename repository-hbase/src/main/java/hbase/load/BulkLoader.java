@@ -45,7 +45,7 @@ public class BulkLoader extends Configured implements Tool {
     static final String REFERENCE_PERIOD = "hbase.load.period";
     static final String COLUMN_HEADINGS = "csv.column.headings";
     static final String ROWKEY_POSITION = "csv.id.position";
-    static final String HEADER_STRING = "csv.header.string";
+    public static final String HEADER_STRING = "csv.header.string";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
     private static final int MIN_ARGS = 5;

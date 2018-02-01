@@ -7,10 +7,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import play.api.Configuration
-import org.apache.hadoop.hbase.{ CellUtil, HConstants, KeyValue }
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.util.Bytes.toBytes
+import org.apache.hadoop.hbase.{ CellUtil, HConstants, KeyValue }
 import org.joda.time.format.DateTimeFormat
 import org.junit.Assert.assertEquals
 import org.mockito.ArgumentMatchers.any
@@ -22,13 +22,12 @@ import com.typesafe.config.ConfigFactory
 
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
-import hbase.repository.HBaseAdminDataRepository
+import hbase.repository.InMemoryAdminDataRepository
 import hbase.util.RowKeyUtils
-
-import services.websocket.RequestGenerator
 
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
+  private val MAX_RESULT_SIZE = 12
   private val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
 
   private val connector = mock[HBaseConnector]
@@ -36,13 +35,10 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   private val table = mock[Table]
   private val result = mock[Result]
   private val resultScanner = mock[ResultScanner]
-  private val ws = mock[RequestGenerator]
-
-  private def createRowKey(period: YearMonth, id: String) = RowKeyUtils.createRowKey(period, id)
 
   def setup =
     new {
-      val repository = new HBaseAdminDataRepository(connector, ws, Configuration(ConfigFactory.load()))
+      val repository = new InMemoryAdminDataRepository(connector, Configuration(ConfigFactory.load()))
       when(connector.getConnection) thenReturn connection
       when(connection.getTable(any())) thenReturn table
       when(table.get(any[Get])) thenReturn result
@@ -69,17 +65,21 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
 
     // Create cells for each column
     val rowKey = RowKeyUtils.createRowKey(testPeriod, testId)
-    val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"), 9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
+    val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"),
+      9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
     val cells = List(nameCell).asJava
 
     when(result.isEmpty) thenReturn false
     when(result.listCells()) thenReturn cells
     when(result.getRow) thenReturn Bytes.toBytes(rowKey)
 
-    val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId), 1 second).getOrElse(throw new Exception("Unable to do repository lookup"))
-    assertEquals(lookup.id, testId)
-    assertEquals(lookup.referencePeriod, testPeriod)
-    assertEquals(lookup.variables.getOrElse("name", throw new Exception("Unable to get company name")), companyName)
+    val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId, Some(MAX_RESULT_SIZE)), 1 second)
+      .getOrElse(throw new Exception("Unable to do repository lookup"))
+    assertEquals(lookup.head.id, testId)
+    assertEquals(lookup.head.referencePeriod, testPeriod)
+    assertEquals(
+      lookup.head.variables.getOrElse("name", throw new Exception("Unable to get company name")),
+      companyName)
   }
 
   //  "repository.lookupOvertime()" should "return all the results relating to a particular id" in {
@@ -120,7 +120,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val s = setup
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
     when(result.isEmpty) thenReturn true
-    val lookup = Await.result(s.repository.lookup(Some(testPeriod), "12345"), 1 second)
+    val lookup = Await.result(s.repository.lookup(Some(testPeriod), "12345", None), 1 second)
     assertEquals(lookup, None)
   }
 
@@ -129,7 +129,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
     when(connection.getTable(any())) thenThrow new IOException("Failed to retrieve data")
     assertThrows[IOException] {
-      Await.result(s.repository.lookup(Some(testPeriod), "12345"), 1 second)
+      Await.result(s.repository.lookup(Some(testPeriod), "12345", None), 1 second)
     }
   }
 }

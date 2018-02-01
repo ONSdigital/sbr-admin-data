@@ -2,8 +2,8 @@ package hbase.repository
 
 import scala.concurrent.Future
 
+import org.slf4j.{ Logger, LoggerFactory }
 import com.github.nscala_time.time.Imports.YearMonth
-import play.api.mvc.Result
 
 import hbase.model.AdminData
 
@@ -17,12 +17,12 @@ import hbase.model.AdminData
 
 trait AdminDataRepository {
 
-  @deprecated("Migrated to getAdminData with three param", "13 Dec 2017 - feature/HBase-Rest")
-  def lookup(referencePeriod: Option[YearMonth], key: String): Future[Option[AdminData]]
+  def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]]
+}
 
-  def lookup(referencePeriod: Option[YearMonth], key: String, max: Long): Future[Option[Seq[AdminData]]]
-
-  @deprecated("Migrated to getAdminData with three param", "13 Dec 2017 - feature/HBase-Rest")
-  def lookup(key: String, referencePeriod: Option[YearMonth]): Future[Result]
-
+object AdminDataRepository {
+  val LOGGER: Logger = LoggerFactory.getLogger(getClass.getName)
+  val OPEN_ALERT = "----- circuit breaker opened! -----"
+  val CLOSED_ALERT = "----- circuit breaker closed! -----"
+  val HALF_OPEN_ALERT = "----- circuit breaker half-open -----"
 }

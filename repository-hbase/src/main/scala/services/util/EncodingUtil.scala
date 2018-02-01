@@ -22,5 +22,4 @@ object EncodingUtil extends Status {
 
   def decodeBase64(str: String): String =
     new String(BaseEncoding.base64().decode(str), "UTF-8")
-
 }
