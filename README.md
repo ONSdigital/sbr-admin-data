@@ -38,7 +38,7 @@ With the minimal environment setup described above (just Java 8 and SBT), the sb
 To run the `sbr-admin-api`, run the following:
 
 ``` shell
-sbt run
+sbt "sbr-admin-data/run"
 ```
 
 ### Running the API (database.in.memory = true)
