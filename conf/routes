@@ -10,8 +10,22 @@ GET        /v1/records/:id/history             controllers.v1.AdminDataControlle
 
 GET        /v1/records/:id/periods/:period     controllers.v1.AdminDataController.lookup(id: String, period: Option[String], max: Option[Long] ?= None)
 
+
+# Other Routes
+
+GET     /                                   controllers.HomeController.status
+
+# Route for deployed version information (in JSON).
+GET     /version                            controllers.VersionController.version
+
 # Route for health check information (in JSON).
-GET        /health                                      controllers.HealthController.health
+GET     /health                             controllers.HealthController.health
+
+# api documentation
+GET     /swagger.json                       controllers.ApiHelpController.getResources
+GET     /docs                               controllers.HomeController.swagger
+
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /assets/*file                                controllers.Assets.at(path="/public", file)
