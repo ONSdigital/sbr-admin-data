@@ -1,18 +1,22 @@
 # sbr-admin-data
-A bulk loader for parsing and loading CSV files into a datastore with a supporting API for single record retrieval for a period and primary key combination.
-A "period" is defined as a year and month combination i.e. 201706
-A primary key is a string value
-The current implementation of the datastore is HBase
+This repository primarily serves two purposes, one which is as a bulk loader for parsing and loading CSV files into a data store - HBase.
+The second usage derives from the core application folder which serves as a controller interface to make Restful requests to HBase using it the Rest client directly.
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]() [![Dependency Status](https://www.versioneye.com/user/projects/596f195e6725bd0027f25e93/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/596f195e6725bd0027f25e93)
 
 ## API Endpoints
 
-If you do not specify a period, the record for the most recent period will be returned.
+If you do not specify a period, the record with matching id and the most recent period will be returned.
 
 | method | endpoint                       | example                    |
 |--------|--------------------------------|----------------------------|
 | GET    | /v1/records/${id}              | GET /v1/records/AB123456   |
+
+Alternatively, an id search with the a specified limit of results can be requested with:
+
+| method | endpoint                              | example                                  |
+|--------|---------------------------------------|------------------------------------------|
+| GET    | /v1/records/${id}/history             | GET /v1/records/AB123456/history?max=2   |
 
 
 If you want to specify a particular period, use the format below.
@@ -33,12 +37,10 @@ brew install sbt
 
 ## Running the API
 
-With the minimal environment setup described above (just Java 8 and SBT), the sbr-admin-data-api will only work with the csv file or in-memory HBase. Further instructions for Hbase (not in memory), Hive and Impala setup/installations can be found [below](#source-setup).
-
-To run the `sbr-admin-api`, run the following:
+To run the main project in this application, run the following:
 
 ``` shell
-sbt run
+sbt sbr-admin-api/run
 ```
 
 ### Running the API (database.in.memory = true)
@@ -103,18 +105,50 @@ sbt -Ddatabase.in.memory=false
 
 [HBase Setup](HBASE.md)
 
-## Assembly
+#### Package
 
-## Deployment
+To package the project in a runnable fat-jar:
+```shell
+sbt assembly
+```
 
-## Testing
+#### Test
 
-## Contributing
+To test all test suites we can use:
+
+```shell
+sbt test
+```
+
+Testing an individual test suite can be specified by using the `testOnly`.
+
+SBR Api uses its own test configuration settings for integration tests, the details of which can be found on the [ONS Confluence](https://collaborate2.ons.gov.uk/confluence/display/SBR/Scala+Testing).
+
+To run integration test run:
+```shell
+sbt it:test
+```
+See [CONTRIBUTING](CONTRIBUTING.md) for more details on creating tests. 
+
+
+#### API Documentation
+Swagger API is used to document and expose swagger definitions of the routes and capabilities for this project.
+
+ To see the full definition set use path:
+ `http://localhost:9000/swagger.json`
+ 
+ For a graphical interface using Swagger Ui use path:
+ `http://localhost:9000/docs`
+ 
+### Troubleshooting
+See [FAQ](FAQ.md) for possible and common solutions.
+
+### Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md) for details.
 
-## License
+### License
 
-Copyright ©‎ 2017, Office for National Statistics (https://www.ons.gov.uk)
+Copyright © 2017, Office for National Statistics (https://www.ons.gov.uk)
 
-Released under MIT license, see [LICENSE](LICENSE) for details.
+Released under MIT license, see [LICENSE](LICENSE.md) for details.

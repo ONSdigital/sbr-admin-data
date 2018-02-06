@@ -5,12 +5,12 @@ import org.apache.hadoop.hbase.TableName
 import com.typesafe.config.Config
 
 /**
- * HBaseConfig
- * ----------------
- * Author: haqa
- * Date: 06 December 2017 - 16:43
- * Copyright (c) 2017  Office for National Statistics
- */
+  * HBaseConfig
+  * ----------------
+  * Author: haqa
+  * Date: 06 December 2017 - 16:43
+  * Copyright (c) 2017  Office for National Statistics
+  */
 
 trait HBaseConfig {
 
