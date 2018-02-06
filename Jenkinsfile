@@ -98,7 +98,7 @@ pipeline {
                 }
                 success {
                     colourText("info","Generating reports for tests")
-                    //   junit '**/target/test-reports/*.xml'
+                    junit '**/target/test-reports/*.xml'
 
                     // removed subfolder scala-2.11/ from target path
                     step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
