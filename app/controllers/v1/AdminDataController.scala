@@ -39,7 +39,8 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   //    new ApiResponse(code = 500, responseContainer = "JSONObject", message = "Internal Server Error -> Request could not be completed.")))
   //  def lookup(
   //    @ApiParam(value = "A valid period in yyyyMM format", example = "201706", required = false) period: Option[String],
-  //    @ApiParam(value = "An id, validated using the validation.id environment variable regex", example = "123456", required = true) id: String): Action[AnyContent] = Action.async { implicit request =>
+  //    @ApiParam(value = "An id, validated using the validation.id environment variable regex",
+  //    example = "123456", required = true) id: String): Action[AnyContent] = Action.async { implicit request =>
   //    logger.info(s"Lookup with period [$period] for id [$id]")
   //    validator.validateLookupParams(id, period) match {
   //      case Right(v) => cache.getOrElse[Future[Result]](createCacheKey(v), cacheDuration)(repositoryLookup(v))

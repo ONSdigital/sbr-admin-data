@@ -57,6 +57,13 @@ public class BulkLoader extends Configured implements Tool {
     private static final int ARG_CSV_HEADER_STRING = 4;
     private static final int ARG_HFILE_OUT_DIR = 5;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
+    enum LoadCounters {
+        TOTAL_CSV_RECORDS,
+        GOOD_CSV_RECORDS,
+        BAD_CSV_RECORDS,
+        GOOD_HBASE_RECORDS,
+        BAD_HBASE_RECORDS
+    };
 
     private HBaseConnector connector;
 
@@ -153,6 +160,29 @@ public class BulkLoader extends Configured implements Tool {
                     return ERROR;
                 }
             }
+
+            boolean jobOK;
+            long totalCsvCount = 0;
+            long goodCsvCount = 0;
+            long badCsvCount = 0;
+            long goodHbaseCount = 0;
+            long badHbaseCount = 0;
+            long badHbaseWriteCount = 0;
+
+
+            jobOK = job.waitForCompletion(true);
+            totalCsvCount =  job.getCounters().findCounter(LoadCounters.TOTAL_CSV_RECORDS).getValue();
+            System.out.println("Total csv records count " + totalCsvCount);
+            goodCsvCount =  job.getCounters().findCounter(LoadCounters.GOOD_CSV_RECORDS).getValue();
+            System.out.println("Good csv records count " + goodCsvCount);
+            badCsvCount =  job.getCounters().findCounter(LoadCounters.BAD_CSV_RECORDS).getValue();
+            System.out.println("Bad csv records count " + badCsvCount);
+            goodHbaseCount =  job.getCounters().findCounter(LoadCounters.GOOD_HBASE_RECORDS).getValue();
+            System.out.println("Good HBase records count " + goodHbaseCount);
+            badHbaseCount =  job.getCounters().findCounter(LoadCounters.BAD_HBASE_RECORDS).getValue();
+            System.out.println("Bad HBase records count " + badHbaseCount);
+
+
         } catch (Exception e) {
             LOG.error("Loading of data failed.", e);
             return ERROR;
@@ -166,14 +196,18 @@ public class BulkLoader extends Configured implements Tool {
     }
 
     public static void main(String[] args) {
+        int result = 0;
         try {
             HBaseConnector connector = new HBaseInstanceConnector();
-            int result = ToolRunner.run(connector.getConfiguration(), new BulkLoader(connector), args);
-            System.exit(result);
+            result = ToolRunner.run(connector.getConfiguration(), new BulkLoader(connector), args);
+            System.out.println("Bulkload success");
         } catch (Exception e) {
+            result = ERROR;
+            System.out.println("Bulkload error");
             e.printStackTrace();
-            System.exit(ERROR);
+
         }
+        System.exit(result);
     }
 }
 
