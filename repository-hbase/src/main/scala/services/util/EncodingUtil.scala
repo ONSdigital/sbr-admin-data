@@ -1,6 +1,5 @@
 package services.util
 
-import play.api.http.Status
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
 
@@ -11,7 +10,7 @@ import com.google.common.io.BaseEncoding
  * Date: 06 December 2017 - 08:55
  * Copyright (c) 2017  Office for National Statistics
  */
-object EncodingUtil extends Status {
+object EncodingUtil {
 
   def decodeArrayByte(bytes: Array[Byte]): String = bytes.map(_.toChar).mkString
 

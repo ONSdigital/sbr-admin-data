@@ -1,15 +1,12 @@
 package controllers
 
-import play.api.mvc.{ Action, AnyContent, Controller }
 import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
-
-/**
- * Created by coolit on 01/12/2017.
- */
+import play.api.mvc.{ Action, AnyContent, Controller }
 
 @Api("Utils")
 class HomeController extends Controller {
 
+  //public api
   @ApiOperation(
     value = "Swagger Documentation",
     notes = "Documentation of API endpoints for Swagger",
@@ -21,6 +18,7 @@ class HomeController extends Controller {
     Redirect(url = s"http://$host/assets/lib/swagger-ui/index.html", queryString = Map("url" -> Seq(s"http://$host/swagger.json")))
   }
 
+  //public api
   @ApiOperation(
     value = "Application Health",
     notes = "Provides a json object containing minimal information on application live status and uptime.",
@@ -31,4 +29,5 @@ class HomeController extends Controller {
     val host = request.host
     Redirect(url = s"http://$host/health").flashing("redirect" -> "You are being redirected to health status", "status" -> "ok")
   }
+
 }

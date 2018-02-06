@@ -86,7 +86,7 @@ dependencyOverrides += "com.google.guava"        % "guava"                      
 
 //@ TODO - Increase coverage minimum score
 //coverageMinimum := 27
-coverageMinimum := 25
+coverageMinimum := 24
 
 lazy val exTransiviveDeps: Seq[ExclusionRule] = Seq(
   ExclusionRule("commons-logging", "commons-logging"),
