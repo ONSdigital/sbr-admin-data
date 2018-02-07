@@ -244,7 +244,7 @@ pipeline {
                     deploy(PAYE_TABLE)
                     colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
                 }
-		lock('PAYE Deployment Initiated') {
+		lock('Legal Unit Deployment Initiated') {
                     colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(LEU_TABLE)
                     colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
