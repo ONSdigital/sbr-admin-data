@@ -106,6 +106,7 @@ public class CSVDataKVMapper extends
 
     private boolean isHeaderRow(Text value, Configuration conf) throws IOException {
         String headerString = conf.get(COLUMN_HEADINGS);
+        System.out.println("headerString is, " +  headerString);
         if (!headerString.isEmpty()) {
             if (value.find(headerString) > -1) {
 //                if (useCsvHeaderAsColumnNames(conf)) {
