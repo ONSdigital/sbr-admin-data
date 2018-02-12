@@ -18,12 +18,12 @@ import hbase.repository.AdminDataRepository.LOGGER
 import hbase.util.{ HBaseConfig, RowKeyUtils }
 
 /**
-  * InMemoryAdminDataRepository
-  * ----------------
-  * Author: haqa
-  * Date: 11 January 2018 - 11:46
-  * Copyright (c) 2017  Office for National Statistics
-  */
+ * InMemoryAdminDataRepository
+ * ----------------
+ * Author: haqa
+ * Date: 11 January 2018 - 11:46
+ * Copyright (c) 2017  Office for National Statistics
+ */
 
 class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration)
   extends AdminDataRepository with HBaseConfig {
@@ -31,13 +31,11 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
   // TODO - add Circuitbreaker
-  override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]
-                     ): Future[Option[Seq[AdminData]]] = Future.successful(getAdminData(referencePeriod, key, max))
+  override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] = Future.successful(getAdminData(referencePeriod, key, max))
 
   //@ TODO - reduce complexity -> sub method inner cases
   @throws(classOf[Throwable])
-  private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]
-                          ): Option[Seq[AdminData]] = {
+  private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Option[Seq[AdminData]] = {
     Try(connector.getConnection.getTable(tableName)) match {
       case Success(table: Table) =>
         referencePeriod match {

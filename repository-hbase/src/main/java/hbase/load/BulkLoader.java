@@ -7,6 +7,7 @@ import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -23,7 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -101,6 +104,38 @@ public class BulkLoader extends Configured implements Tool {
         return load(tableNameStr, referencePeriod, inputFile, "");
     }
 
+    private void getHeader(String inputFile, Configuration conf) throws Exception {
+        Path path = new Path(inputFile);
+        FileSystem fs = FileSystem.get(path.toUri(), conf);
+
+        try( BufferedReader readFile = new BufferedReader(new InputStreamReader(fs.open(path))) ) {
+            LOG.debug("Successfully read file at '{}' and now getting header.", inputFile);
+            String header;
+            try {
+                header = readFile.readLine();
+                if (header != null) {
+                    LOG.debug("Found header '{}'", header);
+                    System.out.println("Found header " +  header);
+                    conf.set(COLUMN_HEADINGS, header);
+                }
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+        } catch (Exception e) {
+            LOG.error("Cannot process first line of file with exception '{}'", e);
+//            throw new Exception(e.toString());
+            throw e;
+            /**
+             * disabled throw e due to;
+             * large reads not yet implemented.
+             *
+             * throw new Exception(e.toString());  ||
+             * throw e;
+             */
+        }
+    }
+
     private int load(String tableNameStr, String referencePeriod, String inputFile, String outputFilePath) {
 
         LOG.info("Starting bulk hbase.load of data from file {} into table '{}' for reference period '{}'", inputFile, tableNameStr, referencePeriod);
@@ -124,6 +159,8 @@ public class BulkLoader extends Configured implements Tool {
             job.setMapOutputValueClass(Put.class);
             job.setInputFormatClass(TextInputFormat.class);
             FileInputFormat.setInputPaths(job, new Path(inputFile));
+
+            getHeader(inputFile, conf);
 
             // If we are writing HFiles
             if (!outputFilePath.isEmpty()) {

@@ -37,7 +37,7 @@ public class CSVDataKVMapper extends
 
     private CSVParser csvParser;
     private YearMonth referencePeriod;
-    private byte[][] columnNames;
+//    private byte[][] columnNames;
     private final byte[] columnFamily = toBytes("d");
     private int rowKeyFieldPosition;
 
@@ -68,10 +68,10 @@ public class CSVDataKVMapper extends
         Configuration conf = context.getConfiguration();
         rowKeyFieldPosition = getRowKeyFieldPosition(conf);
         LOG.debug("Id field is a position {} in CSV file", rowKeyFieldPosition);
-        if (!useCsvHeaderAsColumnNames(conf)) {
-            LOG.debug("Using supplied column headers for file not those in the csv file");
-            columnNames = getColumnNames(conf);
-        }
+//        if (!useCsvHeaderAsColumnNames(conf)) {
+//            LOG.debug("Using supplied column headers for file not those in the csv file");
+//            columnNames = getColumnNames(conf);
+//        }
         String periodStr = conf.get(REFERENCE_PERIOD);
         try {
             referencePeriod = YearMonth.parse(periodStr, DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT()));
@@ -79,10 +79,10 @@ public class CSVDataKVMapper extends
             LOG.error("Cannot parse '{}' property with value '{}'. Format should be '{}'", REFERENCE_PERIOD, periodStr, AdminData.REFERENCE_PERIOD_FORMAT());
             throw e;
         }
-        if (getHeaderString(conf).isEmpty() && useCsvHeaderAsColumnNames(conf)){
-            LOG.error("If no header row identifying string is specified then column heading must be supplied");
-            throw new IllegalArgumentException("Property not set " + HEADER_STRING);
-        }
+//        if (getHeaderString(conf).isEmpty() && useCsvHeaderAsColumnNames(conf)){
+//            LOG.error("If no header row identifying string is specified then column heading must be supplied");
+//            throw new IllegalArgumentException("Property not set " + HEADER_STRING);
+//        }
         csvParser = new CSVParser();
     }
 
@@ -105,22 +105,22 @@ public class CSVDataKVMapper extends
     }
 
     private boolean isHeaderRow(Text value, Configuration conf) throws IOException {
-        String headerString = getHeaderString(conf);
+        String headerString = conf.get(COLUMN_HEADINGS);
         if (!headerString.isEmpty()) {
             if (value.find(headerString) > -1) {
-                if (useCsvHeaderAsColumnNames(conf)) {
-                    LOG.debug("Found csv header row: {}", value.toString());
-                    LOG.debug("Using header row as table column names");
-                    try {
-                        String[] columnNameStrs = csvParser.parseLine(value.toString().trim());
-                        List<byte[]> byteList = Arrays.stream(columnNameStrs).map(String::getBytes).collect(Collectors.toList());
-                        columnNames = byteList.toArray(new byte[0][0]);
-                    } catch (Exception e) {
-                        LOG.error("Cannot parse column headers, error is: {}", e);
-                        throw e;
-                    }
-                }
-                return true;
+//                if (useCsvHeaderAsColumnNames(conf)) {
+//                    LOG.debug("Found csv header row: {}", value.toString());
+//                    LOG.debug("Using header row as table column names");
+//                    try {
+//                        String[] columnNameStrs = csvParser.parseLine(value.toString().trim());
+//                        List<byte[]> byteList = Arrays.stream(columnNameStrs).map(String::getBytes).collect(Collectors.toList());
+//                        columnNames = byteList.toArray(new byte[0][0]);
+//                    } catch (Exception e) {
+//                        LOG.error("Cannot parse column headers, error is: {}", e);
+//                        throw e;
+//                    }
+//                }
+                return value.find(headerString) > -1;
             }
         }
         return false;
@@ -139,6 +139,8 @@ public class CSVDataKVMapper extends
     }
 
     private void writeRow(Context context, String rowKeyStr, String[] fields) throws IOException, InterruptedException {
+        byte[][] columnNames = getColumnNames(context.getConfiguration());
+
         ImmutableBytesWritable rowKey = new ImmutableBytesWritable();
 
         rowKey.set(rowKeyStr.getBytes());
