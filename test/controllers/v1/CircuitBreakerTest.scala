@@ -54,7 +54,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val s = setup
       val exceptionId = "19283746"
       when(s.mockAdminDataRepository.lookup(Some(date), exceptionId, Some(MAX_RESULT_SIZE))).thenThrow(new RuntimeException())
-      val resp = s.controller.lookup(exceptionId, Some("201706"), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+      val resp = s.controller.search(exceptionId, Some("201706"), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       status(resp) mustBe INTERNAL_SERVER_ERROR
       contentType(resp) mustBe Some("application/json")
       val errorMessage = s.defaultMessages.getOrElse("controller.server.error", messageException)
@@ -66,7 +66,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val id = "12345"
       when(s.mockAdminDataRepository.lookup(Some(date), id, None)) thenReturn Future(Some(Seq(AdminData(date, id))))
       val results = (1 to 20).map { i =>
-        s.controller.lookup("12345", Some(dateString), None).apply(FakeRequest())
+        s.controller.search("12345", Some(dateString), None).apply(FakeRequest())
       }
       val futures = Future.sequence(results)
       Await.result(futures, 2 second)
@@ -79,7 +79,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val exceptionId = "99664411"
       when(s.mockAdminDataRepository.lookup(Some(date), exceptionId, Some(MAX_RESULT_SIZE))).thenThrow(new RuntimeException())
       val results = (1 to 5).map { i =>
-        s.controller.lookup(exceptionId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+        s.controller.search(exceptionId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       }
       val futures = Future.sequence(results)
       Await.result(futures, 3 second)
@@ -93,12 +93,12 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       when(s.mockAdminDataRepository.lookup(Some(date), exceptionId, Some(MAX_RESULT_SIZE))).thenThrow(new RuntimeException())
       when(s.mockAdminDataRepository.lookup(Some(date), validId, Some(MAX_RESULT_SIZE))) thenReturn Future(Some(Seq(AdminData(date, validId))))
       val results = (1 to 5).map { i =>
-        s.controller.lookup(exceptionId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+        s.controller.search(exceptionId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       }
       val futures = Future.sequence(results)
       Await.result(futures, 3 second)
       s.controller.breaker.isOpen mustBe true
-      val validLookup = s.controller.lookup(validId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+      val validLookup = s.controller.search(validId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       status(validLookup) mustBe INTERNAL_SERVER_ERROR
       // Make sure the circuit breaker caught the last lookup due to it being open
       verify(s.mockAdminDataRepository, times(0)).lookup(Some(date), validId, Some(MAX_RESULT_SIZE))

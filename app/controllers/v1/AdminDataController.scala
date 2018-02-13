@@ -68,7 +68,24 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   //
   //  def getRecordById(v: ValidLookup): Future[Option[AdminData]] = repository.lookup(v.period, v.id)
 
-  def lookup(id: String, period: Option[String], max: Option[Long]): Action[AnyContent] = {
+  @ApiOperation(
+    value = "Endpoint for getting a record by id and optional period",
+    notes = "Period is optional, a default period is used if none is provided",
+    responseContainer = "JSONObject",
+    httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, responseContainer = "JSONObject", message = "Success -> Record found for id."),
+    new ApiResponse(code = 400, responseContainer = "JSONObject", message = "Bad Request -> Invalid parameters."),
+    new ApiResponse(code = 404, responseContainer = "JSONObject", message = "Not Found -> Id not found."),
+    new ApiResponse(code = 500, responseContainer = "JSONObject", message = "Internal Server Error -> Request could not be completed.")))
+  def search(
+    @ApiParam(
+      value = "An id, validated using the validation.id environment variable regex",
+      example = "123456", required = true) id: String,
+    @ApiParam(value = "A valid period in yyyyMM format", example = "201706", required = false) period: Option[String],
+    @ApiParam(
+      value = "A value to cap the number of responses in a wide partial scan (i.e. no period)",
+      example = "123456", required = true) max: Option[Long]): Action[AnyContent] = {
     Action.async {
       period match {
         case Some(p) =>
