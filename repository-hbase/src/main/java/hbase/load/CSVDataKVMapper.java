@@ -121,7 +121,7 @@ public class CSVDataKVMapper extends
 //                        throw e;
 //                    }
 //                }
-                return value.find(headerString) > -1;
+                return true;
             }
         }
         return false;

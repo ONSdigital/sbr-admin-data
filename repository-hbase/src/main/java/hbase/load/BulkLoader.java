@@ -100,7 +100,7 @@ public class BulkLoader extends Configured implements Tool {
         }
     }
 
-    private int load(String tableNameStr, String referencePeriod, String inputFile) {
+    private int load(String tableNameStr, String referencePeriod, String inputFile) throws Exception {
         return load(tableNameStr, referencePeriod, inputFile, "");
     }
 
@@ -117,6 +117,11 @@ public class BulkLoader extends Configured implements Tool {
                     LOG.debug("Found header '{}'", header);
                     System.out.println("Found header " +  header);
                     conf.set(COLUMN_HEADINGS, header);
+                }
+                else {
+                    System.out.println("Header is NUll - for reading " + inputFile);
+                    LOG.error("Header is NUll - for reading '{}'", inputFile);
+                    throw new Exception("Header is NUll - for reading " + inputFile);
                 }
             }
             catch (Exception ex) {
@@ -136,7 +141,7 @@ public class BulkLoader extends Configured implements Tool {
         }
     }
 
-    private int load(String tableNameStr, String referencePeriod, String inputFile, String outputFilePath) {
+    private int load(String tableNameStr, String referencePeriod, String inputFile, String outputFilePath) throws Exception {
 
         LOG.info("Starting bulk hbase.load of data from file {} into table '{}' for reference period '{}'", inputFile, tableNameStr, referencePeriod);
 
