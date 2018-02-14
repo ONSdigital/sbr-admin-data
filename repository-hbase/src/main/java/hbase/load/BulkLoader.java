@@ -131,13 +131,6 @@ public class BulkLoader extends Configured implements Tool {
             LOG.error("Cannot process first line of file with exception '{}'", e);
 //            throw new Exception(e.toString());
             throw e;
-            /**
-             * disabled throw e due to;
-             * large reads not yet implemented.
-             *
-             * throw new Exception(e.toString());  ||
-             * throw e;
-             */
         }
     }
 
@@ -165,7 +158,8 @@ public class BulkLoader extends Configured implements Tool {
             job.setInputFormatClass(TextInputFormat.class);
             FileInputFormat.setInputPaths(job, new Path(inputFile));
 
-            getHeader(inputFile, conf);
+            //getHeader(inputFile, conf);
+            conf.set(COLUMN_HEADINGS, "THIS IS SOME HEADER !!!");
 
             // If we are writing HFiles
             if (!outputFilePath.isEmpty()) {
