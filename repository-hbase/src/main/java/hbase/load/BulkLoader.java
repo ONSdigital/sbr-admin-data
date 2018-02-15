@@ -91,7 +91,14 @@ public class BulkLoader extends Configured implements Tool {
 
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
-        getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+        String headerArg = strings[ARG_CSV_HEADER_STRING];
+        if (headerArg.isEmpty()) {
+            Configuration conf = this.getConf();
+            getHeader(strings[ARG_CSV_FILE], conf);
+        } else {
+            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+        }
+
 
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
@@ -129,7 +136,6 @@ public class BulkLoader extends Configured implements Tool {
             }
         } catch (Exception e) {
             LOG.error("Cannot process first line of file with exception '{}'", e);
-//            throw new Exception(e.toString());
             throw e;
         }
     }
@@ -157,9 +163,6 @@ public class BulkLoader extends Configured implements Tool {
             job.setMapOutputValueClass(Put.class);
             job.setInputFormatClass(TextInputFormat.class);
             FileInputFormat.setInputPaths(job, new Path(inputFile));
-
-            //getHeader(inputFile, conf);
-            conf.set(COLUMN_HEADINGS, "THIS IS SOME HEADER !!!");
 
             // If we are writing HFiles
             if (!outputFilePath.isEmpty()) {
