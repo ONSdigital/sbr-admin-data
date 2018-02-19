@@ -27,6 +27,7 @@ pipeline {
         CH_TABLE = "ch"
         VAT_TABLE = "vat"
         PAYE_TABLE = "paye"
+        LEU_TABLE = "leu"
         NAMESPACE = "sbr_dev_db"
     }
     options {
@@ -242,6 +243,11 @@ pipeline {
                     colourText("info", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(PAYE_TABLE)
                     colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
+                }
+		lock('Legal Unit Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(LEU_TABLE)
+                    colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
                 }
             }
         }
