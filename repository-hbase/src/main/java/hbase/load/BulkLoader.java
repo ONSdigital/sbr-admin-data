@@ -99,7 +99,6 @@ public class BulkLoader extends Configured implements Tool {
             getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
         }
 
-
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
         } else {
@@ -115,24 +114,20 @@ public class BulkLoader extends Configured implements Tool {
         Path path = new Path(inputFile);
         FileSystem fs = FileSystem.get(path.toUri(), conf);
 
-        try( BufferedReader readFile = new BufferedReader(new InputStreamReader(fs.open(path))) ) {
+        try(
+                InputStreamReader reader = new InputStreamReader(fs.open(path));
+                BufferedReader readFile = new BufferedReader(reader)
+        ) {
             LOG.debug("Successfully read file at '{}' and now getting header.", inputFile);
             String header;
-            try {
-                header = readFile.readLine();
-                if (header != null) {
-                    LOG.debug("Found header '{}'", header);
-                    System.out.println("Found header " +  header);
-                    conf.set(COLUMN_HEADINGS, header);
-                }
-                else {
-                    System.out.println("Header is NUll - for reading " + inputFile);
-                    LOG.error("Header is NUll - for reading '{}'", inputFile);
-                    throw new Exception("Header is NUll - for reading " + inputFile);
-                }
+            header = readFile.readLine();
+            if (header != null) {
+                LOG.debug("Found header '{}'", header);
+                conf.set(COLUMN_HEADINGS, header);
             }
-            catch (Exception ex) {
-                throw ex;
+            else {
+                LOG.error("Header is NUll - for reading '{}'", inputFile);
+                throw new Exception("Header is NUll - for reading " + inputFile);
             }
         } catch (Exception e) {
             LOG.error("Cannot process first line of file with exception '{}'", e);
