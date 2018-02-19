@@ -91,13 +91,13 @@ public class BulkLoader extends Configured implements Tool {
 
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
-        String headerArg = strings[ARG_CSV_HEADER_STRING];
-        if (headerArg.isEmpty()) {
+//        String headerArg = strings[ARG_CSV_HEADER_STRING];
+//        if (headerArg.isEmpty()) {
             Configuration conf = this.getConf();
             getHeader(strings[ARG_CSV_FILE], conf);
-        } else {
-            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
-        }
+//        } else {
+//            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+//        }
 
 
         if (strings.length == MIN_ARGS) {
