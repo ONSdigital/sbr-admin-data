@@ -23,7 +23,7 @@ import hbase.repository.AdminDataRepository
 class CircuitBreakerTest extends PlaySpec with MockitoSugar {
 
   implicit def defaultAwaitTimeout: Timeout = 20.seconds
-  private val MAX_RESULT_SIZE = 12
+  private val MAX_RESULT_SIZE: Long = 12L
   private val dateString = "201706"
   private val date = YearMonth.parse(dateString, DateTimeFormat.forPattern(REFERENCE_PERIOD_FORMAT))
 

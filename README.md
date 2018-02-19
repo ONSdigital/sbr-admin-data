@@ -40,7 +40,7 @@ brew install sbt
 To run the main project in this application, run the following:
 
 ``` shell
-sbt sbr-admin-api/run
+sbt "sbr-admin-data/run"
 ```
 
 ### Running the API (database.in.memory = true)
