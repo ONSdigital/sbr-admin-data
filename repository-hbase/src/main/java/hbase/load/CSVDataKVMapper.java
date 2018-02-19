@@ -153,7 +153,7 @@ public class CSVDataKVMapper extends
                 try {
                     put.add(new KeyValue(rowKey.get(), columnFamily, columnNames[i], fields[i].getBytes()));
                 } catch (Exception e) {
-                    LOG.error("Cannot add line '{}'", fields[0], e);
+                    LOG.error("ColumnName: '{}' \n.Cannot add line '{}' with header '{}'", columnNames, fields[0], columnNames[i], e);
                     throw e;
                 }
             }
