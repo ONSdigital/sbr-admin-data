@@ -50,7 +50,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results wi
     "return a valid result" ignore {
       val id = "12345678"
       when(mockAdminDataRepository.lookup(Some(date), id, None)) thenReturn Future(Some(Seq(AdminData(date, id))))
-      val resp = controller.search(id, Some(dateString), None).apply(FakeRequest())
+      val resp = controller.lookup(id, Some(dateString), None).apply(FakeRequest())
       status(resp) mustBe OK
       contentType(resp) mustBe Some("application/json")
       (contentAsJson(resp) \ "id").as[String] mustBe id
@@ -59,17 +59,17 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results wi
 
     "result was cached" ignore {
       val id = "55667788"
-      val lookup = ValidLookup(id, Some(date))
+      val lookup = ValidLookup(id, Some(date), None)
       when(mockAdminDataRepository.lookup(Some(date), id, None)) thenReturn Future(Some(Seq(AdminData(date, id))))
       val cacheKey = createCacheKey(lookup)
       cache.get[Future[Result]](cacheKey) mustBe None
-      val resp = controller.search(id, Some(dateString), None).apply(FakeRequest())
+      val resp = controller.lookup(id, Some(dateString), None).apply(FakeRequest())
       status(resp) mustBe OK
       cache.get[Future[Result]](cacheKey) must not be None
     }
 
     "return 400 for an invalid period" ignore {
-      val resp = controller.search("12345", Some("201713"), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+      val resp = controller.lookup("12345", Some("201713"), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
       contentType(resp) mustBe Some("application/json")
       val errorMessage = defaultMessages.getOrElse("controller.invalid.period", messageException)
@@ -77,7 +77,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results wi
     }
 
     "return 400 for an invalid id (not correct length)" ignore {
-      val resp = controller.search("0", Some("201706"), None).apply(FakeRequest())
+      val resp = controller.lookup("0", Some("201706"), None).apply(FakeRequest())
       status(resp) mustBe BAD_REQUEST
       contentType(resp) mustBe Some("application/json")
       val errorMessage = defaultMessages.getOrElse("controller.invalid.id", messageException)
@@ -87,7 +87,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results wi
     "return 404 for an id that doesn't exist" ignore {
       val notFoundId = "11223344"
       when(mockAdminDataRepository.lookup(Some(date), notFoundId, Some(MAX_RESULT_SIZE))) thenReturn Future(None)
-      val resp = controller.search(notFoundId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+      val resp = controller.lookup(notFoundId, Some(dateString), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       status(resp) mustBe NOT_FOUND
       contentType(resp) mustBe Some("application/json")
       val errorMessage = defaultMessages.getOrElse("controller.not.found", messageException)
@@ -97,7 +97,7 @@ class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results wi
     "return 500 when an internal server error occurs" ignore {
       val exceptionId = "19283746"
       when(mockAdminDataRepository.lookup(Some(date), exceptionId, Some(MAX_RESULT_SIZE))).thenThrow(new RuntimeException())
-      val resp = controller.search(exceptionId, Some("201706"), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
+      val resp = controller.lookup(exceptionId, Some("201706"), Some(MAX_RESULT_SIZE)).apply(FakeRequest())
       status(resp) mustBe INTERNAL_SERVER_ERROR
       contentType(resp) mustBe Some("application/json")
       val errorMessage = defaultMessages.getOrElse("controller.server.error", messageException)
