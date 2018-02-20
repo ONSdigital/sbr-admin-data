@@ -23,19 +23,12 @@ class CircuitBreakerActor[T, Z](
   override def receive = {
     case params: T => {
       Try(f(params)) match {
-        case Success(s) => {
-          println(s"MSG: in CB now ${System.currentTimeMillis / 1000}")
-          sender() ! s
-        }
+        case Success(s) => sender() ! s
         case Failure(ex) =>
-          println(s"MSG: in CB now ${System.currentTimeMillis / 1000}")
           log.error("Failure result from function execution.", ex)
           sender() ! Status.Failure(new ServerError(ex.getMessage))
       }
     }
-    case _ => {
-      println(s"MSG: in CB now ${System.currentTimeMillis / 1000}")
-      sender() ! new Exception()
-    }
+    case _ => sender() ! new Exception()
   }
 }
