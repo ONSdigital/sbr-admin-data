@@ -46,8 +46,8 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
     @ApiParam(
       value = "A value to cap the number of responses in a wide partial scan (i.e. no period)",
       example = "123456", required = true) max: Option[Long]): Action[AnyContent] = Action.async { implicit request =>
-    logger.info(s"Lookup with period [$period] for id [$id]")
-    validator.validateLookupParams(id, period, max) match {
+    logger.info(s"Lookup with period [$period] for id [${id.reverse}]")
+    validator.validateLookupParams(id.reverse, period, max) match {
       case Right(v) => cache.getOrElse[Future[Result]](createCacheKey(v), cacheDuration)(repositoryLookup(v))
       case Left(error) => BadRequest(errAsJson(BAD_REQUEST, "Bad Request", error.msg)).future
     }
