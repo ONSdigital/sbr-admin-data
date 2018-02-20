@@ -2,25 +2,22 @@ package controllers.v1
 
 import javax.inject.Inject
 
+import scala.concurrent.Future
 import akka.pattern.ask
-import scala.util.{ Failure, Success, Try }
+
 import play.api.Configuration
 import play.api.cache.CacheApi
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
+import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Result }
-import org.joda.time.YearMonth
-import org.joda.time.format.DateTimeFormat
 import com.typesafe.scalalogging.LazyLogging
 import io.swagger.annotations._
-import config.Properties
-import hbase.model.AdminData
-import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
-import hbase.repository.AdminDataRepository
-import models.ValidLookup
-import play.api.libs.json.Json
-import utils.{ LookupValidator, Utilities }
 
-import scala.concurrent.Future
+import config.Properties
+import models.ValidLookup
+import hbase.model.AdminData
+import hbase.repository.AdminDataRepository
+import utils.{ LookupValidator, Utilities }
 
 @Api("Lookup")
 class AdminDataController @Inject() (repository: AdminDataRepository, val messagesApi: MessagesApi, cache: CacheApi,
@@ -58,12 +55,11 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
 
   def repositoryLookup(v: ValidLookup): Future[Result] = {
     // Do the db call through a circuit breaker
-    val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[AdminData]]]
+    val askFuture = breaker.withCircuitBreaker(cb ? v).mapTo[Future[Option[Seq[AdminData]]]]
     askFuture.flatMap(x => x.map(
       y => y match {
-        case Some(s) => {
-          Ok(Json.toJson(s))
-        }
+        case Some(s) if (s.isEmpty) => NotFound(errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
+        case Some(s) => Ok(Json.toJson(s))
         case None => NotFound(errAsJson(NOT_FOUND, "Not Found", Messages("controller.not.found", v.id)))
       })).recover({
       case _ => {
@@ -109,5 +105,4 @@ class AdminDataController @Inject() (repository: AdminDataRepository, val messag
   //      }
   //    }
   //  }
-
 }
