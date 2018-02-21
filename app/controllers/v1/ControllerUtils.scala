@@ -45,7 +45,7 @@ trait ControllerUtils extends Controller with LazyLogging with Properties with I
   implicit val configuration: Configuration
   implicit val timeout = Timeout(configuration.getMilliseconds("akka.ask.timeout").map(_ millis).getOrElse(2 seconds))
 
-  def getCircuitBreaker[T, Z](f: T => Future[Option[Z]]): ActorRef = system.actorOf(Props(new CircuitBreakerActor(f)))
+  def getCircuitBreaker[T, Z](f: T => Future[Option[Seq[Z]]]): ActorRef = system.actorOf(Props(new CircuitBreakerActor(f)))
 
   /**
    * On a result, use .future, e.g. Ok().future
