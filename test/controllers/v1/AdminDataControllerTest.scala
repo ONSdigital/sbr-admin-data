@@ -3,12 +3,12 @@ package controllers.v1
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import play.api.i18n.{DefaultMessagesApi, _}
+import play.api.i18n.{ DefaultMessagesApi, _ }
 import play.api.libs.json.JsArray
 import play.api.mvc.Results
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.{Configuration, Environment}
+import play.api.{ Configuration, Environment }
 import play.mvc.Result
 import org.joda.time.format.DateTimeFormat
 import org.mockito.Mockito._
