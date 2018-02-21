@@ -75,7 +75,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
 
     val lookup = Await.result(s.repository.lookup(Some(testPeriod), testId, Some(MAX_RESULT_SIZE)), 1 second)
       .getOrElse(throw new Exception("Unable to do repository lookup"))
-    assertEquals(lookup.head.id, testId)
+    assertEquals(lookup.head.id.reverse, testId)
     assertEquals(lookup.head.referencePeriod, testPeriod)
     assertEquals(
       lookup.head.variables.getOrElse("name", throw new Exception("Unable to get company name")),

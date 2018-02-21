@@ -2,11 +2,13 @@ package controllers.v1
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import play.api.i18n.{ DefaultMessagesApi, _ }
+
+import play.api.i18n.{DefaultMessagesApi, _}
+import play.api.libs.json.JsArray
 import play.api.mvc.Results
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.{ Configuration, Environment }
+import play.api.{Configuration, Environment}
 import play.mvc.Result
 import org.joda.time.format.DateTimeFormat
 import org.mockito.Mockito._
@@ -14,11 +16,11 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import com.github.nscala_time.time.Imports.YearMonth
 import com.typesafe.config.ConfigFactory
+
 import models.ValidLookup
 import hbase.model.AdminData
 import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
 import hbase.repository.AdminDataRepository
-import play.api.libs.json.JsArray
 import utils.Utilities
 
 class AdminDataControllerTest extends PlaySpec with MockitoSugar with Results with Utilities {
