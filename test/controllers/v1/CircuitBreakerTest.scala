@@ -48,7 +48,6 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val defaultMessages: Map[String, String] = messages.messages.getOrElse("default", throw new Exception("Unable to get messages"))
     }
 
-  // TODO - REMOVE ignores!!
   "Circuit breaker" must {
     "be able to handle failures in the wrapped method (getFromDb)" in {
       val s = setup
@@ -66,7 +65,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val id = "12345"
       when(s.mockAdminDataRepository.lookup(Some(date), id, None)) thenReturn Future(Some(Seq(AdminData(date, id))))
       val results = (1 to 20).map { i =>
-        s.controller.lookup("12345".reverse, Some(dateString), None).apply(FakeRequest())
+        s.controller.lookup("12345", Some(dateString), None).apply(FakeRequest())
       }
       val futures = Future.sequence(results)
       Await.result(futures, 2 second)
