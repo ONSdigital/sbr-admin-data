@@ -44,9 +44,10 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
           s"and headers ${HEADERS.head.toString}")
         ws.singleGETRequest(uri.toString, HEADERS)
       case None =>
+        val rowKey = key.reverse
         /**
          * @note - UNCOMMENT for HBase Rest support on Cloudera ch.6 release
-         *       allowing reverser and thereby limit to work
+         *       allowing reverse and thereby limit to work
          *
          * val params = if (max.isDefined) {
          * Seq("reversed" -> "true", "limit" -> max.get.toString)
@@ -54,7 +55,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
          * Seq("reversed" -> "true")
          * }
          */
-        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + RowKeyUtils.DELIMITER + "*"
+        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey + RowKeyUtils.DELIMITER + "*"
         LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, " +
           s"headers ${HEADERS.head.toString} ")
         ws.singleGETRequest(uri.toString, HEADERS)
