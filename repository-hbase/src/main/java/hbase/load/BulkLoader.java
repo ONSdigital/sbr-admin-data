@@ -7,6 +7,7 @@ import hbase.model.AdminData;
 import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -23,7 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -88,7 +91,13 @@ public class BulkLoader extends Configured implements Tool {
 
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
-        getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+        String headerArg = strings[ARG_CSV_HEADER_STRING];
+        if (headerArg.isEmpty()) {
+            Configuration conf = this.getConf();
+            getHeader(strings[ARG_CSV_FILE], conf);
+        } else {
+            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+        }
 
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
@@ -97,11 +106,36 @@ public class BulkLoader extends Configured implements Tool {
         }
     }
 
-    private int load(String tableNameStr, String referencePeriod, String inputFile) {
+    private int load(String tableNameStr, String referencePeriod, String inputFile) throws Exception {
         return load(tableNameStr, referencePeriod, inputFile, "");
     }
 
-    private int load(String tableNameStr, String referencePeriod, String inputFile, String outputFilePath) {
+    private void getHeader(String inputFile, Configuration conf) throws Exception {
+        Path path = new Path(inputFile);
+        FileSystem fs = FileSystem.get(path.toUri(), conf);
+
+        try(
+                InputStreamReader reader = new InputStreamReader(fs.open(path));
+                BufferedReader readFile = new BufferedReader(reader)
+        ) {
+            LOG.debug("Successfully read file at '{}' and now getting header.", inputFile);
+            String header;
+            header = readFile.readLine();
+            if (header != null) {
+                LOG.debug("Found header '{}'", header);
+                conf.set(COLUMN_HEADINGS, header);
+            }
+            else {
+                LOG.error("Header is NUll - for reading '{}'", inputFile);
+                throw new Exception("Header is NUll - for reading " + inputFile);
+            }
+        } catch (Exception e) {
+            LOG.error("Cannot process first line of file with exception '{}'", e);
+            throw e;
+        }
+    }
+
+    private int load(String tableNameStr, String referencePeriod, String inputFile, String outputFilePath) throws Exception {
 
         LOG.info("Starting bulk hbase.load of data from file {} into table '{}' for reference period '{}'", inputFile, tableNameStr, referencePeriod);
 
