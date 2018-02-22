@@ -3,7 +3,6 @@
 # ~~~~
 
 # Searching for the default period
-#GET        /v1/records/$id<[0-9]{4}>                    controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] ?= None)
 GET        /v1/records/:id                     controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] = Some(1))
 
 GET        /v1/records/:id/history             controllers.v1.AdminDataController.lookup(id: String, period: Option[String] ?= None, max: Option[Long] ?= None)
