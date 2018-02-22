@@ -23,7 +23,7 @@ object RowKeyUtils {
     val referencePeriod: YearMonth =
       YearMonth.parse(compositeRowKeyParts.last, DateTimeFormat.forPattern(AdminData.REFERENCE_PERIOD_FORMAT))
     val id = compositeRowKeyParts.head
-    AdminData(referencePeriod, id)
+    AdminData(referencePeriod, id.reverse)
   }
 
 }
