@@ -2,20 +2,21 @@ package hbase.repository
 
 import javax.inject.Inject
 
-import com.github.nscala_time.time.Imports.YearMonth
-import com.netaporter.uri.dsl._
-import hbase.model.AdminData
-import hbase.repository.AdminDataRepository._
-import hbase.util.{ HBaseConfig, RowKeyUtils }
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
+import scala.util.{ Failure, Success, Try }
+
 import play.api.Configuration
 import play.api.http.{ ContentTypes, Status }
 import play.api.libs.json.JsValue
 import play.api.mvc.Results
+import com.github.nscala_time.time.Imports.YearMonth
+import com.netaporter.uri.dsl._
+
+import hbase.model.AdminData
+import hbase.repository.AdminDataRepository._
+import hbase.util.{ HBaseConfig, RowKeyUtils }
 import services.util.EncodingUtil.{ decodeBase64, encodeBase64 }
 import services.websocket.RequestGenerator
-
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
-import scala.util.{ Failure, Success, Try }
 
 /**
  * RestAdminDataRepository
@@ -39,22 +40,23 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
     (referencePeriod match {
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
-        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey + "*"
         LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} " +
           s"and headers ${HEADERS.head.toString}")
         ws.singleGETRequest(uri.toString, HEADERS)
       case None =>
+        val rowKey = key.reverse
         /**
          * @note - UNCOMMENT for HBase Rest support on Cloudera ch.6 release
-         *       allowing reverser and thereby limit to work
+         *       allowing reverse and thereby limit to work
          *
          * val params = if (max.isDefined) {
-         *  Seq("reversed" -> "true", "limit" -> max.get.toString)
+         * Seq("reversed" -> "true", "limit" -> max.get.toString)
          * } else {
-         *  Seq("reversed" -> "true")
+         * Seq("reversed" -> "true")
          * }
          */
-        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / key + RowKeyUtils.DELIMITER + "*"
+        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey + RowKeyUtils.DELIMITER + "*"
         LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, " +
           s"headers ${HEADERS.head.toString} ")
         ws.singleGETRequest(uri.toString, HEADERS)
@@ -82,6 +84,11 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
             throw e
         }
       }
+      case ex =>
+        LOGGER.error(
+          "'{}' Exception received when looking up prefix row key '{}'. Trace '{}'",
+          ex.statusText, key, ex.body)
+        throw new Exception(ex.body)
     }
   }
 
