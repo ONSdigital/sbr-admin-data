@@ -40,7 +40,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
     (referencePeriod match {
       case Some(r: YearMonth) =>
         val rowKey = RowKeyUtils.createRowKey(r, key)
-        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
+        val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey + "*"
         LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} " +
           s"and headers ${HEADERS.head.toString}")
         ws.singleGETRequest(uri.toString, HEADERS)
