@@ -1,7 +1,5 @@
 //TODO switch back
 
-//package controllers.v1
-//
 //import play.api.cache.CacheApi
 //import play.api.inject.bind
 //import play.api.inject.guice.GuiceApplicationBuilder
@@ -58,10 +56,9 @@
 //    }
 //  }
 //
-//  // TODO - REMOVE ignore and fix tests
 //  // TODO -  Add new test for new routes
 //  "AdminDataController" should {
-//    "return 400 when an incorrect period format is used" ignore {
+//    "return 400 when an incorrect period format is used" in {
 //      val search = fakeRequest("/v1/records/12345/periods/1706")
 //      status(search) mustBe BAD_REQUEST
 //      contentType(search) mustBe Some("application/json")
@@ -74,7 +71,7 @@
 //      contentAsString(search) must include("Could not find record")
 //    }
 //
-//    "return 200 when a record is found for a specified period" ignore {
+//    "return 200 when a record is found for a specified period" in {
 //      val id = "03007252"
 //      val period = "201706"
 //      val search = fakeRequest(s"/v1/records/$id/periods/$period")

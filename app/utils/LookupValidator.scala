@@ -15,11 +15,11 @@ import hbase.model.AdminData.REFERENCE_PERIOD_FORMAT
 
 class LookupValidator @Inject() (val messagesApi: MessagesApi, val configuration: Configuration) extends Properties {
 
-  def validateLookupParams(id: String, period: Option[String]): Either[LookupError, ValidLookup] = {
+  def validateLookupParams(id: String, period: Option[String], max: Option[Long]): Either[LookupError, ValidLookup] = {
     (period, id) match {
       case (p, _) if !validPeriod(p) => Left(InvalidPeriod(messagesApi("controller.invalid.period", REFERENCE_PERIOD_FORMAT)))
       case (_, i) if !validId(i) => Left(InvalidId(messagesApi("controller.invalid.id")))
-      case _ => Right(ValidLookup(id, formPeriod(period)))
+      case _ => Right(ValidLookup(id, formPeriod(period), max))
     }
   }
 
