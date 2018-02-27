@@ -20,10 +20,10 @@ class RowKeyUtils @Inject() (val configuration: Configuration) extends HBaseConf
 
   val DELIMITER = "~"
 
-  def reverseOption(id: String): String = if (reverseFlag) { id.reverse } else id
+  def reverseOption(id: String, flag: Boolean = reverseFlag): String = if (flag) { id.reverse } else id
 
-  def createRowKey(referencePeriod: YearMonth, id: String): String =
-    String.join(DELIMITER, reverseOption(id), referencePeriod.toString(AdminData.REFERENCE_PERIOD_FORMAT))
+  def createRowKey(referencePeriod: YearMonth, id: String, flag: Boolean = reverseFlag): String =
+    String.join(DELIMITER, reverseOption(id, flag), referencePeriod.toString(AdminData.REFERENCE_PERIOD_FORMAT))
 
   def createAdminDataFromRowKey(rowKey: String): AdminData = {
     val compositeRowKeyParts: Array[String] = rowKey.split(DELIMITER)

@@ -97,6 +97,8 @@ public class CSVDataKVMapper extends
         // Skip blank rows
         if (value == null || value.getLength() == 0) return;
 
+        Configuration conf = context.getConfiguration();
+
         // Skip header
         if (isHeaderRow(value, context.getConfiguration())) return;
 
@@ -106,7 +108,7 @@ public class CSVDataKVMapper extends
         if (fields == null) return;
 
         // Key: e.g. "201706~07382019"
-        String rowKeyStr = ROWKEY_UTILS.createRowKey(referencePeriod, fields[rowKeyFieldPosition]);
+        String rowKeyStr = ROWKEY_UTILS.createRowKey(referencePeriod, fields[rowKeyFieldPosition], Boolean.valueOf(conf.get(REVERSE_FLAG)));
         writeRow(context, rowKeyStr, fields);
     }
 

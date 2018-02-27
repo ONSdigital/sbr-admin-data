@@ -20,6 +20,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.scalactic.Bool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,7 @@ public class BulkLoader extends Configured implements Tool {
     static final String REFERENCE_PERIOD = "hbase.load.period";
     static final String COLUMN_HEADINGS = "csv.column.headings";
     static final String ROWKEY_POSITION = "csv.id.position";
+    public static final String REVERSE_FLAG = "load.format.reverse";
     public static final String HEADER_STRING = "csv.header.string";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
@@ -57,8 +59,9 @@ public class BulkLoader extends Configured implements Tool {
     private static final int ARG_REFERENCE_PERIOD = 1;
     private static final int ARG_CSV_FILE = 2;
     private static final int ARG_CSV_ROWKEY_POSITION = 3;
-    private static final int ARG_CSV_HEADER_STRING = 4;
+    private static final int ARG_REVERSE_FLAG = 4;
     private static final int ARG_HFILE_OUT_DIR = 5;
+    private static final int ARG_CSV_HEADER_STRING = 6;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
     enum LoadCounters {
         TOTAL_CSV_RECORDS,
@@ -89,15 +92,17 @@ public class BulkLoader extends Configured implements Tool {
             System.exit(ERROR);
         }
 
+        getConf().set(REVERSE_FLAG, strings[ARG_REVERSE_FLAG]);
+
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
-//         String headerArg = strings[ARG_CSV_HEADER_STRING];
-//         if (headerArg.isEmpty()) {
-               Configuration conf = this.getConf();
-               getHeader(strings[ARG_CSV_FILE], conf);
-//         } else {
-//               getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
-//         }
+        String headerArg = strings[ARG_CSV_HEADER_STRING];
+        if (headerArg.isEmpty()) {
+            Configuration conf = this.getConf();
+            getHeader(strings[ARG_CSV_FILE], conf);
+         } else {
+            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+         }
 
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
