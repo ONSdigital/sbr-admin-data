@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import org.joda.time.YearMonth;
+
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +36,10 @@ public class CSVDataKVMapper extends
     private static final byte[] LAST_UPDATED_BY_COLUMN = toBytes("updatedBy");
     private static final byte[] LAST_UPDATED_BY_VALUE = toBytes("Data Load");
     private static final String COMMA = ",";
+
+    @Inject
+    private play.api.Configuration configuration;
+    private RowKeyUtils ROWKEY_UTILS = new RowKeyUtils(configuration);
 
     private CSVParser csvParser;
     private YearMonth referencePeriod;
@@ -100,7 +106,7 @@ public class CSVDataKVMapper extends
         if (fields == null) return;
 
         // Key: e.g. "201706~07382019"
-        String rowKeyStr = RowKeyUtils.createRowKey(referencePeriod, fields[rowKeyFieldPosition]);
+        String rowKeyStr = ROWKEY_UTILS.createRowKey(referencePeriod, fields[rowKeyFieldPosition]);
         writeRow(context, rowKeyStr, fields);
     }
 

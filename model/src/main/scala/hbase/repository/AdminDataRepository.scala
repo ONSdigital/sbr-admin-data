@@ -18,6 +18,7 @@ import hbase.model.AdminData
 trait AdminDataRepository {
 
   def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]]
+
 }
 
 object AdminDataRepository {

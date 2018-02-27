@@ -28,6 +28,7 @@ import hbase.util.{ HBaseConfig, RowKeyUtils }
 class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration)
   extends AdminDataRepository with HBaseConfig {
 
+  private val ROWKEY_UTILS = new RowKeyUtils(configuration)
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
   // TODO - add Circuitbreaker
@@ -51,7 +52,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   }
 
   private def getRestRequest(table: Table, referencePeriod: YearMonth, key: String): Option[Seq[AdminData]] = {
-    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+    val rowKey = ROWKEY_UTILS.createRowKey(referencePeriod, key)
     table.get(new Get(Bytes.toBytes(rowKey))) match {
       case res if res.isEmpty =>
         LOGGER.debug("No data found for row key '{}'", rowKey)
@@ -65,7 +66,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   private def scanRestRequest(table: Table, key: String, max: Option[Long]): Option[Seq[AdminData]] = {
     val scan = new Scan()
       .setReversed(true)
-      .setRowPrefixFilter(Bytes.toBytes(key + RowKeyUtils.DELIMITER))
+      .setRowPrefixFilter(Bytes.toBytes(key + ROWKEY_UTILS.DELIMITER))
     if (max.isDefined) {
       scan.setMaxResultSize(max.get)
     }
@@ -82,7 +83,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   }
 
   private def convertToAdminData(result: Result): AdminData = {
-    val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow))
+    val adminData: AdminData = ROWKEY_UTILS.createAdminDataFromRowKey(Bytes.toString(result.getRow))
     val varMap = result.listCells.toList.map { cell =>
       val column = new String(CellUtil.cloneQualifier(cell))
       val value = new String(CellUtil.cloneValue(cell))
