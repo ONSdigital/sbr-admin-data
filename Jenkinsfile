@@ -227,11 +227,6 @@ pipeline {
                     $SBT 'set test in assembly := {}' clean compile assembly
                 """
                 copyToHBaseNode()
-                sh """
-                    $SBT 'set test in assembly := {}' clean compile assembly
-                """
-
-                copyToHBaseNode()
                 colourText("success", 'Package.')
             }
         }
