@@ -12,10 +12,10 @@ import com.typesafe.config.Config
  * Copyright (c) 2017  Office for National Statistics
  */
 
-trait HBaseConfig {
+trait HBaseConfigProperties {
 
   implicit val configuration: Configuration
-  private val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
+  private lazy val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
   private val loadConfig: Config = configuration.underlying.getConfig("load.format")
 
   private val nameSpace: String = if (hBaseConfig.getBoolean("initialize")) {

@@ -16,7 +16,7 @@ import hbase.model.AdminData
  */
 
 @Singleton
-class RowKeyUtils @Inject() (val configuration: Configuration) extends HBaseConfig {
+class RowKeyUtils @Inject() (val configuration: Configuration) extends HBaseConfigProperties {
 
   val DELIMITER = "~"
 

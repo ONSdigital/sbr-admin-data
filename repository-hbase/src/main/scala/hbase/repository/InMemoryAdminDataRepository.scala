@@ -15,7 +15,7 @@ import com.github.nscala_time.time.Imports.YearMonth
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository.LOGGER
-import hbase.util.{ HBaseConfig, RowKeyUtils }
+import hbase.util.{ HBaseConfigProperties, RowKeyUtils }
 
 /**
  * InMemoryAdminDataRepository
@@ -26,7 +26,7 @@ import hbase.util.{ HBaseConfig, RowKeyUtils }
  */
 
 class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration)
-  extends AdminDataRepository with HBaseConfig {
+  extends AdminDataRepository with HBaseConfigProperties {
 
   private val ROWKEY_UTILS = new RowKeyUtils(configuration)
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global

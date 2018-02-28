@@ -14,7 +14,7 @@ import com.netaporter.uri.dsl._
 
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository._
-import hbase.util.{ HBaseConfig, RowKeyUtils }
+import hbase.util.{ HBaseConfigProperties, RowKeyUtils }
 import services.util.EncodingUtil.{ decodeBase64, encodeBase64 }
 import services.websocket.RequestGenerator
 
@@ -26,7 +26,7 @@ import services.websocket.RequestGenerator
  * Copyright (c) 2017  Office for National Statistics
  */
 class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration: Configuration)
-  extends AdminDataRepository with HBaseConfig with Status with Results with ContentTypes {
+  extends AdminDataRepository with HBaseConfigProperties with Status with Results with ContentTypes {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
   private val AUTH = encodeBase64(Seq(username, password))
