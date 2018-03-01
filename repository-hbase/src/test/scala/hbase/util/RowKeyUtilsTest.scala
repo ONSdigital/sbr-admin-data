@@ -17,11 +17,10 @@ import hbase.model.AdminData
 object RowKeyUtilsTest extends FlatSpec with Matchers {
 
   private val configuration = Configuration(ConfigFactory.load)
-  private val ROWKEY_UTILS = new RowKeyUtils
 
   private val TEST_REFERENCE_PERIOD: YearMonth = YearMonth.parse("201707")
   private val TEST_KEY: String = "123456789"
-  private val TEST_VAT_ROWKEY = String.join(ROWKEY_UTILS.DELIMITER, "201707", TEST_KEY)
+  private val TEST_VAT_ROWKEY = String.join(RowKeyUtils.DELIMITER, "201707", TEST_KEY)
 
   private val reverseFlag = configuration.underlying.getBoolean("load.format.reverse")
 
@@ -29,7 +28,7 @@ object RowKeyUtilsTest extends FlatSpec with Matchers {
    * @throws Exception
    */
   it must "create a row key that is valid - generated from period + Strings" in {
-    val rowKey: String = ROWKEY_UTILS.createRowKey(TEST_REFERENCE_PERIOD, TEST_KEY, reverseFlag)
+    val rowKey: String = RowKeyUtils.createRowKey(TEST_REFERENCE_PERIOD, TEST_KEY, reverseFlag)
     TEST_VAT_ROWKEY should equal(rowKey)
   }
 
@@ -37,7 +36,7 @@ object RowKeyUtilsTest extends FlatSpec with Matchers {
    * @throws Exception
    */
   it must "create AdminData object from rowkey" in {
-    val adminData: AdminData = ROWKEY_UTILS.createAdminDataFromRowKey(TEST_VAT_ROWKEY, reverseFlag)
+    val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(TEST_VAT_ROWKEY, reverseFlag)
     TEST_KEY should equal(adminData.id)
     TEST_REFERENCE_PERIOD should equal(adminData.referencePeriod)
   }

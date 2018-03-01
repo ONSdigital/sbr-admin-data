@@ -1,7 +1,5 @@
 package hbase.util
 
-import javax.inject.Singleton
-
 import com.github.nscala_time.time.Imports.{ DateTimeFormat, YearMonth }
 
 import hbase.model.AdminData
@@ -14,8 +12,7 @@ import hbase.model.AdminData
  * Copyright (c) 2017  Office for National Statistics
  */
 
-@Singleton
-class RowKeyUtils {
+object RowKeyUtils {
 
   val DELIMITER = "~"
 

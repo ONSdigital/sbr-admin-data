@@ -37,8 +37,6 @@ public class CSVDataKVMapper extends
     private static final byte[] LAST_UPDATED_BY_VALUE = toBytes("Data Load");
     private static final String COMMA = ",";
 
-    private RowKeyUtils ROWKEY_UTILS = new RowKeyUtils();
-
     private CSVParser csvParser;
     private YearMonth referencePeriod;
 //    private byte[][] columnNames;
@@ -106,7 +104,7 @@ public class CSVDataKVMapper extends
         if (fields == null) return;
 
         // Key: e.g. "201706~07382019"
-        String rowKeyStr = ROWKEY_UTILS.createRowKey(referencePeriod, fields[rowKeyFieldPosition], Boolean.valueOf(conf.get(REVERSE_FLAG)));
+        String rowKeyStr = RowKeyUtils.createRowKey(referencePeriod, fields[rowKeyFieldPosition], Boolean.valueOf(conf.get(REVERSE_FLAG)));
         writeRow(context, rowKeyStr, fields);
     }
 

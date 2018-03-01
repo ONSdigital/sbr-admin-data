@@ -36,7 +36,6 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   private val table = mock[Table]
   private val result = mock[Result]
   private val resultScanner = mock[ResultScanner]
-  private val rowKeyUtils = mock[RowKeyUtils]
 
   def setup =
     new {
@@ -65,7 +64,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val testPeriod = YearMonth.parse("200812", DateTimeFormat.forPattern(dateFormat))
     val companyName = "My Company"
     // Create cells for each column
-    val rowKey = new RowKeyUtils().createRowKey(testPeriod, testId, REVERSE)
+    val rowKey = RowKeyUtils.createRowKey(testPeriod, testId, REVERSE)
     val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"),
       9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
     val cells = List(nameCell).asJava
