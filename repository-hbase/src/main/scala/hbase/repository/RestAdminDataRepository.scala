@@ -31,7 +31,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
   private val AUTH = encodeBase64(Seq(username, password))
   private val HEADERS = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $AUTH")
-  private val ROWKEY_UTILS = new RowKeyUtils(configuration)
+  private val ROWKEY_UTILS = new RowKeyUtils()
 
   // TODO - add Circuit breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] = getAdminData(referencePeriod, key, max)
@@ -40,13 +40,13 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   private def getAdminData(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] = {
     (referencePeriod match {
       case Some(r: YearMonth) =>
-        val rowKey = ROWKEY_UTILS.createRowKey(r, key)
+        val rowKey = ROWKEY_UTILS.createRowKey(r, key, reverseFlag)
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
         LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} " +
           s"and headers ${HEADERS.head.toString}")
         ws.singleGETRequest(uri.toString, HEADERS)
       case None =>
-        val rowKey = ROWKEY_UTILS.reverseOption(key)
+        val rowKey = ROWKEY_UTILS.reverseOption(key, reverseFlag)
         /**
          * @note - UNCOMMENT for HBase Rest support on Cloudera ch.6 release
          *       allowing reverse and thereby limit to work
@@ -97,7 +97,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
     val columnFamilyAndValueSubstring = 2
     val key = (result \ "key").as[String]
     LOGGER.debug(s"Found record with $key")
-    val adminData: AdminData = ROWKEY_UTILS.createAdminDataFromRowKey(decodeBase64(key))
+    val adminData: AdminData = ROWKEY_UTILS.createAdminDataFromRowKey(decodeBase64(key), reverseFlag)
     val varMap = (result \ "Cell").as[Seq[JsValue]].map { cell =>
       val column = decodeBase64((cell \ "column").as[String]).split(":", columnFamilyAndValueSubstring).last
       val value = decodeBase64((cell \ "$").as[String])

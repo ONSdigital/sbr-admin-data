@@ -1,10 +1,8 @@
 package hbase.load;
 
 import hbase.connector.HBaseConnector;
-import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
 import hbase.model.AdminData;
-import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -20,13 +18,11 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.scalactic.Bool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;

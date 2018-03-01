@@ -28,6 +28,7 @@ import hbase.util.RowKeyUtils
 class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with Matchers {
 
   private val MAX_RESULT_SIZE = 12
+  private val REVERSE = false
   private val dateFormat = AdminData.REFERENCE_PERIOD_FORMAT
 
   private val connector = mock[HBaseConnector]
@@ -64,7 +65,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     val testPeriod = YearMonth.parse("200812", DateTimeFormat.forPattern(dateFormat))
     val companyName = "My Company"
     // Create cells for each column
-    val rowKey = new RowKeyUtils(s.repository.configuration).createRowKey(testPeriod, testId)
+    val rowKey = new RowKeyUtils().createRowKey(testPeriod, testId, REVERSE)
     val nameCell = CellUtil.createCell(Bytes.toBytes(rowKey), columnFamily, Bytes.toBytes("name"),
       9223372036854775807L, KeyValue.Type.Maximum, Bytes.toBytes(companyName), HConstants.EMPTY_BYTE_ARRAY)
     val cells = List(nameCell).asJava

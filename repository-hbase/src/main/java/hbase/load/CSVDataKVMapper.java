@@ -37,9 +37,7 @@ public class CSVDataKVMapper extends
     private static final byte[] LAST_UPDATED_BY_VALUE = toBytes("Data Load");
     private static final String COMMA = ",";
 
-    @Inject
-    private play.api.Configuration configuration;
-    private RowKeyUtils ROWKEY_UTILS = new RowKeyUtils(configuration);
+    private RowKeyUtils ROWKEY_UTILS = new RowKeyUtils();
 
     private CSVParser csvParser;
     private YearMonth referencePeriod;

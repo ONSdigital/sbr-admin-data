@@ -15,10 +15,10 @@ import com.typesafe.config.Config
 trait HBaseConfigProperties {
 
   implicit val configuration: Configuration
-  private lazy val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
+  private val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
   private val loadConfig: Config = configuration.underlying.getConfig("load.format")
 
-  private val nameSpace: String = if (hBaseConfig.getBoolean("initialize")) {
+  private lazy val nameSpace: String = if (hBaseConfig.getBoolean("initialize")) {
     hBaseConfig.getString("in.memory.namespace")
   } else { hBaseConfig.getString("rest.namespace") }
 
