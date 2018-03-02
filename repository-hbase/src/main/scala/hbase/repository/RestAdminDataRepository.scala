@@ -2,11 +2,11 @@ package hbase.repository
 
 import javax.inject.Inject
 
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.util.{Failure, Success, Try}
 
 import play.api.Configuration
-import play.api.http.{ ContentTypes, Status }
+import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.JsValue
 import play.api.mvc.Results
 import com.github.nscala_time.time.Imports.YearMonth
@@ -14,8 +14,8 @@ import com.netaporter.uri.dsl._
 
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository._
-import hbase.util.{ HBaseConfigProperties, RowKeyUtils }
-import services.util.EncodingUtil.{ decodeBase64, encodeBase64 }
+import hbase.util.{HBaseConfigProperties, RowKeyUtils}
+import services.util.EncodingUtil.{decodeBase64, encodeBase64}
 import services.websocket.RequestGenerator
 
 /**
@@ -65,7 +65,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
         val defaultGetLimit: Int = 1
         val resp = (response.json \ "Row").as[Seq[JsValue]]
         Try(resp.map(v => convertToAdminData(v))) match {
-          case Success(Seq()) =>
+          case Success(Seq.empty) =>
             LOGGER.debug("No data found for prefix row key '{}'", key)
             None
           case Success(adminData: Seq[AdminData]) =>
