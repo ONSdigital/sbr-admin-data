@@ -17,10 +17,9 @@ object RowKeyUtilsTest extends FlatSpec with Matchers {
   private val RAW_YEAR_MONTH = "201707"
   private val TEST_REFERENCE_PERIOD: YearMonth = YearMonth.parse(RAW_YEAR_MONTH)
   private val TEST_KEY: String = "123456789"
-  private val TEST_KEY_REVRESED: String = TEST_KEY.reverse
+  private val TEST_KEY_REVERSED: String = TEST_KEY.reverse
   private val TEST_VAT_ROWKEY = String.join(RowKeyUtils.DELIMITER, TEST_KEY, RAW_YEAR_MONTH)
-  private val TEST_VAT_ROWKEY_REVERSED = String.join(RowKeyUtils.DELIMITER, TEST_KEY_REVRESED, RAW_YEAR_MONTH)
-
+  private val TEST_VAT_ROWKEY_REVERSED = String.join(RowKeyUtils.DELIMITER, TEST_KEY_REVERSED, RAW_YEAR_MONTH)
 
   it must "create a row key that is valid - generated from period + Strings" in {
     val reverseFlag = false
@@ -45,7 +44,7 @@ object RowKeyUtilsTest extends FlatSpec with Matchers {
     val reverseFlag = true
     val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(TEST_VAT_ROWKEY_REVERSED, reverseFlag)
     TEST_KEY should equal(adminData.id)
-    TEST_KEY_REVRESED should not equal (adminData.id)
+    TEST_KEY_REVERSED should not equal adminData.id
     TEST_REFERENCE_PERIOD should equal(adminData.referencePeriod)
   }
 

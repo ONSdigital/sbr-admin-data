@@ -55,7 +55,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   //    assertEquals(period, date)
   //  }
 
-  "repository.lookup()" should "return a valid result" ignore {
+  "repository.lookup()" should "return a valid result" in {
     val s = setup
     val columnFamily = toBytes("d")
 
@@ -116,7 +116,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
   //    // Also test when we use 1L it only returns 1 result
   //  }
 
-  "repository.lookup()" should "return an empty result if no record with that id is present" ignore {
+  "repository.lookup()" should "return an empty result if no record with that id is present" in {
     val s = setup
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
     when(result.isEmpty) thenReturn true
@@ -124,7 +124,7 @@ class HBaseAdminDataRepositoryScalaTest extends FlatSpec with MockitoSugar with 
     assertEquals(lookup, None)
   }
 
-  "repository.lookup()" should "throw an exception" ignore {
+  "repository.lookup()" should "throw an exception" in {
     val s = setup
     val testPeriod = YearMonth.parse("201706", DateTimeFormat.forPattern(dateFormat))
     when(connection.getTable(any())) thenThrow new IOException("Failed to retrieve data")

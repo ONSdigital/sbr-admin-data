@@ -37,7 +37,9 @@ import java.time.format.DateTimeFormatter;
  * <li>args[1]: reference period, e.g. 201706
  * <li>args[2]: HDFS input path
  * <li>args[3]: primary key position in file
- * <li>args[4]: HDFS output path (optional)
+ * <li>args[4]: A flag (boolean) to indicate if id to be reversed
+ * <li>args[5]: Indicator to use cvs headers or provide headers directly
+ * <li>args[6]: HDFS output path (optional)
  * </ol>
  */
 public class BulkLoader extends Configured implements Tool {
