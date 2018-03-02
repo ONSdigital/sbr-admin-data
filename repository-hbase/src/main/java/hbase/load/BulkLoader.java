@@ -45,19 +45,20 @@ public class BulkLoader extends Configured implements Tool {
     static final String REFERENCE_PERIOD = "hbase.load.period";
     static final String COLUMN_HEADINGS = "csv.column.headings";
     static final String ROWKEY_POSITION = "csv.id.position";
-    public static final String REVERSE_FLAG = "load.format.reverse";
+    static final String REVERSE_FLAG = "load.format.reverse";
     public static final String HEADER_STRING = "csv.header.string";
+    private static final String COLUMN_HEADINGS_PLACEHOLDER_DEFAULT = "useFileColumnHeadings";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
-    private static final int MIN_ARGS = 5;
+    private static final int MIN_ARGS = 6;
     private static final int MAX_ARGS = 7;
     private static final int ARG_TABLE_NAME = 0;
     private static final int ARG_REFERENCE_PERIOD = 1;
     private static final int ARG_CSV_FILE = 2;
     private static final int ARG_CSV_ROWKEY_POSITION = 3;
     private static final int ARG_REVERSE_FLAG = 4;
-    private static final int ARG_HFILE_OUT_DIR = 5;
-    private static final int ARG_CSV_HEADER_STRING = 6;
+    private static final int ARG_CSV_HEADER_STRING = 5;
+    private static final int ARG_HFILE_OUT_DIR = 6;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
     enum LoadCounters {
         TOTAL_CSV_RECORDS,
@@ -93,11 +94,11 @@ public class BulkLoader extends Configured implements Tool {
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
 
-        if (strings.length == MAX_ARGS) {
-            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
-        } else {
+        if (strings[ARG_CSV_HEADER_STRING].equalsIgnoreCase(COLUMN_HEADINGS_PLACEHOLDER_DEFAULT)) {
             Configuration conf = this.getConf();
             getHeader(strings[ARG_CSV_FILE], conf);
+        } else {
+            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
         }
 
         if (strings.length == MIN_ARGS) {
@@ -116,8 +117,8 @@ public class BulkLoader extends Configured implements Tool {
         FileSystem fs = FileSystem.get(path.toUri(), conf);
 
         try(
-                InputStreamReader reader = new InputStreamReader(fs.open(path));
-                BufferedReader readFile = new BufferedReader(reader)
+            InputStreamReader reader = new InputStreamReader(fs.open(path));
+            BufferedReader readFile = new BufferedReader(reader)
         ) {
             LOG.debug("Successfully read file at '{}' and now getting header.", inputFile);
             String header;

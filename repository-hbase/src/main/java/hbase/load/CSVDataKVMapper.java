@@ -104,7 +104,8 @@ public class CSVDataKVMapper extends
         if (fields == null) return;
 
         // Key: e.g. "201706~07382019"
-        String rowKeyStr = RowKeyUtils.createRowKey(referencePeriod, fields[rowKeyFieldPosition], Boolean.valueOf(conf.get(REVERSE_FLAG)));
+        String rowKeyStr = RowKeyUtils.createRowKey(referencePeriod, fields[rowKeyFieldPosition],
+                conf.getBoolean(REVERSE_FLAG, false));
         writeRow(context, rowKeyStr, fields);
     }
 
