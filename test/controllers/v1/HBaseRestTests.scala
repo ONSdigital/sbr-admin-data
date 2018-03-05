@@ -12,6 +12,7 @@ import play.api.libs.json.{ JsArray, JsSuccess }
 import play.api.test.Helpers.{ contentAsJson, contentType, status }
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
+import spray.json.JsValue
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -48,8 +49,11 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
   //   - test with auth details (this requires small modifications to the configuration)
   //   - we could read in the test data and base64 encode it etc. rather than just returning the data string
 
-  def mockEndpoint(tableName: String, id: String, body: String): Unit = {
-    val path = s"/$nameSpace:$tableName/$id~*"
+  def mockEndpoint(tableName: String, id: String, period: Option[String], body: String): Unit = {
+    val path = period match {
+      case Some(p) => s"/$nameSpace:$tableName/$id~$p"
+      case None => s"/$nameSpace:$tableName/$id~*"
+    }
     stubFor(get(urlEqualTo(path))
       .willReturn(
         aResponse()
@@ -62,25 +66,52 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
 
   "/v1/records/:id" should {
     "return a unit for a valid id (ch)" in {
-      try {
-        implicit val duration: Timeout = 100 seconds
+      implicit val duration: Timeout = 100 seconds
 
-        val id = "03007252"
-        val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
-        mockEndpoint(adminDataTable, id, body)
-        val resp = fakeRequest(s"/$version/records/$id")
-        //logger.error(s"resp is: ${resp}")
-        val r = Await.result(resp, 1 second)
-        logger.error(s"r is: ${r}")
-        //val json = contentAsJson(resp).as[JsArray]
-        //val unit = json(0).validate[AdminData]
-        //val idUnit = (json \ "id").as[String]
-        //idUnit mustBe id
-        //logger.error(s"r is: ${r}")
-        true mustBe true
-      } catch {
-        case e => println(s"exception ${e.printStackTrace}")
-      }
+      val id = "03007252"
+      val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
+      mockEndpoint(adminDataTable, id, None, body)
+      val resp = fakeRequest(s"/$version/records/$id")
+      val r = Await.result(resp, 1 second)
+
+      val json = contentAsJson(resp).as[JsArray]
+      contentType(resp) mustBe Some("application/json")
+      json.value.size mustBe 1
+      val js = json.as[JsArray]
+
+      val idUnit = (js.head \ "id").as[String]
+      idUnit mustBe id
+      val periodUnit = (js.head \ "period").as[String]
+      periodUnit mustBe firstPeriod
+
+      val nameUnit = ((js.head \ "variables") \ "name").as[String]
+      nameUnit mustBe "big company 123"
+
+      logger.error(s"thisUnit is ${nameUnit}")
+
+      true mustBe true
+    }
+  }
+  "/v1/records/:id/periods/:period" should {
+    "return a unit for a valid id (ch)" in {
+      implicit val duration: Timeout = 100 seconds
+
+      val id = "03007252"
+      val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
+      val period = "201706"
+      mockEndpoint(adminDataTable, id, Some(period), body)
+      val resp = fakeRequest(s"/$version/records/$id")
+      val json = contentAsJson(resp).as[JsArray]
+      contentType(resp) mustBe Some("application/json")
+      json.value.size mustBe 1
+      val js = json.as[JsArray]
+
+      val idUnit = (js.head \ "id").as[String]
+      idUnit mustBe id
+      val periodUnit = (js.head \ "period").as[String]
+      periodUnit mustBe firstPeriod
+      val nameUnit = ((js.head \ "variables") \ "name").as[String]
+      nameUnit mustBe "big company 123"
     }
   }
 
