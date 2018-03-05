@@ -21,6 +21,7 @@ trait AdminDataRepository {
 
 }
 
+// TODO - Change Properties to Singleton class => Object and then
 object AdminDataRepository {
   val LOGGER: Logger = LoggerFactory.getLogger(getClass.getName)
   val OPEN_ALERT = "----- circuit breaker opened! -----"

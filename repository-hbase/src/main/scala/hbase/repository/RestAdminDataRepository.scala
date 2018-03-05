@@ -32,7 +32,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
   private val AUTH = encodeBase64(Seq(username, password))
   private val HEADERS = Seq("Accept" -> "application/json", "Authorization" -> s"Basic $AUTH")
 
-  // TODO - add Circuit breaker
+  // TODO - ADD Circuit breaker
   override def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]] = getAdminData(referencePeriod, key, max)
 
   @throws(classOf[Throwable])
@@ -50,22 +50,21 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
          * @note - UNCOMMENT for HBase Rest support on Cloudera ch.6 release
          *       allowing reverse and thereby limit to work
          *
-         * val params = if (max.isDefined) {
-         * Seq("reversed" -> "true", "limit" -> max.get.toString)
-         * } else {
-         * Seq("reversed" -> "true")
-         * }
+         *   val params = if (max.isDefined) {
+         *     Seq("reversed" -> "true", "limit" -> max.get.toString)
+         *   } else {
+         *     Seq("reversed" -> "true")
+         *   }
          */
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey + RowKeyUtils.DELIMITER + "*"
-        LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, " +
-          s"headers ${HEADERS.head.toString} ")
+        LOGGER.debug(s"Making restful SCAN request to HBase with url ${uri.toString}, headers ${HEADERS.head.toString} ")
         ws.singleGETRequest(uri.toString, HEADERS)
     }).map {
       case response if response.status == OK => {
         val defaultGetLimit: Int = 1
         val resp = (response.json \ "Row").as[Seq[JsValue]]
         Try(resp.map(v => convertToAdminData(v))) match {
-          case Success(Seq.empty) =>
+          case Success(Seq()) =>
             LOGGER.debug("No data found for prefix row key '{}'", key)
             None
           case Success(adminData: Seq[AdminData]) =>
@@ -75,7 +74,6 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
              *       side reverse and limit.
              *
              *       Some(adminData)
-             *
              * All responses need to be in DESC and capped - GET is LIMIT 1 thus results to no effect
              */
             Some(adminData.reverse.take(max.getOrElse(defaultGetLimit).toString.toInt))
@@ -85,9 +83,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
         }
       }
       case ex =>
-        LOGGER.error(
-          "'{}' Exception received when looking up prefix row key '{}'. Trace '{}'",
-          ex.statusText, key, ex.body)
+        LOGGER.error("'{}' Exception received when looking up prefix row key '{}'. Trace '{}'", ex.statusText, key, ex.body)
         throw new Exception(ex.body)
     }
   }
@@ -104,6 +100,6 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
     }.toMap
     val newPutAdminData = adminData.putVariable(varMap)
     newPutAdminData
-  }
+}
 
 }
