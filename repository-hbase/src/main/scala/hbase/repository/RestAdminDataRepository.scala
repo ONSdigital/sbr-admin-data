@@ -42,6 +42,7 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
         val uri = baseUrl / tableName.getNameWithNamespaceInclAsString / rowKey / columnFamily
         LOGGER.debug(s"Making restful GET request to HBase with url path ${uri.toString} " +
           s"and headers ${HEADERS.head.toString}")
+        LOGGER.error(s"uri: ${uri.toString}")
         ws.singleGETRequest(uri.toString, HEADERS)
       case None =>
         /**

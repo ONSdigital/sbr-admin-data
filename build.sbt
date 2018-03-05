@@ -43,6 +43,7 @@ lazy val devDeps = Seq(
   filters,
   "org.scalactic"              %%  "scalactic"       %   "3.0.4",
   "org.scalatest"              %%  "scalatest"       %   "3.0.4"     %   "test",
+  "com.github.tomakehurst"     %   "wiremock"        %   "1.33"      %   Test,
   "org.webjars"                %%  "webjars-play"    %   "2.5.0-3",
   "io.swagger"                 %%  "swagger-play2"   %   "1.5.3",
   "org.webjars"                %   "swagger-ui"      %   "2.2.10-1",
@@ -61,6 +62,7 @@ lazy val devDeps = Seq(
 
 // Run tests with full stack traces
 testOptions in Test += Tests.Argument("-oG")
+javaOptions in Test += "-DHBASE_ENDPOINT=http://localhost:8081"
 
 javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf"
 
@@ -85,6 +87,8 @@ lazy val `sbr-admin-data` = (project in file("."))
       //moduleName := "sbr-admin-data",
     description := "<description>",
     libraryDependencies ++= devDeps,
+    javaOptions in Test += "-DHBASE_ENDPOINT=http://localhost:8081",
+    javaOptions in Test += "-DHBASE_INITIALIZE_DB=false",
     // di router -> swagger
     routesGenerator := InjectedRoutesGenerator,
     dependencyOverrides += "com.google.guava" % "guava" % "14.0.1",
@@ -116,3 +120,5 @@ assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case x => MergeStrategy.first
 }
+// di router -> swagger
+
