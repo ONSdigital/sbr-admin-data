@@ -297,13 +297,13 @@ def copyToHBaseNode() {
     echo "Deploying to ${env.DEPLOY_NAME}"
     sshagent(credentials: ["sbr-${env.DEPLOY_NAME}-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
-            sh '''
-                ssh sbr-${env.DEPLOY_NAME}-ci@$HBASE_NODE mkdir -p $MODULE_NAME/lib
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_NAME}-ci@$HBASE_NODE:$MODULE_NAME/lib/
-                echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
-                ssh sbr-${env.DEPLOY_NAME}-ci@$HBASE_NODE hdfs dfs -put -f $MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_NAME}-ci/lib/
-                echo "Successfully copied jar file to HDFS"
-	        '''
+            sh """
+                ssh sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE} mkdir -p ${MODULE_NAME}/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE}:${MODULE_NAME}/lib/
+                echo 'Successfully copied jar file to ${MODULE_NAME}/lib directory on ${HBASE_NODE}'
+                ssh sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE} hdfs dfs -put -f ${MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_NAME}-ci/lib/
+                echo 'Successfully copied jar file to HDFS'
+	    """
         }
     }
 }
