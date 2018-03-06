@@ -85,7 +85,10 @@ trait ControllerUtils extends Controller with LazyLogging with Properties with I
     lookup: (Option[YearMonth], String, Option[Long]) => Future[Option[Seq[AdminData]]],
     period: Option[YearMonth], id: String, max: Option[Long]): Future[Result] = {
     lookup(period, id, max).map {
-      case Some(res: Seq[AdminData]) => Ok(Json.toJson(res))
+      case Some(res: Seq[AdminData]) => max match {
+        case Some(m) => Ok(Json.toJson(res))
+        case None => Ok(Json.toJson(res.head))
+      }
       case None => if (period.isEmpty) {
         NotFound(Messages("controller.not.found", id))
       } else {
