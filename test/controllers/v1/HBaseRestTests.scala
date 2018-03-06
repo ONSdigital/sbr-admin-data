@@ -11,7 +11,7 @@ import hbase.model.AdminData
 import play.api.libs.json.{ JsArray, JsSuccess }
 import play.api.test.Helpers.{ contentAsJson, contentType, status }
 import akka.util.Timeout
-import com.typesafe.scalalogging.LazyLogging
+
 import spray.json.JsValue
 
 import scala.concurrent.Await
@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 /**
  * Created by coolit on 13/02/2018.
  */
-class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppPerSuite with LazyLogging {
+class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppPerSuite {
 
   private val version = "v1"
   private val nameSpace = "sbr_local_db"
@@ -61,7 +61,6 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
           .withHeader("content-type", "application/json")
           .withHeader("transfer-encoding", "chunked")
           .withBody(body)))
-    logger.error(s"path: ${path}")
   }
 
   "/v1/records/:id" should {
@@ -72,8 +71,6 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
       val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
       mockEndpoint(adminDataTable, id, None, body)
       val resp = fakeRequest(s"/$version/records/$id")
-      val r = Await.result(resp, 1 second)
-
       val json = contentAsJson(resp).as[JsArray]
       contentType(resp) mustBe Some("application/json")
       json.value.size mustBe 1
@@ -83,13 +80,8 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
       idUnit mustBe id
       val periodUnit = (js.head \ "period").as[String]
       periodUnit mustBe firstPeriod
-
       val nameUnit = ((js.head \ "variables") \ "name").as[String]
       nameUnit mustBe "big company 123"
-
-      logger.error(s"thisUnit is ${nameUnit}")
-
-      true mustBe true
     }
   }
   "/v1/records/:id/periods/:period" should {
