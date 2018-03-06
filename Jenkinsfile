@@ -29,6 +29,8 @@ pipeline {
         PAYE_TABLE = "paye"
         LEU_TABLE = "leu"
         NAMESPACE = "sbr_dev_db"
+	    
+    	STAGE = "NONE"
     }
     options {
         skipDefaultCheckout()
@@ -48,7 +50,7 @@ pipeline {
                 script {
                     version = '1.0.' + env.BUILD_NUMBER
                     currentBuild.displayName = version
-                    env.NODE_STAGE = "Checkout"
+                    STAGE = "Checkout"
                 }
             }
         }
@@ -65,7 +67,7 @@ pipeline {
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Test"
+                        STAGE = "Test"
                     }
                 }
                 success {
@@ -94,7 +96,7 @@ pipeline {
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Static Analysis"
+                        STAGE = "Static Analysis"
                     }
                 }
                 success {
@@ -138,12 +140,15 @@ pipeline {
                     else if (BRANCH_NAME == BRANCH_PROD) {
                         env.DEPLOY_NAME = DEPLOY_PROD
                     }
+		    else {
+		    	colourText("info","Not a valid branch to set env var DEPLOY_NAME")
+		    }
                 }
             }
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Build"
+                        STAGE = "Build"
                     }
                 }
                 success {
@@ -153,24 +158,6 @@ pipeline {
                 failure {
                     colourText("warn","Something went wrong!")
                 }
-            }
-        }
-
-        stage ('Bundle') {
-            agent any
-            when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
-                }
-            }
-            steps {
-                script {
-                    env.NODE_STAGE = "Bundle"
-                }
-                colourText("info", "Bundling....")
-//                stash name: "zip"
             }
         }
 
@@ -185,7 +172,7 @@ pipeline {
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Deploy"
+                    STAGE = "Deploy"
                 }
                 milestone(1)
                 lock('CH Deployment Initiated') {
@@ -242,7 +229,7 @@ pipeline {
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Releases"
+                    STAGE = "Releases"
                     currentTag = getLatestGitTag()
                     colourText("info", "Found latest tag: ${currentTag}")
                     newTag =  IncrementTag( currentTag, RELEASE_TYPE )
@@ -262,7 +249,7 @@ pipeline {
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Integration Tests"
+                    STAGE = "Integration Tests"
                 }
                 unstash 'compiled'
                 sh "$SBT it:test"
