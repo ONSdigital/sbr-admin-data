@@ -18,18 +18,18 @@ import hbase.repository.{ AdminDataRepository, InMemoryAdminDataRepository, Rest
  */
 class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule {
   override def configure(): Unit = {
-    //    if (configuration.getBoolean("hbase.initialize")) {
-    //      System.setProperty(BulkLoader.HEADER_STRING, configuration.getString("csv.header.string"))
-    //      bind(classOf[HBaseConnector]).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")))
-    //      bind(classOf[RepositoryInitializer]).asEagerSingleton()
-    //      bind(classOf[AdminDataRepository]).to(classOf[InMemoryAdminDataRepository]).asEagerSingleton()
-    //      bind(classOf[AdminDataLoad]).to(classOf[HBaseAdminDataLoader]).asEagerSingleton()
-    //    } else { bind(classOf[AdminDataRepository]).to(classOf[RestAdminDataRepository]).asEagerSingleton() }
-    //    if (configuration.getBoolean("api.metrics")) {
-    //      bind(classOf[MetricRegistry])
-    //        .toProvider(classOf[MetricRegistryProvider])
-    //        .asEagerSingleton()
-    //    }
+    if (configuration.getBoolean("hbase.initialize")) {
+      System.setProperty(BulkLoader.HEADER_STRING, configuration.getString("csv.header.string"))
+      bind(classOf[HBaseConnector]).toInstance(new HBaseInMemoryConnector(configuration.getString("hbase.table.name")))
+      bind(classOf[RepositoryInitializer]).asEagerSingleton()
+      bind(classOf[AdminDataRepository]).to(classOf[InMemoryAdminDataRepository]).asEagerSingleton()
+      bind(classOf[AdminDataLoad]).to(classOf[HBaseAdminDataLoader]).asEagerSingleton()
+    } else { bind(classOf[AdminDataRepository]).to(classOf[RestAdminDataRepository]).asEagerSingleton() }
+    if (configuration.getBoolean("api.metrics")) {
+      bind(classOf[MetricRegistry])
+        .toProvider(classOf[MetricRegistryProvider])
+        .asEagerSingleton()
+    }
     bind(classOf[AdminDataRepository]).to(classOf[RestAdminDataRepository]).asEagerSingleton()
   }
 }
