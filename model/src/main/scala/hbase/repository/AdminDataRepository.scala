@@ -18,8 +18,10 @@ import hbase.model.AdminData
 trait AdminDataRepository {
 
   def lookup(referencePeriod: Option[YearMonth], key: String, max: Option[Long]): Future[Option[Seq[AdminData]]]
+
 }
 
+// TODO - Change Properties to Singleton class => Object and then
 object AdminDataRepository {
   val LOGGER: Logger = LoggerFactory.getLogger(getClass.getName)
   val OPEN_ALERT = "----- circuit breaker opened! -----"

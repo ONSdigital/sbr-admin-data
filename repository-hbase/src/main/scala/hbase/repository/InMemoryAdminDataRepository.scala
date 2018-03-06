@@ -15,7 +15,7 @@ import com.github.nscala_time.time.Imports.YearMonth
 import hbase.connector.HBaseConnector
 import hbase.model.AdminData
 import hbase.repository.AdminDataRepository.LOGGER
-import hbase.util.{ HBaseConfig, RowKeyUtils }
+import hbase.util.{ HBaseConfigProperties, RowKeyUtils }
 
 /**
  * InMemoryAdminDataRepository
@@ -26,7 +26,7 @@ import hbase.util.{ HBaseConfig, RowKeyUtils }
  */
 
 class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val configuration: Configuration)
-  extends AdminDataRepository with HBaseConfig {
+  extends AdminDataRepository with HBaseConfigProperties {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
@@ -51,7 +51,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   }
 
   private def getRestRequest(table: Table, referencePeriod: YearMonth, key: String): Option[Seq[AdminData]] = {
-    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key)
+    val rowKey = RowKeyUtils.createRowKey(referencePeriod, key, reverseFlag)
     table.get(new Get(Bytes.toBytes(rowKey))) match {
       case res if res.isEmpty =>
         LOGGER.debug("No data found for row key '{}'", rowKey)
@@ -82,7 +82,7 @@ class InMemoryAdminDataRepository @Inject() (val connector: HBaseConnector, val 
   }
 
   private def convertToAdminData(result: Result): AdminData = {
-    val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow))
+    val adminData: AdminData = RowKeyUtils.createAdminDataFromRowKey(Bytes.toString(result.getRow), reverseFlag)
     val varMap = result.listCells.toList.map { cell =>
       val column = new String(CellUtil.cloneQualifier(cell))
       val value = new String(CellUtil.cloneValue(cell))

@@ -21,7 +21,7 @@ Common.applicationConfig := {
 
 //@ TODO - Increase coverage minimum score
 //coverageMinimum := 55
-coverageMinimum := 8
+coverageMinimum := 0
 
 lazy val initExec: Seq[Def.Setting[_]] = Seq(
   crossPaths := false,

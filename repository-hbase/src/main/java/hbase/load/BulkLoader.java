@@ -1,10 +1,8 @@
 package hbase.load;
 
 import hbase.connector.HBaseConnector;
-import hbase.connector.HBaseInMemoryConnector;
 import hbase.connector.HBaseInstanceConnector;
 import hbase.model.AdminData;
-import hbase.util.RowKeyUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,7 +37,9 @@ import java.time.format.DateTimeFormatter;
  * <li>args[1]: reference period, e.g. 201706
  * <li>args[2]: HDFS input path
  * <li>args[3]: primary key position in file
- * <li>args[4]: HDFS output path (optional)
+ * <li>args[4]: A flag (boolean) to indicate if id to be reversed
+ * <li>args[5]: Indicator to use cvs headers or provide headers directly
+ * <li>args[6]: HDFS output path (optional)
  * </ol>
  */
 public class BulkLoader extends Configured implements Tool {
@@ -48,17 +47,20 @@ public class BulkLoader extends Configured implements Tool {
     static final String REFERENCE_PERIOD = "hbase.load.period";
     static final String COLUMN_HEADINGS = "csv.column.headings";
     static final String ROWKEY_POSITION = "csv.id.position";
+    static final String REVERSE_FLAG = "load.format.reverse";
     public static final String HEADER_STRING = "csv.header.string";
+    private static final String COLUMN_HEADINGS_PLACEHOLDER_DEFAULT = "useFileColumnHeadings";
     private static final int SUCCESS = 0;
     private static final int ERROR = -1;
-    private static final int MIN_ARGS = 5;
-    private static final int MAX_ARGS = 6;
+    private static final int MIN_ARGS = 6;
+    private static final int MAX_ARGS = 7;
     private static final int ARG_TABLE_NAME = 0;
     private static final int ARG_REFERENCE_PERIOD = 1;
     private static final int ARG_CSV_FILE = 2;
     private static final int ARG_CSV_ROWKEY_POSITION = 3;
-    private static final int ARG_CSV_HEADER_STRING = 4;
-    private static final int ARG_HFILE_OUT_DIR = 5;
+    private static final int ARG_REVERSE_FLAG = 4;
+    private static final int ARG_CSV_HEADER_STRING = 5;
+    private static final int ARG_HFILE_OUT_DIR = 6;
     private static final Logger LOG = LoggerFactory.getLogger(BulkLoader.class);
     enum LoadCounters {
         TOTAL_CSV_RECORDS,
@@ -89,15 +91,17 @@ public class BulkLoader extends Configured implements Tool {
             System.exit(ERROR);
         }
 
+        getConf().set(REVERSE_FLAG, strings[ARG_REVERSE_FLAG]);
+
         // Populate map reduce
         getConf().set(ROWKEY_POSITION, strings[ARG_CSV_ROWKEY_POSITION]);
-//         String headerArg = strings[ARG_CSV_HEADER_STRING];
-//         if (headerArg.isEmpty()) {
-               Configuration conf = this.getConf();
-               getHeader(strings[ARG_CSV_FILE], conf);
-//         } else {
-//               getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
-//         }
+
+        if (strings[ARG_CSV_HEADER_STRING].equalsIgnoreCase(COLUMN_HEADINGS_PLACEHOLDER_DEFAULT)) {
+            Configuration conf = this.getConf();
+            getHeader(strings[ARG_CSV_FILE], conf);
+        } else {
+            getConf().set(HEADER_STRING, strings[ARG_CSV_HEADER_STRING]);
+        }
 
         if (strings.length == MIN_ARGS) {
             return (load(strings[ARG_TABLE_NAME], strings[ARG_REFERENCE_PERIOD], strings[ARG_CSV_FILE]));
@@ -115,8 +119,8 @@ public class BulkLoader extends Configured implements Tool {
         FileSystem fs = FileSystem.get(path.toUri(), conf);
 
         try(
-                InputStreamReader reader = new InputStreamReader(fs.open(path));
-                BufferedReader readFile = new BufferedReader(reader)
+            InputStreamReader reader = new InputStreamReader(fs.open(path));
+            BufferedReader readFile = new BufferedReader(reader)
         ) {
             LOG.debug("Successfully read file at '{}' and now getting header.", inputFile);
             String header;

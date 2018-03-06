@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import org.joda.time.YearMonth;
+
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -91,6 +93,8 @@ public class CSVDataKVMapper extends
         // Skip blank rows
         if (value == null || value.getLength() == 0) return;
 
+        Configuration conf = context.getConfiguration();
+
         // Skip header
         if (isHeaderRow(value, context.getConfiguration())) return;
 
@@ -100,7 +104,8 @@ public class CSVDataKVMapper extends
         if (fields == null) return;
 
         // Key: e.g. "201706~07382019"
-        String rowKeyStr = RowKeyUtils.createRowKey(referencePeriod, fields[rowKeyFieldPosition]);
+        String rowKeyStr = RowKeyUtils.createRowKey(referencePeriod, fields[rowKeyFieldPosition],
+                conf.getBoolean(REVERSE_FLAG, false));
         writeRow(context, rowKeyStr, fields);
     }
 

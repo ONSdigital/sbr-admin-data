@@ -29,6 +29,8 @@ pipeline {
         PAYE_TABLE = "paye"
         LEU_TABLE = "leu"
         NAMESPACE = "sbr_dev_db"
+	    
+    	STAGE = "NONE"
     }
     options {
         skipDefaultCheckout()
@@ -48,7 +50,7 @@ pipeline {
                 script {
                     version = '1.0.' + env.BUILD_NUMBER
                     currentBuild.displayName = version
-                    env.NODE_STAGE = "Checkout"
+                    STAGE = "Checkout"
                 }
             }
         }
@@ -65,7 +67,7 @@ pipeline {
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Test"
+                        STAGE = "Test"
                     }
                 }
                 success {
@@ -94,7 +96,7 @@ pipeline {
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Static Analysis"
+                        STAGE = "Static Analysis"
                     }
                 }
                 success {
@@ -138,12 +140,15 @@ pipeline {
                     else if (BRANCH_NAME == BRANCH_PROD) {
                         env.DEPLOY_NAME = DEPLOY_PROD
                     }
+		    else {
+		    	colourText("info","Not a valid branch to set env var DEPLOY_NAME")
+		    }
                 }
             }
             post {
                 always {
                     script {
-                        env.NODE_STAGE = "Build"
+                        STAGE = "Build"
                     }
                 }
                 success {
@@ -156,41 +161,39 @@ pipeline {
             }
         }
 
-        stage ('Bundle') {
+        stage('Deploy'){
             agent any
             when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
-                }
+                 anyOf {
+                     branch DEPLOY_DEV
+                     branch DEPLOY_TEST
+                     branch DEPLOY_PROD
+                 }
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Bundle"
+                    STAGE = "Deploy"
                 }
-                colourText("info", "Bundling....")
-//                stash name: "zip"
-            }
-        }
-
-        stage("Releases"){
-            agent any
-            when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
+                milestone(1)
+                lock('CH Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(CH_TABLE, false)
+                    colourText("success", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} Deployed.")
                 }
-            }
-            steps {
-                script {
-                    env.NODE_STAGE = "Releases"
-                    currentTag = getLatestGitTag()
-                    colourText("info", "Found latest tag: ${currentTag}")
-                    newTag =  IncrementTag( currentTag, RELEASE_TYPE )
-                    colourText("info", "Generated new tag: ${newTag}")
-                    //push(newTag, currentTag)
+                lock('VAT Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(VAT_TABLE, false)
+                    colourText("success", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
+                }
+                lock('PAYE Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(PAYE_TABLE, false)
+                    colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
+                }
+		        lock('Legal Unit Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
+                    deploy(LEU_TABLE , true)
+                    colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
                 }
             }
         }
@@ -215,39 +218,23 @@ pipeline {
             }
         }
 
-        stage('Deploy'){
+        stage("Releases"){
             agent any
             when {
-                 anyOf {
-                     branch DEPLOY_DEV
-                     branch DEPLOY_TEST
-                     branch DEPLOY_PROD
-                 }
+                anyOf {
+                    branch DEPLOY_DEV
+                    branch DEPLOY_TEST
+                    branch DEPLOY_PROD
+                }
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Deploy"
-                }
-                milestone(1)
-                lock('CH Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(CH_TABLE)
-                    colourText("success", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} Deployed.")
-                }
-                lock('VAT Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(VAT_TABLE)
-                    colourText("success", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
-                }
-                lock('PAYE Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(PAYE_TABLE)
-                    colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
-                }
-		lock('Legal Unit Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(LEU_TABLE)
-                    colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
+                    STAGE = "Releases"
+                    currentTag = getLatestGitTag()
+                    colourText("info", "Found latest tag: ${currentTag}")
+                    newTag =  IncrementTag( currentTag, RELEASE_TYPE )
+                    colourText("info", "Generated new tag: ${newTag}")
+                    //push(newTag, currentTag)
                 }
             }
         }
@@ -262,7 +249,7 @@ pipeline {
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Integration Tests"
+                    STAGE = "Integration Tests"
                 }
                 unstash 'compiled'
                 sh "$SBT it:test"
@@ -297,12 +284,12 @@ def push (String newTag, String currentTag) {
     GitRelease( GIT_CREDS, newTag, currentTag, "${env.BUILD_ID}", "${env.BRANCH_NAME}", GIT_TYPE)
 }
 
-def deploy (String dataSource) {
+def deploy (String DATA_SOURCE, Boolean REVERSE_FLAG) {
     CF_SPACE = "${env.DEPLOY_NAME}".capitalize()
     CF_ORG = "${TEAM}".toUpperCase()
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBase("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${dataSource}-${MODULE_NAME}", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", "${dataSource}", NAMESPACE)
+        deployToCloudFoundryHBaseWithReverseOption("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${DATA_SOURCE}-${MODULE_NAME}", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", "${DATA_SOURCE}", NAMESPACE, REVERSE_FLAG)
     }
 }
 

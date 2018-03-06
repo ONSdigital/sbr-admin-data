@@ -12,12 +12,13 @@ import com.typesafe.config.Config
  * Copyright (c) 2017  Office for National Statistics
  */
 
-trait HBaseConfig {
+trait HBaseConfigProperties {
 
   implicit val configuration: Configuration
   private val hBaseConfig: Config = configuration.underlying.getConfig("hbase")
+  private val loadConfig: Config = configuration.underlying.getConfig("load.format")
 
-  private val nameSpace: String = if (hBaseConfig.getBoolean("initialize")) {
+  private lazy val nameSpace: String = if (hBaseConfig.getBoolean("initialize")) {
     hBaseConfig.getString("in.memory.namespace")
   } else { hBaseConfig.getString("rest.namespace") }
 
@@ -29,5 +30,7 @@ trait HBaseConfig {
   lazy val password: String = hBaseConfig.getString("authentication.password")
   lazy val baseUrl: String = hBaseConfig.getString("rest.endpoint")
   lazy val columnFamily: String = hBaseConfig.getString("column.family")
+
+  lazy val reverseFlag: Boolean = loadConfig.getBoolean("reverse")
 
 }

@@ -5,7 +5,7 @@ import sbtassembly.PathList
 import sbtbuildinfo.BuildInfoPlugin.autoImport.{buildInfoKeys, buildInfoOptions, buildInfoPackage}
 import sbtbuildinfo.{BuildInfoKey, BuildInfoOption}
 import sbtrelease.ReleasePlugin.autoImport.{releaseCommitMessage, releaseIgnoreUntrackedFiles, releaseTagComment}
-import play.sbt.PlayImport.PlayKeys
+
 import org.scalastyle.sbt.ScalastylePlugin.autoImport.{scalastyleFailOnError, scalastyleTarget}
 import com.sksamuel.scapegoat.sbt.ScapegoatSbtPlugin.autoImport.{scapegoatConsoleOutput, scapegoatOutputPath}
 import com.typesafe.sbt.SbtGit.git
@@ -19,7 +19,6 @@ import scoverage.ScoverageKeys.{coverageExcludedPackages, coverageFailOnMinimum,
   * Date: 02 November 2017 - 08:21
   * Copyright (c) 2017  Office for National Statistics
   */
-
 object Common {
 
 
