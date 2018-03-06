@@ -48,9 +48,8 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       val defaultMessages: Map[String, String] = messages.messages.getOrElse("default", throw new Exception("Unable to get messages"))
     }
 
-  // TODO - REMOVE ignores!!
   "Circuit breaker" must {
-    "be able to handle failures in the wrapped method (getFromDb)" ignore {
+    "be able to handle failures in the wrapped method (getFromDb)" in {
       val s = setup
       val exceptionId = "19283746"
       when(s.mockAdminDataRepository.lookup(Some(date), exceptionId, Some(MAX_RESULT_SIZE))).thenThrow(new RuntimeException())
@@ -74,7 +73,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       s.controller.breaker.isClosed mustBe true
     }
 
-    "must be opened after 5 failures" ignore {
+    "must be opened after 5 failures" in {
       val s = setup
       val exceptionId = "99664411"
       when(s.mockAdminDataRepository.lookup(Some(date), exceptionId, Some(MAX_RESULT_SIZE))).thenThrow(new RuntimeException())
@@ -86,7 +85,7 @@ class CircuitBreakerTest extends PlaySpec with MockitoSugar {
       s.controller.breaker.isOpen mustBe true
     }
 
-    "must be opened after 5 failures and then fail a valid request" ignore {
+    "must be opened after 5 failures and then fail a valid request" in {
       val s = setup
       val exceptionId = "99664411"
       val validId = "112233"
