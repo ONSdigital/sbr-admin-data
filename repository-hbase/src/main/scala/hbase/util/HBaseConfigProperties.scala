@@ -28,7 +28,7 @@ trait HBaseConfigProperties {
 
   lazy val username: String = hBaseConfig.getString("authentication.username")
   lazy val password: String = hBaseConfig.getString("authentication.password")
-  lazy val baseUrl: String = hBaseConfig.getString("rest.endpoint")
+  lazy val baseUrl: String = "http://localhost:8081" // hBaseConfig.getString("rest.endpoint")
   lazy val columnFamily: String = hBaseConfig.getString("column.family")
 
   lazy val reverseFlag: Boolean = loadConfig.getBoolean("reverse")
