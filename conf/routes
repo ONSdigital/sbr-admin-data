@@ -3,11 +3,13 @@
 # ~~~~
 
 # Searching for the default period
+
+GET        /v1/records/:id/periods/:period     controllers.v1.AdminDataController.search(id: String, period: Option[String], max: Option[Long] = Some(1))
+
 GET        /v1/records/:id                     controllers.v1.AdminDataController.search(id: String, period: Option[String] ?= None, max: Option[Long] = Some(1))
 
 GET        /v1/records/:id/history             controllers.v1.AdminDataController.search(id: String, period: Option[String] ?= None, max: Option[Long] ?= None)
 
-GET        /v1/records/:id/periods/:period     controllers.v1.AdminDataController.search(id: String, period: Option[String], max: Option[Long] ?= Some(1))
 
 
 # Other Routes
