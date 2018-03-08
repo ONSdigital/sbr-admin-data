@@ -190,7 +190,7 @@ pipeline {
                     deploy(PAYE_TABLE, false)
                     colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
                 }
-		        lock('Legal Unit Deployment Initiated') {
+		lock('Legal Unit Deployment Initiated') {
                     colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(LEU_TABLE , true)
                     colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
@@ -294,16 +294,16 @@ def deploy (String DATA_SOURCE, Boolean REVERSE_FLAG) {
 }
 
 def copyToHBaseNode() {
-    echo "Deploying to $DEPLOY_DEV"
-    sshagent(credentials: ["sbr-$DEPLOY_DEV-ci-ssh-key"]) {
+    echo "Deploying to ${env.DEPLOY_NAME}"
+    sshagent(credentials: ["sbr-${env.DEPLOY_NAME}-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
-            sh '''
-                ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE mkdir -p $MODULE_NAME/lib
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-$DEPLOY_DEV-ci@$HBASE_NODE:$MODULE_NAME/lib/
-                echo "Successfully copied jar file to $MODULE_NAME/lib directory on $HBASE_NODE"
-                ssh sbr-$DEPLOY_DEV-ci@$HBASE_NODE hdfs dfs -put -f $MODULE_NAME/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-$DEPLOY_DEV-ci/lib/
-                echo "Successfully copied jar file to HDFS"
-	        '''
+            sh """
+                ssh sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE} mkdir -p ${MODULE_NAME}/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE}:${MODULE_NAME}/lib/
+                echo 'Successfully copied jar file to ${MODULE_NAME}/lib directory on ${HBASE_NODE}'
+                ssh sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE} hdfs dfs -put -f ${MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_NAME}-ci/lib/
+                echo 'Successfully copied jar file to HDFS'
+	    """
         }
     }
 }
