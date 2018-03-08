@@ -20,6 +20,11 @@ import scala.concurrent.duration._
 /**
  * Created by coolit on 13/02/2018.
  */
+
+//    Andy - In the mockEndPoint there's a match to a Some(p) and to a None. When running sbt "testOnly *HBaseRestTests" with the None in the mockEndPoint parameters
+//    it works fine. However, when the Some(Period) is used it seems to be ignoring the body of the block that it's in and taking it from the one directly above, if
+//    it has the same company number the test passes, but it produces an error otherwise.
+
 class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppPerSuite {
 
   private val version = "v1"
@@ -92,6 +97,29 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
       val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
       val period = "201706"
       mockEndpoint(adminDataTable, id, Some(period), body)
+      val resp = fakeRequest(s"/$version/records/$id")
+      val json = contentAsJson(resp).as[JsArray]
+      contentType(resp) mustBe Some("application/json")
+      json.value.size mustBe 1
+      val js = json.as[JsArray]
+
+      val idUnit = (js.head \ "id").as[String]
+      idUnit mustBe id
+      val periodUnit = (js.head \ "period").as[String]
+      periodUnit mustBe firstPeriod
+      val nameUnit = ((js.head \ "variables") \ "name").as[String]
+      nameUnit mustBe "big company 123"
+    }
+  }
+
+  "/v1/records/:id/history" should {
+    "return a unit for a valid id (ch)" in {
+      implicit val duration: Timeout = 100 seconds
+
+      val id = "00032311"
+      val body = "{\"Row\":[{\"key\":\"MDAwMzIzMTF+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDAwMzIzMTE==\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
+      val period = "201706"
+      mockEndpoint(adminDataTable, id, None, body)
       val resp = fakeRequest(s"/$version/records/$id")
       val json = contentAsJson(resp).as[JsArray]
       contentType(resp) mustBe Some("application/json")
