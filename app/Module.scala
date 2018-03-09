@@ -30,6 +30,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
         .toProvider(classOf[MetricRegistryProvider])
         .asEagerSingleton()
     }
+    bind(classOf[AdminDataRepository]).to(classOf[RestAdminDataRepository]).asEagerSingleton()
   }
 }
 

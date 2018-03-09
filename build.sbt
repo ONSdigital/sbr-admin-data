@@ -1,4 +1,5 @@
 import com.typesafe.config.ConfigFactory
+import sbt.Keys.javaOptions
 
 /**
   * APP CONFIG
@@ -43,6 +44,7 @@ lazy val devDeps = Seq(
   filters,
   "org.scalactic"              %%  "scalactic"       %   "3.0.4",
   "org.scalatest"              %%  "scalatest"       %   "3.0.4"     %   "test",
+  "com.github.tomakehurst"     %   "wiremock"        %   "1.33"      %   Test,
   "org.webjars"                %%  "webjars-play"    %   "2.5.0-3",
   "io.swagger"                 %%  "swagger-play2"   %   "1.5.3",
   "org.webjars"                %   "swagger-ui"      %   "2.2.10-1",
@@ -58,11 +60,6 @@ lazy val devDeps = Seq(
   "ch.qos.logback"             %   "logback-classic" %   "1.2.3",
   "org.scalatestplus.play"     %%  "scalatestplus-play" % "2.0.0" % "test"
 )
-
-// Run tests with full stack traces
-testOptions in Test += Tests.Argument("-oG")
-
-javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf"
 
 /**
   * PROJECT DEF
@@ -82,9 +79,15 @@ lazy val `sbr-admin-data` = (project in file("."))
   .settings(Common.assemblySettings:_*)
   .settings(
     routesImport += "extensions.Binders._",
-      //moduleName := "sbr-admin-data",
+    // Run tests with full stack traces
+    testOptions in Test += Tests.Argument("-oG"),
+    javaOptions in Test += "-DHBASE_ENDPOINT=http://localhost:8081",
+    javaOptions in Test += "-DHBASE_INITIALIZE_DB=false",
+    javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf",
+    //moduleName := "sbr-admin-data",
     description := "<description>",
     libraryDependencies ++= devDeps,
+//    javaOptions in Test += "-DHBASE_ENDPOINT=http://localhost:8081",
     // di router -> swagger
     routesGenerator := InjectedRoutesGenerator,
     dependencyOverrides += "com.google.guava" % "guava" % "14.0.1",
