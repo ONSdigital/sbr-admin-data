@@ -28,12 +28,13 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
   private val columnFamily = "d"
   private val firstPeriod = "201706"
   private val secondPeriod = "201708"
+  private implicit val duration: Timeout = 100 seconds
 
   // We don't use the normal HBase REST port as it can make testing annoying, this is set as a Java Option
   // in the build.sbt
-  val port = 8081
-  val host = "localhost"
-  val wireMockServer = new WireMockServer(wireMockConfig().port(port))
+  private val port = 8081
+  private val host = "localhost"
+  private val wireMockServer = new WireMockServer(wireMockConfig().port(port))
 
   override def beforeEach {
     wireMockServer.start()
@@ -65,8 +66,6 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
 
   "/v1/records/:id" should {
     "return a unit for a valid id (ch)" in {
-      implicit val duration: Timeout = 100 seconds
-
       val id = "03007252"
       val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
       mockEndpoint(adminDataTable, id, None, body)
@@ -86,8 +85,6 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
   }
   "/v1/records/:id/periods/:period" should {
     "return a unit for a valid id (ch)" in {
-      implicit val duration: Timeout = 100 seconds
-
       val id = "03007252"
       val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
       val period = "201706"
@@ -107,23 +104,6 @@ class HBaseRestTests extends TestUtils with BeforeAndAfterEach with GuiceOneAppP
     }
   }
 
-  //
-  //  "/v1/records/:id" should {
-  //    "return a unit for a valid id (ch)" in {
-  //      implicit val duration: Timeout = 100 seconds
-  //      val id = "201706"
-  //      val body = "{\"Row\":[{\"key\":\"MDMwMDcyNTJ+MjAxNzA2\",\"Cell\":[{\"column\":\"ZDppZA==\",\"timestamp\":1519736664006,\"$\":\"MDMwMDcyNTI=\"},{\"column\":\"ZDpuYW1l\",\"timestamp\":1519736831889,\"$\":\"YmlnIGNvbXBhbnkgMTIz\"},{\"column\":\"ZDpwZXJpb2Q=\",\"timestamp\":1519736810004,\"$\":\"MjAxNzA2\"}]}]}"
-  //      mockEndpoint(adminDataTable, firstPeriod, id, body)
-  //      val resp = fakeRequest(s"/$version/records/$id")
-  //      val json = contentAsJson(resp).as[JsArray]
-  //              val unit = json(0).validate[AdminData]
-  //              //status(resp) mustBe OK
-  //              contentType(resp) mustBe Some("application/json")
-  //              json.value.size mustBe 1
-  //              unit.isInstanceOf[JsSuccess[AdminData]] mustBe true
-  //      (1 must equal(1))
-  //    }
-  //  }
 }
 //put 'sbr_local_db:ch' , '03007252~201706', 'd:period', '201706'
 //put 'sbr_local_db:ch' , '03007252~201706', 'd:name', 'big company 123'
