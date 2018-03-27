@@ -28,7 +28,6 @@ pipeline {
         VAT_TABLE = "vat"
         PAYE_TABLE = "paye"
         LEU_TABLE = "leu"
-        NAMESPACE = "sbr_dev_db"
 	    
     	STAGE = "NONE"
     }
@@ -287,9 +286,10 @@ def push (String newTag, String currentTag) {
 def deploy (String DATA_SOURCE, Boolean REVERSE_FLAG) {
     CF_SPACE = "${env.DEPLOY_NAME}".capitalize()
     CF_ORG = "${TEAM}".toUpperCase()
+    NAMESPACE = "sbr_${env.DEPLOY_NAME}_db"
     echo "Deploying Api app to ${env.DEPLOY_NAME}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBaseWithReverseOption("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${DATA_SOURCE}-${MODULE_NAME}", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", "${DATA_SOURCE}", NAMESPACE, REVERSE_FLAG)
+        deployToCloudFoundryHBaseWithReverseOption("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${DATA_SOURCE}-${MODULE_NAME}", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", "${DATA_SOURCE}", "${NAMESPACE}", REVERSE_FLAG)
     }
 }
 
