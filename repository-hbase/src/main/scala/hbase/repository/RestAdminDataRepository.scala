@@ -62,7 +62,9 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
     }).map {
       case response if response.status == OK => {
         val defaultGetLimit: Int = 1
+        LOGGER.debug(s"response.body: ${response.body}")
         val resp = (response.json \ "Row").as[Seq[JsValue]]
+        LOGGER.debug(s"resp: $resp")
         Try(resp.map(v => convertToAdminData(v))) match {
           case Success(Seq()) =>
             LOGGER.debug("No data found for prefix row key '{}'", key)
