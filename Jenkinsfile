@@ -1,5 +1,5 @@
 #!groovy
-@Library('jenkins-pipeline-shared@develop') _
+@Library('jenkins-pipeline-shared') _
 
 pipeline {
     environment {
@@ -51,6 +51,13 @@ pipeline {
                     currentBuild.displayName = version
                     STAGE = "Checkout"
                 }
+            }
+        }
+
+        stage('Build') {
+            agent any
+            steps{
+                sh "$SBT clean compile"
             }
         }
 
@@ -112,47 +119,55 @@ pipeline {
             }
         }
 
-        stage('Build'){
+        stage('Package'){
             agent any
+            when {
+                expression {
+                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
+                }
+            }
             steps {
                // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
                     git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: "${BRANCH_DEV}")
                 }
                 // Replace fake VAT/PAYE data with real data
-                sh 'rm -rf conf/sample/201706/vat_data.csv'
-                sh 'rm -rf conf/sample/201706/paye_data.csv'
-                sh 'cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv'
-                sh 'cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv'
-                sh 'cp gitlab/dev/conf/* conf'
+                sh '''
+                rm -rf conf/sample/201706/vat_data.csv
+                rm -rf conf/sample/201706/paye_data.csv
+                cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv
+                cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv
+                cp gitlab/dev/conf/* conf
+                '''
 
-                sh """
-                    $SBT clean compile "project $MODULE_NAME" universal:packageBin
-                """
+                sh """$SBT clean compile "project $MODULE_NAME" universal:packageBin"""
+
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
                         env.DEPLOY_NAME = DEPLOY_DEV
+                        sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_DEV}-${ORGANIZATION}-${MODULE_NAME}.zip"
                     }
                     else if  (BRANCH_NAME == BRANCH_TEST) {
                         env.DEPLOY_NAME = DEPLOY_TEST
+                        sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_TEST}-${ORGANIZATION}-${MODULE_NAME}.zip"
                     }
                     else if (BRANCH_NAME == BRANCH_PROD) {
                         env.DEPLOY_NAME = DEPLOY_PROD
+                        sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_PROD}-${ORGANIZATION}-${MODULE_NAME}.zip"
                     }
-		    else {
-		    	colourText("info","Not a valid branch to set env var DEPLOY_NAME")
-		    }
+                    else {
+                        colourText("info","Not a valid branch to set env var DEPLOY_NAME")
+                    }
                 }
             }
             post {
                 always {
                     script {
-                        STAGE = "Build"
+                        STAGE = "Package"
                     }
                 }
                 success {
                     colourText("info","Packaging Successful!")
-                    sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip"
                 }
                 failure {
                     colourText("warn","Something went wrong!")
@@ -163,10 +178,8 @@ pipeline {
         stage('Deploy'){
             agent any
             when {
-                 anyOf {
-                     branch DEPLOY_DEV
-                     branch DEPLOY_TEST
-                     branch DEPLOY_PROD
+                 expression {
+                     isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
                  }
             }
             steps {
@@ -189,7 +202,7 @@ pipeline {
                     deploy(PAYE_TABLE, false)
                     colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
                 }
-		lock('Legal Unit Deployment Initiated') {
+		        lock('Legal Unit Deployment Initiated') {
                     colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(LEU_TABLE , true)
                     colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
@@ -200,9 +213,8 @@ pipeline {
         stage ('Package and Push Artifact') {
             agent any
             when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
+                expression {
+                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST)
                 }
             }
             steps {
@@ -220,10 +232,8 @@ pipeline {
         stage("Releases"){
             agent any
             when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
-                    branch DEPLOY_PROD
+                expression {
+                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
                 }
             }
             steps {
@@ -241,9 +251,8 @@ pipeline {
         stage('Integration Tests') {
             agent any
             when {
-                anyOf {
-                    branch DEPLOY_DEV
-                    branch DEPLOY_TEST
+                expression {
+                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST)
                 }
             }
             steps {
@@ -276,6 +285,10 @@ pipeline {
             sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.NODE_STAGE}"
         }
     }
+}
+
+def isBranch(String branchName){
+    return env.BRANCH_NAME.toString().equals(branchName)
 }
 
 def push (String newTag, String currentTag) {
