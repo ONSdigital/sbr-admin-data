@@ -30,6 +30,8 @@ pipeline {
         LEU_TABLE = "leu"
 	    
     	STAGE = "NONE"
+        SBT_HOME = tool name: 'sbt.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'
+        PATH = "${env.SBT_HOME}/bin:${env.PATH}"
     }
     options {
         skipDefaultCheckout()
@@ -41,15 +43,15 @@ pipeline {
     stages {
         stage('Checkout') {
             agent any
+            environment{ STAGE = "Checkout" }
             steps {
                 deleteDir()
                 checkout scm
                 stash name: 'app'
-                sh "$SBT version"
+                sh "sbt version"
                 script {
                     version = '1.0.' + env.BUILD_NUMBER
                     currentBuild.displayName = version
-                    STAGE = "Checkout"
                 }
             }
         }
@@ -57,64 +59,60 @@ pipeline {
         stage('Build') {
             agent any
             steps{
-                sh "$SBT clean compile"
+                sh "sbt clean compile"
+            }
+            post {
+                success {
+                    colourText("info","Stage: ${env.STAGE} successful!")
+                }
+                failure {
+                    colourText("warn","Stage: ${env.STAGE} failed!")
+                }
             }
         }
 
         stage('Test'){
             agent any
+            environment{ STAGE = "Test"  }
             steps {
                 colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
 
-                sh """
-                    $SBT clean compile "project $MODULE_NAME" coverage test coverageReport coverageAggregate
-                """
+                sh 'sbt coverage test coverageReport coverageAggregate'
             }
             post {
-                always {
-                    script {
-                        STAGE = "Test"
-                    }
-                }
                 success {
-                    colourText("info","Tests successful!")
+                    junit '**/target/test-reports/*.xml'
+                    step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
+                    colourText("info","Stage: ${env.STAGE} successful!")
                 }
                 failure {
-                    colourText("warn","Failure during tests!")
+                    colourText("warn","Stage: ${env.STAGE} failed!")
                 }
             }
         }
 
         stage('Static Analysis') {
             agent any
+            environment{ STAGE = "Static Analysis" }
             steps {
                 parallel (
                     "Scalastyle" : {
                         colourText("info","Running scalastyle analysis")
-                        sh "$SBT scalastyle"
+                        sh "sbt scalastyle"
                     },
                     "Scapegoat" : {
                         colourText("info","Running scapegoat analysis")
-                        sh "$SBT scapegoat"
+                        sh "sbt scapegoat"
                     }
                 )
             }
             post {
-                always {
-                    script {
-                        STAGE = "Static Analysis"
-                    }
-                }
                 success {
-                    colourText("info","Generating reports for tests")
-                    junit '**/target/test-reports/*.xml'
-
-                    // removed subfolder scala-2.11/ from target path
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
                     step([$class: 'CheckStylePublisher', pattern: '**/target/code-quality/style/*scalastyle*.xml'])
+                    colourText("info","Stage: ${env.STAGE} successful!")
                 }
                 failure {
-                    colourText("warn","Failed to retrieve reports.")
+                    colourText("warn","Stage: ${env.STAGE} failed!")
                 }
             }
         }
@@ -126,6 +124,7 @@ pipeline {
                     isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
                 }
             }
+            environment{ STAGE = "Package" }
             steps {
                // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
@@ -140,7 +139,7 @@ pipeline {
                 cp gitlab/dev/conf/* conf
                 '''
 
-                sh """$SBT clean compile "project $MODULE_NAME" universal:packageBin"""
+                sh 'sbt universal:packageBin'
 
                 script {
                     if (BRANCH_NAME == BRANCH_DEV) {
@@ -161,31 +160,24 @@ pipeline {
                 }
             }
             post {
-                always {
-                    script {
-                        STAGE = "Package"
-                    }
-                }
                 success {
-                    colourText("info","Packaging Successful!")
+                    colourText("info","Stage: ${env.STAGE} successful!")
                 }
                 failure {
-                    colourText("warn","Something went wrong!")
+                    colourText("warn","Stage: ${env.STAGE} failed!")
                 }
             }
         }
 
-        stage('Deploy'){
+        stage('Deploy CF'){
             agent any
             when {
                  expression {
                      isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
                  }
             }
+            environment{ STAGE = "Deploy CF" }
             steps {
-                script {
-                    STAGE = "Deploy"
-                }
                 milestone(1)
                 lock('CH Deployment Initiated') {
                     colourText("info", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
@@ -208,9 +200,17 @@ pipeline {
                     colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
                 }
             }
+            post {
+                success {
+                    colourText("info","Stage: ${env.STAGE} successful!")
+                }
+                failure {
+                    colourText("warn","Stage: ${env.STAGE} failed!")
+                }
+            }
         }
 
-        stage ('Package and Push Artifact') {
+        stage ('Deploy HBase') {
             agent any
             when {
                 expression {
@@ -219,81 +219,40 @@ pipeline {
             }
             steps {
                 script {
-                    env.NODE_STAGE = "Package and Push Artifact"
+                    STAGE = "Deploy HBase"
                 }
-                sh """
-                    $SBT 'set test in assembly := {}' clean compile assembly
-                """
+                sh "sbt 'set test in assembly := {}' assembly"
                 copyToHBaseNode()
                 colourText("success", 'Package.')
             }
-        }
-
-        stage("Releases"){
-            agent any
-            when {
-                expression {
-                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
+            post {
+                success {
+                    colourText("info","Stage: ${env.STAGE} successful!")
                 }
-            }
-            steps {
-                script {
-                    STAGE = "Releases"
-                    currentTag = getLatestGitTag()
-                    colourText("info", "Found latest tag: ${currentTag}")
-                    newTag =  IncrementTag( currentTag, RELEASE_TYPE )
-                    colourText("info", "Generated new tag: ${newTag}")
-                    //push(newTag, currentTag)
+                failure {
+                    colourText("warn","Stage: ${env.STAGE} failed!")
                 }
-            }
-        }
-
-        stage('Integration Tests') {
-            agent any
-            when {
-                expression {
-                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST)
-                }
-            }
-            steps {
-                script {
-                    STAGE = "Integration Tests"
-                }
-                unstash 'compiled'
-                sh "$SBT it:test"
-                colourText("success", 'Integration Tests - For Release or Dev environment.')
             }
         }
     }
     post {
-        always {
-            script {
-                colourText("info", 'Post steps initiated')
-                deleteDir()
-            }
-        }
         success {
             colourText("success", "All stages complete. Build was successful.")
             sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST"
         }
         unstable {
             colourText("warn", "Something went wrong, build finished with result ${currentResult}. This may be caused by failed tests, code violation or in some cases unexpected interrupt.")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.NODE_STAGE}"
+            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.STAGE}"
         }
         failure {
-            colourText("warn","Process failed at: ${env.NODE_STAGE}")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.NODE_STAGE}"
+            colourText("warn","Process failed at: ${env.STAGE}")
+            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.STAGE}"
         }
     }
 }
 
 def isBranch(String branchName){
     return env.BRANCH_NAME.toString().equals(branchName)
-}
-
-def push (String newTag, String currentTag) {
-    echo "Pushing tag ${newTag} to Gitlab"
-    GitRelease( GIT_CREDS, newTag, currentTag, "${env.BUILD_ID}", "${env.BRANCH_NAME}", GIT_TYPE)
 }
 
 def deploy (String DATA_SOURCE, Boolean REVERSE_FLAG) {
