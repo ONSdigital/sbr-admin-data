@@ -4,15 +4,6 @@
 pipeline {
     environment {
         RELEASE_TYPE = "PATCH"
-
-        BRANCH_DEV = "develop"
-        BRANCH_TEST = "release"
-        BRANCH_PROD = "master"
-
-        DEPLOY_DEV = "dev"
-        DEPLOY_TEST = "test"
-        DEPLOY_PROD = "prod"
-
         CF_CREDS = "sbr-api-dev-secret-key"
 
         GIT_TYPE = "Github"
@@ -58,6 +49,7 @@ pipeline {
 
         stage('Build') {
             agent any
+            environment{ STAGE = "Build" }
             steps{
                 sh "sbt clean compile"
             }
@@ -119,16 +111,14 @@ pipeline {
 
         stage('Package'){
             agent any
-            when {
-                expression {
-                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
-                }
+            when{ expression{ isBranch("master") }}
+            environment{ 
+                STAGE = "Package" 
+                DEPLOY_TO = "dev"    
             }
-            environment{ STAGE = "Package" }
             steps {
-               // colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: "${BRANCH_DEV}")
+                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: "develop")
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh '''
@@ -140,24 +130,7 @@ pipeline {
                 '''
 
                 sh 'sbt universal:packageBin'
-
-                script {
-                    if (BRANCH_NAME == BRANCH_DEV) {
-                        env.DEPLOY_NAME = DEPLOY_DEV
-                        sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_DEV}-${ORGANIZATION}-${MODULE_NAME}.zip"
-                    }
-                    else if  (BRANCH_NAME == BRANCH_TEST) {
-                        env.DEPLOY_NAME = DEPLOY_TEST
-                        sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_TEST}-${ORGANIZATION}-${MODULE_NAME}.zip"
-                    }
-                    else if (BRANCH_NAME == BRANCH_PROD) {
-                        env.DEPLOY_NAME = DEPLOY_PROD
-                        sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_PROD}-${ORGANIZATION}-${MODULE_NAME}.zip"
-                    }
-                    else {
-                        colourText("info","Not a valid branch to set env var DEPLOY_NAME")
-                    }
-                }
+                sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_TO}-${ORGANIZATION}-${MODULE_NAME}.zip"
             }
             post {
                 success {
@@ -171,33 +144,32 @@ pipeline {
 
         stage('Deploy CF'){
             agent any
-            when {
-                 expression {
-                     isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST) || isBranch(BRANCH_PROD)
-                 }
+            when{ expression{ isBranch("master") }}
+            environment{ 
+                STAGE = "Deploy CF"
+                DEPLOY_TO = "dev" 
             }
-            environment{ STAGE = "Deploy CF" }
             steps {
                 milestone(1)
                 lock('CH Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
+                    colourText("info", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(CH_TABLE, false)
-                    colourText("success", "${env.DEPLOY_NAME}-${CH_TABLE}-${MODULE_NAME} Deployed.")
+                    colourText("success", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} Deployed.")
                 }
                 lock('VAT Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
+                    colourText("info", "${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(VAT_TABLE, false)
-                    colourText("success", "${env.DEPLOY_NAME}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
+                    colourText("success", "${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
                 }
                 lock('PAYE Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
+                    colourText("info", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(PAYE_TABLE, false)
-                    colourText("success", "${env.DEPLOY_NAME}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
+                    colourText("success", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
                 }
-		        lock('Legal Unit Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
+                lock('Legal Unit Deployment Initiated') {
+                    colourText("info", "${env.DEPLOY_TO}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(LEU_TABLE , true)
-                    colourText("success", "${env.DEPLOY_NAME}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
+                    colourText("success", "${env.DEPLOY_TO}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
                 }
             }
             post {
@@ -212,18 +184,14 @@ pipeline {
 
         stage ('Deploy HBase') {
             agent any
-            when {
-                expression {
-                    isBranch(BRANCH_DEV) || isBranch(BRANCH_TEST)
-                }
+            when{ expression{ isBranch("master") }}
+            environment {
+                STAGE = "Deploy HBase"
+                DEPLOY_TO = "dev"
             }
             steps {
-                script {
-                    STAGE = "Deploy HBase"
-                }
                 sh "sbt 'set test in assembly := {}' assembly"
                 copyToHBaseNode()
-                colourText("success", 'Package.')
             }
             post {
                 success {
@@ -256,24 +224,24 @@ def isBranch(String branchName){
 }
 
 def deploy (String DATA_SOURCE, Boolean REVERSE_FLAG) {
-    CF_SPACE = "${env.DEPLOY_NAME}".capitalize()
+    CF_SPACE = "${env.DEPLOY_TO}".capitalize()
     CF_ORG = "${TEAM}".toUpperCase()
-    NAMESPACE = "sbr_${env.DEPLOY_NAME}_db"
-    echo "Deploying Api app to ${env.DEPLOY_NAME}"
+    NAMESPACE = "sbr_${env.DEPLOY_TO}_db"
+    echo "Deploying Api app to ${env.DEPLOY_TO}"
     withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBaseWithReverseOption("${TEAM}-${env.DEPLOY_NAME}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_NAME}-${DATA_SOURCE}-${MODULE_NAME}", "${env.DEPLOY_NAME}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_NAME}/manifest.yml", "${DATA_SOURCE}", "${NAMESPACE}", REVERSE_FLAG)
+        deployToCloudFoundryHBaseWithReverseOption("${TEAM}-${env.DEPLOY_TO}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_TO}-${DATA_SOURCE}-${MODULE_NAME}", "${env.DEPLOY_TO}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_TO}/manifest.yml", "${DATA_SOURCE}", "${NAMESPACE}", REVERSE_FLAG)
     }
 }
 
 def copyToHBaseNode() {
-    echo "Deploying to ${env.DEPLOY_NAME}"
-    sshagent(credentials: ["sbr-${env.DEPLOY_NAME}-ci-ssh-key"]) {
+    echo "Deploying to ${env.DEPLOY_TO}"
+    sshagent(credentials: ["sbr-${env.DEPLOY_TO}-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
             sh """
-                ssh sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE} mkdir -p ${MODULE_NAME}/lib
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE}:${MODULE_NAME}/lib/
+                ssh sbr-${env.DEPLOY_TO}-ci@${HBASE_NODE} mkdir -p ${MODULE_NAME}/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_TO}-ci@${HBASE_NODE}:${MODULE_NAME}/lib/
                 echo 'Successfully copied jar file to ${MODULE_NAME}/lib directory on ${HBASE_NODE}'
-                ssh sbr-${env.DEPLOY_NAME}-ci@${HBASE_NODE} hdfs dfs -put -f ${MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_NAME}-ci/lib/
+                ssh sbr-${env.DEPLOY_TO}-ci@${HBASE_NODE} hdfs dfs -put -f ${MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_TO}-ci/lib/
                 echo 'Successfully copied jar file to HDFS'
 	    """
         }
