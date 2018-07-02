@@ -18,7 +18,6 @@ pipeline {
         CH_TABLE = "ch"
         VAT_TABLE = "vat"
         PAYE_TABLE = "paye"
-        LEU_TABLE = "leu"
 	    
     	STAGE = "NONE"
         SBT_HOME = tool name: 'sbt.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'
@@ -165,11 +164,6 @@ pipeline {
                     colourText("info", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(PAYE_TABLE, false)
                     colourText("success", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
-                }
-                lock('Legal Unit Deployment Initiated') {
-                    colourText("info", "${env.DEPLOY_TO}-${LEU_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(LEU_TABLE , true)
-                    colourText("success", "${env.DEPLOY_TO}-${LEU_TABLE}-${MODULE_NAME} Deployed.")
                 }
             }
             post {
