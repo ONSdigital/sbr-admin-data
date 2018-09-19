@@ -56,7 +56,10 @@ lazy val devDeps = Seq(
   "io.swagger"                 %%  "swagger-play2"   %   "1.5.1",
   "com.typesafe.scala-logging" %%  "scala-logging"   %   "3.7.2",
   "ch.qos.logback"             %   "logback-classic" %   "1.2.3",
-  "org.scalatestplus.play"     %%  "scalatestplus-play" % "2.0.0" % "test"
+  "org.scalatestplus.play"     %%  "scalatestplus-play" % "2.0.0" % "test",
+  "io.kamon"                   %%    "kamon-play-2.5"   %    "1.0.1",
+  "io.kamon"                   %%    "kamon-zipkin"     %    "1.0.0",
+  "io.kamon"                   %%    "kamon-logback"    %    "1.0.0"
 )
 
 // Run tests with full stack traces
@@ -68,7 +71,7 @@ javaOptions in Test += "-Dconfig.file=test/resources/application.test.conf"
   * PROJECT DEF
   */
 lazy val `sbr-admin-data` = (project in file("."))
-  .enablePlugins(BuildInfoPlugin, GitVersioning, GitBranchPrompt, PlayScala)
+  .enablePlugins(BuildInfoPlugin, GitVersioning, GitBranchPrompt, PlayScala, JavaAgent)
   .enablePlugins(AssemblyPlugin)
   .configs(Common.ITest)
   .settings(inConfig(Common.ITest)(Defaults.testSettings) : _*)
@@ -84,6 +87,9 @@ lazy val `sbr-admin-data` = (project in file("."))
     routesImport += "extensions.Binders._",
       //moduleName := "sbr-admin-data",
     description := "<description>",
+    javaOptions in Test += "-DSBR_DB_PORT=8075",
+    javaOptions in Universal += "-Dorg.aspectj.tracing.factory=default",
+    javaAgents += "org.aspectj" % "aspectjweaver" % "1.8.13",
     libraryDependencies ++= devDeps,
     // di router -> swagger
     routesGenerator := InjectedRoutesGenerator,

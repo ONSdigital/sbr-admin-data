@@ -1,4 +1,6 @@
 <configuration>
+    <!-- see https://github.com/kamon-io/kamon-logback#logging-traceid -->
+    <conversionRule conversionWord="traceID" converterClass="kamon.logback.LogbackTraceIDConverter"/>
 
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
 
@@ -11,7 +13,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%coloredLevel %logger{15} - %message%n%xException{10}</pattern>
+            <pattern>%date %highlight(%-5level) [%traceID] [%logger{16}] - %m%n%xException{10}</pattern>
         </encoder>
     </appender>
 
