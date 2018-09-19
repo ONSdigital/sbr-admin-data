@@ -142,9 +142,10 @@ pipeline {
                             }
                         ]                            
                     }"""
+                    artServer.upload spec: uploadSpec, buildInfo: buildInfo
                 }
-                artServer.upload spec: uploadSpec, buildInfo: buildInfo
                 sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_TO}-${ORGANIZATION}-${MODULE_NAME}.zip"
+                stash name: 'Package'
             }
             post {
                 success {
@@ -177,7 +178,9 @@ pipeline {
                             }
                         ]
                     }"""
+                    artServer.download spec: downloadSpec, buildInfo: buildInfo
                 }
+                unstash name: 'Package'
                 milestone(1)
                 lock("${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME}") {
                     colourText("info", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
@@ -205,7 +208,7 @@ pipeline {
             }
         }
 
-        stage ('Deploy HBase') {
+        stage ('Deploy: Dev') {
             agent any
             when{ 
                 branch 'master'
@@ -216,7 +219,7 @@ pipeline {
                 DEPLOY_TO = "dev"
             }
             steps {
-                unstage name: 'Checkout'
+                unstage name: 'Package'
                 sh "sbt 'set test in assembly := {}' assembly"
                 copyToHBaseNode()
             }
