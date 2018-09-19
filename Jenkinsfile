@@ -20,7 +20,6 @@ pipeline {
 
         ORGANIZATION = "ons"
         TEAM = "sbr"
-        MODULE_NAME = "sbr-admin-data"
 
         // hbase config
         CH_TABLE = "ch"
@@ -122,7 +121,7 @@ pipeline {
             steps {
                 unstash name: 'Checkout'
                 dir('gitlab') {
-                    git(url: "${GITLAB_URL}/StatBusReg/${MODULE_NAME}-api.git", credentialsId: 'JenkinsSBR__gitlab', branch: "develop")
+                    git(url: "${GITLAB_URL}/StatBusReg/${SVC_NAME}-api.git", credentialsId: 'JenkinsSBR__gitlab', branch: "develop")
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh '''
@@ -146,7 +145,7 @@ pipeline {
                     }"""
                     artServer.upload spec: uploadSpec, buildInfo: buildInfo
                 }
-                sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_TO}-${ORGANIZATION}-${MODULE_NAME}.zip"
+                sh "cp target/universal/${ORGANIZATION}-${SVC_NAME}-*.zip ${DEPLOY_TO}-${ORGANIZATION}-${SVC_NAME}.zip"
                 stash name: 'Package'
             }
             post {
@@ -159,7 +158,7 @@ pipeline {
             }
         }
 
-        stage('Deploy CF'){
+        stage('Deploy: Dev CF'){
             agent { label 'deploy.cf'}
             when{ 
                 branch 'feature/REG-428-continuous-delivery'
@@ -184,20 +183,20 @@ pipeline {
                 }
                 unstash name: 'Package'
                 milestone(1)
-                lock("${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME}") {
-                    colourText("info", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(CH_TABLE, false)
-                    colourText("success", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} Deployed.")
+                lock("${env.DEPLOY_TO}-${CH_TABLE}-${SVC_NAME}") {
+                    colourText("info", "${env.DEPLOY_TO}-${CH_TABLE}-${SVC_NAME} deployment in progress")
+                    deploy("${CREDS}", CH_TABLE, false)
+                    colourText("success", "${env.DEPLOY_TO}-${CH_TABLE}-${SVC_NAME} Deployed.")
                 }
-                lock("${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME}") {
-                    colourText("info", "${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(VAT_TABLE, false)
-                    colourText("success", "${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
+                lock("${env.DEPLOY_TO}-${VAT_TABLE}-${SVC_NAME}") {
+                    colourText("info", "${env.DEPLOY_TO}-${VAT_TABLE}-${SVC_NAME} deployment in progress")
+                    deploy("${CREDS}", VAT_TABLE, false)
+                    colourText("success", "${env.DEPLOY_TO}-${VAT_TABLE}-${SVC_NAME} Deployed.")
                 }
-                lock("${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME}") {
-                    colourText("info", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
-                    deploy(PAYE_TABLE, false)
-                    colourText("success", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
+                lock("${env.DEPLOY_TO}-${PAYE_TABLE}-${SVC_NAME}") {
+                    colourText("info", "${env.DEPLOY_TO}-${PAYE_TABLE}-${SVC_NAME} deployment in progress")
+                    deploy("${CREDS}", PAYE_TABLE, false)
+                    colourText("success", "${env.DEPLOY_TO}-${PAYE_TABLE}-${SVC_NAME} Deployed.")
                 }
             }
             post {
@@ -210,14 +209,13 @@ pipeline {
             }
         }
 
-        stage ('Deploy: Dev') {
+        stage ('Deploy: Dev Hbase') {
             agent any
             when{ 
                 branch 'feature/REG-428-continuous-delivery'
                 beforeAgent true
             }
             environment {
-                STAGE = "Deploy HBase"
                 DEPLOY_TO = "dev"
             }
             steps {
@@ -260,22 +258,20 @@ pipeline {
     }
 }
 
-def deploy (String dataSource, Boolean reverseFlag) {
+def deploy (String credentialsId, String dataSource, Boolean reverseFlag) {
     cfSpace = "${env.DEPLOY_TO}".capitalize()
     cfOrg = "${env.TEAM}".toUpperCase()
     namespace = "sbr_${env.DEPLOY_TO}_db"
     echo "Deploying Api app to ${env.DEPLOY_TO}"
-    withCredentials([string(credentialsId: "${env.CF_CREDS}", variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBaseWithReverseOption("${env.TEAM}-${env.DEPLOY_TO}-cf",  // creds
-            cfOrg,
-            cfSpace, 
-            "${env.DEPLOY_TO}-${dataSource}-${env.MODULE_NAME}",       // app name
-            "${env.DEPLOY_TO}-${env.ORGANIZATION}-${env.MODULE_NAME}.zip",  // path to artifact
-            "gitlab/${env.DEPLOY_TO}/manifest.yml",                 // path to manifest
-            dataSource,                                       // hbase table name
-            namespace,                                         // hbase namespace
-            reverseFlag)                                           // hbase reverse load flag
-    }
+    deployToCloudFoundryHBaseWithReverseOption(credentialsId,  // creds
+        cfOrg,
+        cfSpace, 
+        "${env.DEPLOY_TO}-${dataSource}-${env.SVC_NAME}",       // app name
+        "${env.DEPLOY_TO}-${env.ORGANIZATION}-${env.SVC_NAME}.zip",  // path to artifact
+        "gitlab/${env.DEPLOY_TO}/manifest.yml",                 // path to manifest
+        dataSource,                                       // hbase table name
+        namespace,                                         // hbase namespace
+        reverseFlag)                                           // hbase reverse load flag
 }
 
 def copyToHBaseNode() {
@@ -283,10 +279,10 @@ def copyToHBaseNode() {
     sshagent(credentials: ["sbr-${env.DEPLOY_TO}-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
             sh """
-                ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} mkdir -p ${env.MODULE_NAME}/lib
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE}:${env.MODULE_NAME}/lib/
-                echo 'Successfully copied jar file to ${env.MODULE_NAME}/lib directory on ${env.HBASE_NODE}'
-                ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} hdfs dfs -put -f ${env.MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_TO}-ci/lib/
+                ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} mkdir -p ${env.SVC_NAME}/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE}:${env.SVC_NAME}/lib/
+                echo 'Successfully copied jar file to ${env.SVC_NAME}/lib directory on ${env.HBASE_NODE}'
+                ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} hdfs dfs -put -f ${env.SVC_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_TO}-ci/lib/
                 echo 'Successfully copied jar file to HDFS'
 	    """
         }
