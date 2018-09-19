@@ -128,6 +128,7 @@ pipeline {
                 sh '''
                 rm -rf conf/sample/201706/vat_data.csv
                 rm -rf conf/sample/201706/paye_data.csv
+                ls -la gitlab/dev/data
                 cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv
                 cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv
                 cp gitlab/dev/conf/* conf
