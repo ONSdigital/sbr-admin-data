@@ -236,15 +236,24 @@ pipeline {
     post {
         success {
             colourText("success", "All stages complete. Build was successful.")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST"
+            slackSend(
+                color: "good",
+                message: "${env.JOB_NAME} success: ${env.RUN_DISPLAY_URL}"
+            )
         }
         unstable {
             colourText("warn", "Something went wrong, build finished with result ${currentResult}. This may be caused by failed tests, code violation or in some cases unexpected interrupt.")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.STAGE}"
+            slackSend(
+                color: "warning",
+                message: "${env.JOB_NAME} unstable: ${env.RUN_DISPLAY_URL}"
+            )
         }
         failure {
             colourText("warn","Process failed at: ${env.STAGE}")
-            sendNotifications currentBuild.result, "\$SBR_EMAIL_LIST", "${env.STAGE}"
+            slackSend(
+                color: "danger",
+                message: "${env.JOB_NAME} failed at ${env.STAGE_NAME}: ${env.RUN_DISPLAY_URL}"
+            )
         }
     }
 }
