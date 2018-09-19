@@ -121,7 +121,7 @@ pipeline {
             }
             steps {
                 dir('gitlab') {
-                    git(url: "$GITLAB_URL/StatBusReg/${MODULE_NAME}-api.git", credentialsId: GITLAB_CREDS, branch: "develop")
+                    git(url: "$GITLAB_URL/StatBusReg/${SVC_NAME}-api.git", credentialsId: 'JenkinsSBR__gitlab', branch: "develop")
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh '''
