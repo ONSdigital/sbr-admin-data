@@ -112,7 +112,7 @@ pipeline {
         stage('Package'){
             agent { label "build.${agentSbtVersion}" }
             when{ 
-                branch 'master'
+                branch 'feature/REG-428-continuous-delivery'
                 beforeAgent true
             }
             environment{ 
@@ -160,7 +160,7 @@ pipeline {
         stage('Deploy CF'){
             agent { label 'deploy.cf'}
             when{ 
-                branch 'master'
+                branch 'feature/REG-428-continuous-delivery'
                 beforeAgent true
             }
             environment{ 
@@ -211,7 +211,7 @@ pipeline {
         stage ('Deploy: Dev') {
             agent any
             when{ 
-                branch 'master'
+                branch 'feature/REG-428-continuous-delivery'
                 beforeAgent true
             }
             environment {
