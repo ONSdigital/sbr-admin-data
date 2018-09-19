@@ -1,8 +1,16 @@
-#!groovy
-@Library('jenkins-pipeline-shared') _
+#!/usr/bin/env groovy
+
+def artServer = Artifactory.server 'art-p-01'
+def buildInfo = Artifactory.newBuildInfo()
+def distDir = 'build/dist'
+def agentSbtVersion = 'sbt_0-13-13'
 
 pipeline {
+    libraries {
+        lib('jenkins-pipeline-shared')
+    }
     environment {
+        SVC_NAME = "sbr-admin-data"
         RELEASE_TYPE = "PATCH"
         CF_CREDS = "sbr-api-dev-secret-key"
 
@@ -18,99 +26,95 @@ pipeline {
         CH_TABLE = "ch"
         VAT_TABLE = "vat"
         PAYE_TABLE = "paye"
-	    
-    	STAGE = "NONE"
-        SBT_HOME = tool name: 'sbt.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'
-        PATH = "${env.SBT_HOME}/bin:${env.PATH}"
     }
     options {
         skipDefaultCheckout()
         buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '30'))
         timeout(time: 30, unit: 'MINUTES')
-        timestamps()
+        ansiColor('xterm')
     }
-    agent any
+    agent { label 'download.jenkins.slave'}
     stages {
         stage('Checkout') {
-            agent any
-            environment{ STAGE = "Checkout" }
+            agent { label 'download.jenkins.slave'}
             steps {
-                deleteDir()
                 checkout scm
-                stash name: 'app'
-                sh "sbt version"
                 script {
-                    version = '1.0.' + env.BUILD_NUMBER
-                    currentBuild.displayName = version
+                    buildInfo.name = "${SVC_NAME}"
+                    buildInfo.number = "${BUILD_NUMBER}"
+                    buildInfo.env.collect()
                 }
+                colourText("info", "BuildInfo: ${buildInfo.name}-${buildInfo.number}")
+                stash name: 'Checkout'
             }
         }
 
         stage('Build') {
-            agent any
-            environment{ STAGE = "Build" }
+            agent { label "build.${agentSbtVersion}" }
             steps{
-                sh "sbt clean compile"
+                unstash name: 'Checkout'
+                sh "sbt compile"
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE} successful!")
+                    postSuccess()
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE} failed!")
+                    postFail()
                 }
             }
         }
 
-        stage('Test'){
-            agent any
-            environment{ STAGE = "Test"  }
-            steps {
-                colourText("info", "Building ${env.BUILD_ID} on ${env.JENKINS_URL} from branch ${env.BRANCH_NAME}")
-
-                sh 'sbt coverage test coverageReport coverageAggregate'
-            }
-            post {
-                success {
-                    junit '**/target/test-reports/*.xml'
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/coverage-report/*.xml'])
-                    colourText("info","Stage: ${env.STAGE} successful!")
-                }
-                failure {
-                    colourText("warn","Stage: ${env.STAGE} failed!")
-                }
-            }
-        }
-
-        stage('Static Analysis') {
-            agent any
-            environment{ STAGE = "Static Analysis" }
-            steps {
-                parallel (
-                    "Scalastyle" : {
-                        colourText("info","Running scalastyle analysis")
-                        sh "sbt scalastyle"
-                    },
-                    "Scapegoat" : {
-                        colourText("info","Running scapegoat analysis")
-                        sh "sbt scapegoat"
+        stage('Validate'){
+            failFast true
+            parallel {
+                stage('Test: Unit') {
+                    agent { label "build.${agentSbtVersion}" }
+                    steps {
+                        unstash name: 'Checkout'
+                        sh 'sbt coverage test coverageReport coverageAggregate'
                     }
-                )
-            }
-            post {
-                success {
-                    step([$class: 'CheckStylePublisher', pattern: '**/target/code-quality/style/*scalastyle*.xml'])
-                    colourText("info","Stage: ${env.STAGE} successful!")
+                    post {
+                        always {
+                            junit '**/target/test-reports/*.xml'
+                            cobertura coberturaReportFile: 'target/**/coverage-report/*.xml'
+                        }
+                        success {
+                            postSuccess()
+                        }
+                        failure {
+                            postFail()
+                        }
+                    }
                 }
-                failure {
-                    colourText("warn","Stage: ${env.STAGE} failed!")
+                stage('Style') {
+                    agent { label "build.${agentSbtVersion}" }
+                    environment{ STAGE = "Static Analysis" }
+                    steps {
+                        unstash name: 'Checkout'
+                        sh "sbt scalastyle"
+                    }
+                    post {
+                        always {
+                            checkstyle pattern: '**/target/code-quality/style/*scalastyle*.xml'
+                        }
+                        success {
+                            postSuccess()
+                        }
+                        failure {
+                            postFail()
+                        }
+                    }
                 }
             }
         }
 
         stage('Package'){
-            agent any
-            when{ expression{ isBranch("master") }}
+            agent { label "build.${agentSbtVersion}" }
+            when{ 
+                branch 'master'
+                beforeAgent true
+            }
             environment{ 
                 STAGE = "Package" 
                 DEPLOY_TO = "dev"    
@@ -129,38 +133,63 @@ pipeline {
                 '''
 
                 sh 'sbt universal:packageBin'
+                script {
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "target/universal/*.zip",
+                                "target": "registers-sbt-snapshots/uk/gov/ons/${buildInfo.name}/${buildInfo.number}/"
+                            }
+                        ]                            
+                    }"""
+                }
+                artServer.upload spec: uploadSpec, buildInfo: buildInfo
                 sh "cp target/universal/${ORGANIZATION}-${MODULE_NAME}-*.zip ${DEPLOY_TO}-${ORGANIZATION}-${MODULE_NAME}.zip"
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE} successful!")
+                    postSuccess()
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE} failed!")
+                    postFail()
                 }
             }
         }
 
         stage('Deploy CF'){
-            agent any
-            when{ expression{ isBranch("master") }}
+            agent { label 'deploy.cf'}
+            when{ 
+                branch 'master'
+                beforeAgent true
+            }
             environment{ 
-                STAGE = "Deploy CF"
+                CREDS = 's_jenkins_sbr_dev'
                 DEPLOY_TO = "dev" 
             }
             steps {
+                script {
+                    def downloadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "registers-sbt-snapshots/uk/gov/ons/${buildInfo.name}/${buildInfo.number}/*.zip",
+                                "target": "${distDir}",
+                                "flat": "true"
+                            }
+                        ]
+                    }"""
+                }
                 milestone(1)
-                lock('CH Deployment Initiated') {
+                lock("${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME}") {
                     colourText("info", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(CH_TABLE, false)
                     colourText("success", "${env.DEPLOY_TO}-${CH_TABLE}-${MODULE_NAME} Deployed.")
                 }
-                lock('VAT Deployment Initiated') {
+                lock("${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME}") {
                     colourText("info", "${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(VAT_TABLE, false)
                     colourText("success", "${env.DEPLOY_TO}-${VAT_TABLE}-${MODULE_NAME} Deployed.")
                 }
-                lock('PAYE Deployment Initiated') {
+                lock("${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME}") {
                     colourText("info", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} deployment in progress")
                     deploy(PAYE_TABLE, false)
                     colourText("success", "${env.DEPLOY_TO}-${PAYE_TABLE}-${MODULE_NAME} Deployed.")
@@ -168,31 +197,35 @@ pipeline {
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE} successful!")
+                    postSuccess()
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE} failed!")
+                    postFail()
                 }
             }
         }
 
         stage ('Deploy HBase') {
             agent any
-            when{ expression{ isBranch("master") }}
+            when{ 
+                branch 'master'
+                beforeAgent true
+            }
             environment {
                 STAGE = "Deploy HBase"
                 DEPLOY_TO = "dev"
             }
             steps {
+                unstage name: 'Checkout'
                 sh "sbt 'set test in assembly := {}' assembly"
                 copyToHBaseNode()
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE} successful!")
+                    postSuccess()
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE} failed!")
+                    postFail()
                 }
             }
         }
@@ -213,17 +246,21 @@ pipeline {
     }
 }
 
-def isBranch(String branchName){
-    return env.BRANCH_NAME.toString().equals(branchName)
-}
-
-def deploy (String DATA_SOURCE, Boolean REVERSE_FLAG) {
-    CF_SPACE = "${env.DEPLOY_TO}".capitalize()
-    CF_ORG = "${TEAM}".toUpperCase()
-    NAMESPACE = "sbr_${env.DEPLOY_TO}_db"
+def deploy (String dataSource, Boolean reverseFlag) {
+    cfSpace = "${env.DEPLOY_TO}".capitalize()
+    cfOrg = "${env.TEAM}".toUpperCase()
+    namespace = "sbr_${env.DEPLOY_TO}_db"
     echo "Deploying Api app to ${env.DEPLOY_TO}"
-    withCredentials([string(credentialsId: CF_CREDS, variable: 'APPLICATION_SECRET')]) {
-        deployToCloudFoundryHBaseWithReverseOption("${TEAM}-${env.DEPLOY_TO}-cf", "${CF_ORG}", "${CF_SPACE}", "${env.DEPLOY_TO}-${DATA_SOURCE}-${MODULE_NAME}", "${env.DEPLOY_TO}-${ORGANIZATION}-${MODULE_NAME}.zip", "gitlab/${env.DEPLOY_TO}/manifest.yml", "${DATA_SOURCE}", "${NAMESPACE}", REVERSE_FLAG)
+    withCredentials([string(credentialsId: "${env.CF_CREDS}", variable: 'APPLICATION_SECRET')]) {
+        deployToCloudFoundryHBaseWithReverseOption("${env.TEAM}-${env.DEPLOY_TO}-cf",  // creds
+            cfOrg,
+            cfSpace, 
+            "${env.DEPLOY_TO}-${dataSource}-${env.MODULE_NAME}",       // app name
+            "${env.DEPLOY_TO}-${env.ORGANIZATION}-${env.MODULE_NAME}.zip",  // path to artifact
+            "gitlab/${env.DEPLOY_TO}/manifest.yml",                 // path to manifest
+            dataSource,                                       // hbase table name
+            namespace,                                         // hbase namespace
+            reverseFlag)                                           // hbase reverse load flag
     }
 }
 
@@ -232,12 +269,20 @@ def copyToHBaseNode() {
     sshagent(credentials: ["sbr-${env.DEPLOY_TO}-ci-ssh-key"]) {
         withCredentials([string(credentialsId: "sbr-hbase-node", variable: 'HBASE_NODE')]) {
             sh """
-                ssh sbr-${env.DEPLOY_TO}-ci@${HBASE_NODE} mkdir -p ${MODULE_NAME}/lib
-                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_TO}-ci@${HBASE_NODE}:${MODULE_NAME}/lib/
-                echo 'Successfully copied jar file to ${MODULE_NAME}/lib directory on ${HBASE_NODE}'
-                ssh sbr-${env.DEPLOY_TO}-ci@${HBASE_NODE} hdfs dfs -put -f ${MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_TO}-ci/lib/
+                ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} mkdir -p ${env.MODULE_NAME}/lib
+                scp ${WORKSPACE}/target/ons-sbr-admin-data-*.jar sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE}:${env.MODULE_NAME}/lib/
+                echo 'Successfully copied jar file to ${env.MODULE_NAME}/lib directory on ${env.HBASE_NODE}'
+                ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} hdfs dfs -put -f ${env.MODULE_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_TO}-ci/lib/
                 echo 'Successfully copied jar file to HDFS'
 	    """
         }
     }
+}
+
+def postSuccess() {
+    colourText('info', "Stage: ${env.STAGE_NAME} successfull!")
+}
+
+def postFail() {
+    colourText('warn', "Stage: ${env.STAGE_NAME} failed!")
 }
