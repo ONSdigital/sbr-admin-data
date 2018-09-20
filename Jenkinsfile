@@ -174,7 +174,7 @@ pipeline {
                     }"""
                     artServer.download spec: downloadSpec, buildInfo: buildInfo
                 }
-                sh "cp ${distDir}/${env.GROUP}-${env.SVC_NAME}-*.zip ${distDir}/${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
+                sh "cp ${distDir}/${env.GROUP}-${env.SVC_NAME}-*.zip ${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
                 milestone(1)
                 lock("${env.DEPLOY_TO}-${env.CH_TABLE}-${env.SVC_NAME}") {
                     deployToCloudFoundry("${CREDS}", "${env.CH_TABLE}")
@@ -264,7 +264,7 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
                     [key: 'HBASE_TABLE_NAME', value: "${tablename}"],
                     [key: 'HBASE_LOAD_REVERSE_FLAG', value: "false"]
                 ],
-                appPath: "${distDir}/${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
+                appPath: "${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
             ]
         )
     }
