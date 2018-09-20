@@ -11,15 +11,10 @@ pipeline {
     }
     environment {
         SVC_NAME = "sbr-admin-data"
-        RELEASE_TYPE = "PATCH"
-        CF_CREDS = "sbr-api-dev-secret-key"
 
-        GIT_TYPE = "Github"
-        GIT_CREDS = "github-sbr-user"
-        GITLAB_CREDS = "sbr-gitlab-id"
-
-        ORGANIZATION = "ons"
-        TEAM = "sbr"
+        GROUP = "ons"
+        CF_ORG = "sbr"
+        CF_API_ENDPOINT = credentials('cfApiEndpoint')
 
         // hbase config
         CH_TABLE = "ch"
@@ -145,8 +140,6 @@ pipeline {
                     }"""
                     artServer.upload spec: uploadSpec, buildInfo: buildInfo
                 }
-                sh "cp target/universal/${ORGANIZATION}-${SVC_NAME}-*.zip ${DEPLOY_TO}-${ORGANIZATION}-${SVC_NAME}.zip"
-                stash name: 'Package'
             }
             post {
                 success {
@@ -164,9 +157,9 @@ pipeline {
                 branch 'feature/REG-428-continuous-delivery'
                 beforeAgent true
             }
-            environment{ 
+            environment{
                 CREDS = 's_jenkins_sbr_dev'
-                DEPLOY_TO = "dev" 
+                DEPLOY_TO = 'dev' 
             }
             steps {
                 script {
@@ -181,22 +174,16 @@ pipeline {
                     }"""
                     artServer.download spec: downloadSpec, buildInfo: buildInfo
                 }
-                unstash name: 'Package'
+                sh "cp ${distDir}/${env.GROUP}-${env.SVC_NAME}-*.zip ${distDir}/${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
                 milestone(1)
-                lock("${env.DEPLOY_TO}-${CH_TABLE}-${SVC_NAME}") {
-                    colourText("info", "${env.DEPLOY_TO}-${CH_TABLE}-${SVC_NAME} deployment in progress")
-                    deploy("${CREDS}", CH_TABLE, false)
-                    colourText("success", "${env.DEPLOY_TO}-${CH_TABLE}-${SVC_NAME} Deployed.")
+                lock("${env.DEPLOY_TO}-${env.CH_TABLE}-${env.SVC_NAME}") {
+                    deployToCloudFoundry("${CREDS}", "${env.CH_TABLE}")
                 }
-                lock("${env.DEPLOY_TO}-${VAT_TABLE}-${SVC_NAME}") {
-                    colourText("info", "${env.DEPLOY_TO}-${VAT_TABLE}-${SVC_NAME} deployment in progress")
-                    deploy("${CREDS}", VAT_TABLE, false)
-                    colourText("success", "${env.DEPLOY_TO}-${VAT_TABLE}-${SVC_NAME} Deployed.")
+                lock("${env.DEPLOY_TO}-${env.VAT_TABLE}-${env.SVC_NAME}") {
+                    deployToCloudFoundry("${envCREDS}", "${env.VAT_TABLE}")
                 }
-                lock("${env.DEPLOY_TO}-${PAYE_TABLE}-${SVC_NAME}") {
-                    colourText("info", "${env.DEPLOY_TO}-${PAYE_TABLE}-${SVC_NAME} deployment in progress")
-                    deploy("${CREDS}", PAYE_TABLE, false)
-                    colourText("success", "${env.DEPLOY_TO}-${PAYE_TABLE}-${SVC_NAME} Deployed.")
+                lock("${env.DEPLOY_TO}-${env.PAYE_TABLE}-${env.SVC_NAME}") {
+                    deployToCloudFoundry("${env.CREDS}", "${env.PAYE_TABLE}")
                 }
             }
             post {
@@ -216,7 +203,7 @@ pipeline {
                 beforeAgent true
             }
             environment {
-                DEPLOY_TO = "dev"
+                DEPLOY_TO = 'dev'
             }
             steps {
                 unstage name: 'Package'
@@ -258,20 +245,30 @@ pipeline {
     }
 }
 
-def deploy (String credentialsId, String dataSource, Boolean reverseFlag) {
-    cfSpace = "${env.DEPLOY_TO}".capitalize()
-    cfOrg = "${env.TEAM}".toUpperCase()
-    namespace = "sbr_${env.DEPLOY_TO}_db"
-    echo "Deploying Api app to ${env.DEPLOY_TO}"
-    deployToCloudFoundryHBaseWithReverseOption(credentialsId,  // creds
-        cfOrg,
-        cfSpace, 
-        "${env.DEPLOY_TO}-${dataSource}-${env.SVC_NAME}",       // app name
-        "${env.DEPLOY_TO}-${env.ORGANIZATION}-${env.SVC_NAME}.zip",  // path to artifact
-        "gitlab/${env.DEPLOY_TO}/manifest.yml",                 // path to manifest
-        dataSource,                                       // hbase table name
-        namespace,                                         // hbase namespace
-        reverseFlag)                                           // hbase reverse load flag
+// deployToCloudFoundry calls pushToCloudFoundry with environment variables set
+def deployToCloudFoundry (String credentialsId, String tablename) {
+    colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
+    withCredentials([usernamePassword(credentialsId: credentialsId, passwordVariable: 'KB_PASSWORD', usernameVariable: 'KB_USERNAME')]){
+        pushToCloudFoundry(
+            target: "${env.CF_API_ENDPOINT}",
+            organization: "${env.CF_ORG}",
+            cloudSpace: "${env.DEPLOY_TO}",
+            credentialsId: credentialsId,
+            manifestChoice: [
+                appName: "${tablename}-${env.SVC_NAME}",
+                manifestFile: "gitlab/${env.DEPLOY_TO}/manifest.yml",
+                envVars: [
+                    [key: 'HBASE_AUTHENTICATION_USERNAME', value: "${env.KB_USERNAME}"],
+                    [key: 'HBASE_AUTHENTICATION_PASSWORD', value: "${env.KB_PASSWORD}"],
+                    [key: 'HBASE_NAMESPACE', value: "sbr_${env.DEPLOY_TO}_db"],
+                    [key: 'HBASE_TABLE_NAME', value: "${tablename}"],
+                    [key: 'HBASE_LOAD_REVERSE_FLAG', value: "false"]
+                ],
+                appPath: "${distDir}/${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
+            ]
+        )
+    }
+    colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
 }
 
 def copyToHBaseNode() {
@@ -284,7 +281,7 @@ def copyToHBaseNode() {
                 echo 'Successfully copied jar file to ${env.SVC_NAME}/lib directory on ${env.HBASE_NODE}'
                 ssh sbr-${env.DEPLOY_TO}-ci@${env.HBASE_NODE} hdfs dfs -put -f ${env.SVC_NAME}/lib/ons-sbr-admin-data-*.jar hdfs://prod1/user/sbr-${env.DEPLOY_TO}-ci/lib/
                 echo 'Successfully copied jar file to HDFS'
-	    """
+	        """
         }
     }
 }
