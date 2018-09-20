@@ -115,17 +115,16 @@ pipeline {
             }
             steps {
                 unstash name: 'Checkout'
-                dir('gitlab') {
+                dir('config') {
                     git(url: "${GITLAB_URL}/StatBusReg/${SVC_NAME}-api.git", credentialsId: 'JenkinsSBR__gitlab', branch: "develop")
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh '''
                 rm -rf conf/sample/201706/vat_data.csv
                 rm -rf conf/sample/201706/paye_data.csv
-                ls -la gitlab/dev/data
-                cp gitlab/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv
-                cp gitlab/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv
-                cp gitlab/dev/conf/* conf
+                cp config/dev/data/sbr-2500-ent-vat-data.csv conf/sample/201706/vat_data.csv
+                cp config/dev/data/sbr-2500-ent-paye-data.csv conf/sample/201706/paye_data.csv
+                cp config/dev/conf/* conf
                 '''
 
                 sh 'sbt universal:packageBin'
@@ -140,6 +139,7 @@ pipeline {
                     }"""
                     artServer.upload spec: uploadSpec, buildInfo: buildInfo
                 }
+                stash name: 'config', includes: 'config/'
             }
             post {
                 success {
@@ -175,6 +175,7 @@ pipeline {
                     artServer.download spec: downloadSpec, buildInfo: buildInfo
                 }
                 sh "cp ${distDir}/${env.GROUP}-${env.SVC_NAME}-*.zip ${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
+                unstash name: 'config'
                 milestone(1)
                 lock("${env.DEPLOY_TO}-${env.CH_TABLE}-${env.SVC_NAME}") {
                     deployToCloudFoundry("${CREDS}", "${env.CH_TABLE}")
@@ -256,7 +257,7 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
             credentialsId: credentialsId,
             manifestChoice: [
                 appName: "${tablename}-${env.SVC_NAME}",
-                // manifestFile: "gitlab/${env.DEPLOY_TO}/manifest.yml",
+                manifestFile: "config/${env.DEPLOY_TO}/manifest.yml",
                 envVars: [
                     [key: 'HBASE_AUTHENTICATION_USERNAME', value: "${env.KB_USERNAME}"],
                     [key: 'HBASE_AUTHENTICATION_PASSWORD', value: "${env.KB_PASSWORD}"],
