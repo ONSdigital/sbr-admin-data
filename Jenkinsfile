@@ -257,7 +257,7 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
             credentialsId: credentialsId,
             manifestChoice: [
                 appName: "${tablename}-${env.SVC_NAME}",
-                manifestFile: "config/${env.DEPLOY_TO}/manifest.yml",
+                manifestFile: "${env.WORKSPACE}/config/${env.DEPLOY_TO}/manifest.yml",
                 envVars: [
                     [key: 'HBASE_AUTHENTICATION_USERNAME', value: "${env.KB_USERNAME}"],
                     [key: 'HBASE_AUTHENTICATION_PASSWORD', value: "${env.KB_PASSWORD}"],
@@ -265,7 +265,7 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
                     [key: 'HBASE_TABLE_NAME', value: "${tablename}"],
                     [key: 'HBASE_LOAD_REVERSE_FLAG', value: "false"]
                 ],
-                appPath: "${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
+                appPath: "${env.WORKSPACE}/${env.DEPLOY_TO}-${env.GROUP}-${env.SVC_NAME}.zip"
             ]
         )
     }

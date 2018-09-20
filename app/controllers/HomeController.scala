@@ -1,7 +1,7 @@
 package controllers
 
-import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
-import play.api.mvc.{ Action, AnyContent, Controller }
+import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
+import play.api.mvc.{Action, AnyContent, Controller}
 
 @Api("Utils")
 class HomeController extends Controller {
