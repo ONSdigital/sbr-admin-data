@@ -256,7 +256,7 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
             credentialsId: credentialsId,
             manifestChoice: [
                 appName: "${tablename}-${env.SVC_NAME}",
-                manifestFile: "gitlab/${env.DEPLOY_TO}/manifest.yml",
+                // manifestFile: "gitlab/${env.DEPLOY_TO}/manifest.yml",
                 envVars: [
                     [key: 'HBASE_AUTHENTICATION_USERNAME', value: "${env.KB_USERNAME}"],
                     [key: 'HBASE_AUTHENTICATION_PASSWORD', value: "${env.KB_PASSWORD}"],
