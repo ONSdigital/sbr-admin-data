@@ -178,10 +178,10 @@ pipeline {
                 unstash name: 'Config'
                 milestone(1)
                 lock("${env.DEPLOY_TO}-${env.CH_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${CREDS}", "${env.CH_TABLE}")
+                    deployToCloudFoundry("${env.CREDS}", "${env.CH_TABLE}")
                 }
                 lock("${env.DEPLOY_TO}-${env.VAT_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${envCREDS}", "${env.VAT_TABLE}")
+                    deployToCloudFoundry("${env.CREDS}", "${env.VAT_TABLE}")
                 }
                 lock("${env.DEPLOY_TO}-${env.PAYE_TABLE}-${env.SVC_NAME}") {
                     deployToCloudFoundry("${env.CREDS}", "${env.PAYE_TABLE}")
