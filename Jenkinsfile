@@ -254,9 +254,9 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
             credentialsId = credentialsId
             org = "${this.env.CF_ORG}"
             space = "${this.env.DEPLOY_TO}"
-            appName = "${tablename}-${this.env.SVC_NAME}",
+            appName = "${tablename}-${this.env.SVC_NAME}"
             appPath = "./${this.env.DEPLOY_TO}-${this.env.GROUP}-${this.env.SVC_NAME}.zip"
-            manifestPath = "config/${this.env.DEPLOY_TO.toLowerCase()}/manifest.yml",
+            manifestPath = "config/${this.env.DEPLOY_TO.toLowerCase()}/manifest.yml"
             envVars = [
                 'HBASE_AUTHENTICATION_USERNAME': "${this.env.KB_USERNAME}",
                 'HBASE_AUTHENTICATION_PASSWORD': "${this.env.KB_PASSWORD}",
