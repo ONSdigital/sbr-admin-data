@@ -178,13 +178,13 @@ pipeline {
                 unstash name: 'Config'
                 milestone(1)
                 lock("${env.DEPLOY_TO}-${env.CH_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.CREDS}", "${env.CH_TABLE}")
+                    deployToCloudFoundry("${env.CH_TABLE}")
                 }
                 lock("${env.DEPLOY_TO}-${env.VAT_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.CREDS}", "${env.VAT_TABLE}")
+                    deployToCloudFoundry("${env.VAT_TABLE}")
                 }
                 lock("${env.DEPLOY_TO}-${env.PAYE_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.CREDS}", "${env.PAYE_TABLE}")
+                    deployToCloudFoundry("${env.PAYE_TABLE}")
                 }
             }
             post {
@@ -247,11 +247,11 @@ pipeline {
 }
 
 // deployToCloudFoundry calls pushToCloudFoundry with environment variables set
-def deployToCloudFoundry (String credentialsId, String tablename) {
+def deployToCloudFoundry (String tablename) {
     colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
-    withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'KB_PASSWORD', usernameVariable: 'KB_USERNAME')]){
+    script{
         cfDeploy{
-            credentialsId = "${this.credentialsId}"
+            credentialsId = "${this.env.CREDS}"
             org = "${this.env.CF_ORG}"
             space = "${this.env.DEPLOY_TO}"
             appName = "${tablename}-${this.env.SVC_NAME}"
