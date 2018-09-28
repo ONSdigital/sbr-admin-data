@@ -116,7 +116,7 @@ pipeline {
             steps {
                 unstash name: 'Checkout'
                 dir('config') {
-                    git(url: "${GITLAB_URL}/StatBusReg/${SVC_NAME}-api.git", credentialsId: 'JenkinsSBR__gitlab', branch: "develop")
+                    git(url: "${GITLAB_URL}/StatBusReg/${SVC_NAME}-api.git", credentialsId: 'JenkinsSBR__gitlab', branch: "feature/hbase-env-vars")
                 }
                 // Replace fake VAT/PAYE data with real data
                 sh '''
@@ -256,14 +256,7 @@ def deployToCloudFoundry (String credentialsId, String tablename) {
             space = "${this.env.DEPLOY_TO}"
             appName = "${tablename}-${this.env.SVC_NAME}"
             appPath = "./${this.env.DEPLOY_TO}-${this.env.GROUP}-${this.env.SVC_NAME}.zip"
-            manifestPath = "config/${this.env.DEPLOY_TO.toLowerCase()}/manifest.yml"
-            envVars = [
-                'HBASE_AUTHENTICATION_USERNAME': "${this.env.KB_USERNAME}",
-                'HBASE_AUTHENTICATION_PASSWORD': "${this.env.KB_PASSWORD}",
-                'HBASE_NAMESPACE': "sbr_${this.env.DEPLOY_TO}_db",
-                'HBASE_TABLE_NAME': "${tablename}",
-                'HBASE_LOAD_REVERSE_FLAG': "false"
-            ]
+            manifestPath = "config/${this.env.DEPLOY_TO.toLowerCase()}/${tablename}/manifest.yml"
         }
     }
     colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
