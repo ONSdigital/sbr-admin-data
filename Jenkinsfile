@@ -249,9 +249,9 @@ pipeline {
 // deployToCloudFoundry calls pushToCloudFoundry with environment variables set
 def deployToCloudFoundry (String credentialsId, String tablename) {
     colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
-    withCredentials([usernamePassword(credentialsId: credentialsId, passwordVariable: 'KB_PASSWORD', usernameVariable: 'KB_USERNAME')]){
+    withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'KB_PASSWORD', usernameVariable: 'KB_USERNAME')]){
         cfDeploy{
-            credentialsId = credentialsId
+            credentialsId = "${this.credentialsId}"
             org = "${this.env.CF_ORG}"
             space = "${this.env.DEPLOY_TO}"
             appName = "${tablename}-${this.env.SVC_NAME}"
