@@ -87,7 +87,6 @@ lazy val `sbr-admin-data` = (project in file("."))
     routesImport += "extensions.Binders._",
       //moduleName := "sbr-admin-data",
     description := "<description>",
-    javaOptions in Test += "-DSBR_DB_PORT=8075",
     javaOptions in Universal += "-Dorg.aspectj.tracing.factory=default",
     javaAgents += "org.aspectj" % "aspectjweaver" % "1.8.13",
     libraryDependencies ++= devDeps,
