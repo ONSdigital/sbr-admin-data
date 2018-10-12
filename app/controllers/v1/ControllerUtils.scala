@@ -68,9 +68,6 @@ trait ControllerUtils extends Controller with LazyLogging with Properties with I
     case ex: TimeoutException =>
       logger.error(s"TimeoutException $ex", ex.getCause)
       RequestTimeout(errAsJson(REQUEST_TIMEOUT, "request_timeout", s"This may be due to connection being blocked. $ex"))
-    case ex: Exception =>
-      logger.error(s"Not found Exception $ex", ex.getCause)
-      RequestTimeout(errAsJson(NOT_FOUND, "Not Found", s"Row key not found. $ex"))
     case ex =>
       logger.error(s"Unknown error has occurred with exception $ex", ex.getCause)
       InternalServerError(errAsJson(INTERNAL_SERVER_ERROR, "internal_server_error", s"$ex."))
