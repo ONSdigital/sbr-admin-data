@@ -36,7 +36,7 @@ pipeline {
             }
         }
 
-        stage('Build'){
+        stage('Build') {
             agent { label "build.${agentSbtVersion}" }
             steps {
                 unstash name: 'Checkout'
@@ -44,15 +44,15 @@ pipeline {
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
+                    colourText("info", "Stage: ${env.STAGE_NAME} successful!")
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
+                    colourText("warn", "Stage: ${env.STAGE_NAME} failed!")
                 }
             }
         }
 
-        stage('Test: Unit'){
+        stage('Test: Unit') {
             agent { label "build.${agentSbtVersion}" }
             steps {
                 unstash name: 'Checkout'
@@ -74,23 +74,15 @@ pipeline {
                             zoomCoverageChart: false
                 }
                 success {
-                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
+                    colourText("info", "Stage: ${env.STAGE_NAME} successful!")
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
-                }
-            }
-            post {
-                success {
-                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
-                }
-                failure {
-                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
+                    colourText("warn", "Stage: ${env.STAGE_NAME} failed!")
                 }
             }
         }
 
-        stage ('Publish') {
+        stage('Publish') {
             agent { label "build.${agentSbtVersion}" }
             when {
                 branch "master"
@@ -115,15 +107,15 @@ pipeline {
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
+                    colourText("info", "Stage: ${env.STAGE_NAME} successful!")
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
+                    colourText("warn", "Stage: ${env.STAGE_NAME} failed!")
                 }
             }
         }
 
-        stage('Deploy: Dev'){
+        stage('Deploy: Dev') {
             agent { label 'deploy.cf' }
             when {
                 // branch 'feature/REG-428-continuous-delivery'
@@ -131,7 +123,7 @@ pipeline {
                 // evaluate the when condition before entering this stage's agent, if any
                 beforeAgent true
             }
-            environment{
+            environment {
                 CREDS = 's_jenkins_sbr_dev'
                 SPACE = 'Dev'
             }
@@ -165,22 +157,22 @@ pipeline {
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
+                    colourText("info", "Stage: ${env.STAGE_NAME} successful!")
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
+                    colourText("warn", "Stage: ${env.STAGE_NAME} failed!")
                 }
             }
         }
 
-        stage('Deploy: Test'){
+        stage('Deploy: Test') {
             agent { label 'deploy.cf' }
             when {
                 branch "master"
                 // evaluate the when condition before entering this stage's agent, if any
                 beforeAgent true
             }
-            environment{
+            environment {
                 CREDS = 's_jenkins_sbr_test'
                 SPACE = 'Test'
             }
@@ -214,52 +206,51 @@ pipeline {
             }
             post {
                 success {
-                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
+                    colourText("info", "Stage: ${env.STAGE_NAME} successful!")
                 }
                 failure {
-                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
+                    colourText("warn", "Stage: ${env.STAGE_NAME} failed!")
                 }
+            }
+        }
+
+        post {
+            success {
+                colourText("success", "All stages complete. Build was successful.")
+                slackSend(
+                        color: "good",
+                        message: "${env.JOB_NAME} success: ${env.RUN_DISPLAY_URL}"
+                )
+            }
+            unstable {
+                colourText("warn", "Something went wrong, build finished with result ${currentResult}. This may be caused by failed tests, code violation or in some cases unexpected interrupt.")
+                slackSend(
+                        color: "warning",
+                        message: "${env.JOB_NAME} unstable: ${env.RUN_DISPLAY_URL}"
+                )
+            }
+            failure {
+                colourText("warn", "Process failed at: ${env.NODE_STAGE}")
+                slackSend(
+                        color: "danger",
+                        message: "${env.JOB_NAME} failed at ${env.STAGE_NAME}: ${env.RUN_DISPLAY_URL}"
+                )
             }
         }
     }
 
-    post {
-        success {
-            colourText("success", "All stages complete. Build was successful.")
-            slackSend(
-                    color: "good",
-                    message: "${env.JOB_NAME} success: ${env.RUN_DISPLAY_URL}"
-            )
-        }
-        unstable {
-            colourText("warn", "Something went wrong, build finished with result ${currentResult}. This may be caused by failed tests, code violation or in some cases unexpected interrupt.")
-            slackSend(
-                    color: "warning",
-                    message: "${env.JOB_NAME} unstable: ${env.RUN_DISPLAY_URL}"
-            )
-        }
-        failure {
-            colourText("warn","Process failed at: ${env.NODE_STAGE}")
-            slackSend(
-                    color: "danger",
-                    message: "${env.JOB_NAME} failed at ${env.STAGE_NAME}: ${env.RUN_DISPLAY_URL}"
-            )
-        }
-    }
-}
-
 // deployToCloudFoundry calls pushToCloudFoundry with environment variables set
-def deployToCloudFoundry (String tablename) {
-    colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
-    script{
-        cfDeploy{
-            credentialsId = "${this.env.CREDS}"
-            org = "${this.env.ORG}"
-            space = "${this.env.SPACE}"
-            appName = "${this.env.SPACE.toLowerCase()}-${tablename}-${this.env.SVC_NAME}"
-            appPath = "./${distDir}/${this.env.SVC_NAME}.zip"
-            manifestPath  = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
+    def deployToCloudFoundry(String tablename) {
+        colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
+        script {
+            cfDeploy {
+                credentialsId = "${this.env.CREDS}"
+                org = "${this.env.ORG}"
+                space = "${this.env.SPACE}"
+                appName = "${this.env.SPACE.toLowerCase()}-${tablename}-${this.env.SVC_NAME}"
+                appPath = "./${distDir}/${this.env.SVC_NAME}.zip"
+                manifestPath = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
+            }
         }
+        colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
     }
-    colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
-}
