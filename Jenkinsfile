@@ -52,50 +52,32 @@ pipeline {
             }
         }
 
-        stage('Validate') {
-            failFast true
-            parallel {
-                stage('Test: Unit'){
-                    agent { label "build.${agentSbtVersion}" }
-                    steps {
-                        unstash name: 'Checkout'
-                        sh 'sbt coverage test coverageReport'
-                    }
-                    post {
-                        always {
-                            junit '**/target/test-reports/*.xml'
-                            cobertura autoUpdateHealth: false,
-                                    autoUpdateStability: false,
-                                    coberturaReportFile: 'target/**/coverage-report/cobertura.xml',
-                                    conditionalCoverageTargets: '70, 0, 0',
-                                    failUnhealthy: false,
-                                    failUnstable: false,
-                                    lineCoverageTargets: '80, 0, 0',
-                                    maxNumberOfBuilds: 0,
-                                    methodCoverageTargets: '80, 0, 0',
-                                    onlyStable: false,
-                                    zoomCoverageChart: false
-                        }
-                        success {
-                            colourText("info","Stage: ${env.STAGE_NAME} successful!")
-                        }
-                        failure {
-                            colourText("warn","Stage: ${env.STAGE_NAME} failed!")
-                        }
-                    }
+        stage('Test: Unit'){
+            agent { label "build.${agentSbtVersion}" }
+            steps {
+                unstash name: 'Checkout'
+                sh 'sbt coverage test coverageReport'
+            }
+            post {
+                always {
+                    junit '**/target/test-reports/*.xml'
+                    cobertura autoUpdateHealth: false,
+                            autoUpdateStability: false,
+                            coberturaReportFile: 'target/**/coverage-report/cobertura.xml',
+                            conditionalCoverageTargets: '70, 0, 0',
+                            failUnhealthy: false,
+                            failUnstable: false,
+                            lineCoverageTargets: '80, 0, 0',
+                            maxNumberOfBuilds: 0,
+                            methodCoverageTargets: '80, 0, 0',
+                            onlyStable: false,
+                            zoomCoverageChart: false
                 }
-                stage('Style') {
-                    agent { label "build.${agentSbtVersion}" }
-                    steps {
-                        unstash name: 'Checkout'
-                        colourText("info","Running style tests")
-                        sh 'sbt scalastyleGenerateConfig scalastyle'
-                    }
-                    post {
-                        always {
-                            checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: 'target/scalastyle-result.xml', unHealthy: ''
-                        }
-                    }
+                success {
+                    colourText("info","Stage: ${env.STAGE_NAME} successful!")
+                }
+                failure {
+                    colourText("warn","Stage: ${env.STAGE_NAME} failed!")
                 }
             }
             post {
