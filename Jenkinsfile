@@ -147,13 +147,13 @@ pipeline {
                 dir('config') {
                     git url: "${GITLAB_URL}/StatBusReg/${env.SVC_NAME}.git", credentialsId: 'JenkinsSBR__gitlab'
                 }
-                lock("${his.env.SPACE.toLowerCase()}-${env.CH_TABLE}-${env.SVC_NAME}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.CH_TABLE}-${env.SVC_NAME}") {
                     deployToCloudFoundry("${env.CH_TABLE}")
                 }
-                lock("${his.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
                     deployToCloudFoundry("${env.VAT_TABLE}")
                 }
-                lock("${his.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
                     deployToCloudFoundry("${env.PAYE_TABLE}")
                 }
                 milestone label: 'post deploy:dev', ordinal: 2
@@ -196,13 +196,13 @@ pipeline {
                 dir('config') {
                     git url: "${GITLAB_URL}/StatBusReg/${env.SVC_NAME}.git", credentialsId: 'JenkinsSBR__gitlab'
                 }
-                lock("${his.env.SPACE.toLowerCase()}-${env.CH_TABLE}-${env.SVC_NAME}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.CH_TABLE}-${env.SVC_NAME}") {
                     deployToCloudFoundry("${env.CH_TABLE}")
                 }
-                lock("${his.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
                     deployToCloudFoundry("${env.VAT_TABLE}")
                 }
-                lock("${his.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
                     deployToCloudFoundry("${env.PAYE_TABLE}")
                 }
                 milestone label: 'post deploy:test', ordinal: 3
@@ -245,7 +245,7 @@ pipeline {
 
 // deployToCloudFoundry calls pushToCloudFoundry with environment variables set
 def deployToCloudFoundry(String tablename) {
-    colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
+    colourText("info", "${this.env.SPACE.toLowerCase()}-${tablename}-${env.SVC_NAME} deployment in progress")
     script {
         cfDeploy {
             credentialsId = "${this.env.CREDS}"
@@ -256,5 +256,5 @@ def deployToCloudFoundry(String tablename) {
             manifestPath = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
         }
     }
-    colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
+    colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployed.")
 }
