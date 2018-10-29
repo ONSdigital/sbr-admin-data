@@ -238,19 +238,20 @@ pipeline {
             }
         }
     }
+}
 
 // deployToCloudFoundry calls pushToCloudFoundry with environment variables set
-    def deployToCloudFoundry(String tablename) {
-        colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
-        script {
-            cfDeploy {
-                credentialsId = "${this.env.CREDS}"
-                org = "${this.env.ORG}"
-                space = "${this.env.SPACE}"
-                appName = "${this.env.SPACE.toLowerCase()}-${tablename}-${this.env.SVC_NAME}"
-                appPath = "./${distDir}/${this.env.SVC_NAME}.zip"
-                manifestPath = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
-            }
+def deployToCloudFoundry(String tablename) {
+    colourText("info", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployment in progress")
+    script {
+        cfDeploy {
+            credentialsId = "${this.env.CREDS}"
+            org = "${this.env.ORG}"
+            space = "${this.env.SPACE}"
+            appName = "${this.env.SPACE.toLowerCase()}-${tablename}-${this.env.SVC_NAME}"
+            appPath = "./${distDir}/${this.env.SVC_NAME}.zip"
+            manifestPath = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
         }
-        colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
     }
+    colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} Deployed.")
+}
