@@ -13,9 +13,9 @@ pipeline {
     environment {
         SVC_NAME = "sbr-admin-data-api"
         ORG = "SBR"
-        CH_TABLE = "CH"
-        PAYE_TABLE = "PAYE"
-        VAT_TABLE = "VAT"
+        CH_TABLE = "ch"
+        PAYE_TABLE = "paye"
+        VAT_TABLE = "vat"
     }
     options {
         skipDefaultCheckout()
@@ -88,7 +88,8 @@ pipeline {
         stage('Publish') {
             agent { label "build.${agentSbtVersion}" }
             when {
-                branch "master"
+                branch 'feature/REG-428-continuous-delivery'
+                // branch "master"
                 // evaluate the when condition before entering this stage's agent, if any
                 beforeAgent true
             }
@@ -121,8 +122,8 @@ pipeline {
         stage('Deploy: Dev') {
             agent { label 'deploy.cf' }
             when {
-                // branch 'feature/REG-428-continuous-delivery'
-                branch "master"
+                branch 'feature/REG-428-continuous-delivery'
+                // branch "master"
                 // evaluate the when condition before entering this stage's agent, if any
                 beforeAgent true
             }
@@ -148,13 +149,13 @@ pipeline {
                     git url: "${GITLAB_URL}/StatBusReg/${env.SVC_NAME}.git", credentialsId: 'JenkinsSBR__gitlab'
                 }
                 lock("${this.env.SPACE.toLowerCase()}-${env.CH_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.CH_TABLE}")
+                    deployToCloudFoundry("${distDir}", "${env.CH_TABLE}")
                 }
                 lock("${this.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.VAT_TABLE}")
+                    deployToCloudFoundry("${distDir}", "${env.VAT_TABLE}")
                 }
                 lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
-                    deployToCloudFoundry("${env.PAYE_TABLE}")
+                    deployToCloudFoundry("${distDir}", "${env.PAYE_TABLE}")
                 }
                 milestone label: 'post deploy:dev', ordinal: 2
             }
@@ -197,13 +198,13 @@ pipeline {
                     git url: "${GITLAB_URL}/StatBusReg/${env.SVC_NAME}.git", credentialsId: 'JenkinsSBR__gitlab'
                 }
                 lock("${this.env.SPACE.toLowerCase()}-${env.CH_TABLE}-${env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.CH_TABLE}")
+                    deployToCloudFoundry("${distDir}", "${env.CH_TABLE}")
                 }
                 lock("${this.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
-                    deployToCloudFoundry("${env.VAT_TABLE}")
+                    deployToCloudFoundry("${distDir}", "${env.VAT_TABLE}")
                 }
                 lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
-                    deployToCloudFoundry("${env.PAYE_TABLE}")
+                    deployToCloudFoundry("${distDir}", "${env.PAYE_TABLE}")
                 }
                 milestone label: 'post deploy:test', ordinal: 3
             }
@@ -244,7 +245,7 @@ pipeline {
 }
 
 // deployToCloudFoundry calls pushToCloudFoundry with environment variables set
-def deployToCloudFoundry(String tablename) {
+def deployToCloudFoundry(String appDir, String tablename) {
     colourText("info", "${this.env.SPACE.toLowerCase()}-${tablename}-${env.SVC_NAME} deployment in progress")
     script {
         cfDeploy {
@@ -252,9 +253,9 @@ def deployToCloudFoundry(String tablename) {
             org = "${this.env.ORG}"
             space = "${this.env.SPACE}"
             appName = "${this.env.SPACE.toLowerCase()}-${tablename}-${this.env.SVC_NAME}"
-            appPath = "./${distDir}/${this.env.SVC_NAME}.zip"
-            manifestPath = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
+            appPath = "${appDir}${this.env.SVC_NAME}.zip"
+            manifestPath  = "config/${this.env.SPACE.toLowerCase()}/manifest.yml"
         }
     }
-    colourText("success", "${env.DEPLOY_TO}-${tablename}-${env.SVC_NAME} deployed.")
+    colourText("success", "${this.env.SPACE.toLowerCase()}-${tablename}-${env.SVC_NAME} deployed.")
 }
