@@ -13,6 +13,9 @@ pipeline {
     environment {
         SVC_NAME = "sbr-admin-data-api"
         ORG = "SBR"
+        CH_TABLE = "CH"
+        PAYE_TABLE = "PAYE"
+        VAT_TABLE = "VAT"
     }
     options {
         skipDefaultCheckout()
