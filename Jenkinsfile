@@ -122,8 +122,7 @@ pipeline {
         stage('Deploy: Dev') {
             agent { label 'deploy.cf' }
             when {
-                branch 'feature/REG-428-continuous-delivery'
-                // branch "master"
+                branch "master"
                 // evaluate the when condition before entering this stage's agent, if any
                 beforeAgent true
             }
