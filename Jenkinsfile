@@ -8,7 +8,7 @@ def agentSbtVersion = 'sbt_0-13-13'
 
 pipeline {
     libraries {
-        lib('jenkins-pipeline-shared@fix/cf-deploy')
+        lib('jenkins-pipeline-shared')
     }
     environment {
         SVC_NAME = "sbr-admin-data-api"
