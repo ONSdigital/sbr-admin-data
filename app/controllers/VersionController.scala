@@ -1,8 +1,7 @@
 package controllers
 
-import javax.inject.Singleton
-
 import io.swagger.annotations.{ Api, ApiOperation, ApiResponse, ApiResponses }
+import javax.inject.Singleton
 import play.api.mvc.{ Action, AnyContent, Controller }
 
 /**
