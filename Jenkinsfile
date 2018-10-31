@@ -88,8 +88,7 @@ pipeline {
         stage('Publish') {
             agent { label "build.${agentSbtVersion}" }
             when {
-                branch 'feature/REG-428-continuous-delivery'
-                // branch "master"
+                branch "master"
                 // evaluate the when condition before entering this stage's agent, if any
                 beforeAgent true
             }
