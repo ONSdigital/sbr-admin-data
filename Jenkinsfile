@@ -8,7 +8,7 @@ def agentSbtVersion = 'sbt_0-13-13'
 
 pipeline {
     libraries {
-        lib('jenkins-pipeline-shared')
+        lib('jenkins-pipeline-shared@fix/cf-deploy')
     }
     environment {
         SVC_NAME = "sbr-admin-data-api"
@@ -154,7 +154,7 @@ pipeline {
                 lock("${this.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
                     deployToCloudFoundry("${distDir}", "${env.VAT_TABLE}")
                 }
-                lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}") {
                     deployToCloudFoundry("${distDir}", "${env.PAYE_TABLE}")
                 }
                 milestone label: 'post deploy:dev', ordinal: 2
@@ -203,7 +203,7 @@ pipeline {
                 lock("${this.env.SPACE.toLowerCase()}-${env.VAT_TABLE}-${this.env.SVC_NAME}") {
                     deployToCloudFoundry("${distDir}", "${env.VAT_TABLE}")
                 }
-                lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}}") {
+                lock("${this.env.SPACE.toLowerCase()}-${env.PAYE_TABLE}-${this.env.SVC_NAME}") {
                     deployToCloudFoundry("${distDir}", "${env.PAYE_TABLE}")
                 }
                 milestone label: 'post deploy:test', ordinal: 3
