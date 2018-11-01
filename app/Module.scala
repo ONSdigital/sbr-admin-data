@@ -10,6 +10,8 @@ import hbase.connector.{ HBaseConnector, HBaseInMemoryConnector }
 import hbase.load.{ AdminDataLoad, BulkLoader, HBaseAdminDataLoader }
 import hbase.repository.{ AdminDataRepository, InMemoryAdminDataRepository, RestAdminDataRepository }
 
+import kamon.Kamon
+
 /**
  * Module
  * ----------------
@@ -30,6 +32,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
         .toProvider(classOf[MetricRegistryProvider])
         .asEagerSingleton()
     }
+    Kamon.loadReportersFromConfig()
   }
 }
 
