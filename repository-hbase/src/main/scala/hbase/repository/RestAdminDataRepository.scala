@@ -82,6 +82,9 @@ class RestAdminDataRepository @Inject() (ws: RequestGenerator, val configuration
             throw e
         }
       }
+      case response if response.status == 404 =>
+        LOGGER.debug("No data found for prefix row key '{}'", key)
+        None
       case ex =>
         LOGGER.error("'{}' Exception received when looking up prefix row key '{}'. Trace '{}'", ex.statusText, key, ex.body)
         throw new Exception(ex.body)
