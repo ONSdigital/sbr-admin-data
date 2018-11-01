@@ -252,7 +252,7 @@ def deployToCloudFoundry(String appDir, String tablename) {
             space = "${this.env.SPACE}"
             appName = "${this.env.SPACE.toLowerCase()}-${tablename}-${this.env.SVC_NAME}"
             appPath = "${appDir}${this.env.SVC_NAME}.zip"
-            manifestPath  = "config/${this.env.SPACE.toLowerCase()}/manifest.yml"
+            manifestPath  = "config/${this.env.SPACE.toLowerCase()}/${tablename}/manifest.yml"
         }
     }
     colourText("success", "${this.env.SPACE.toLowerCase()}-${tablename}-${env.SVC_NAME} deployed.")
